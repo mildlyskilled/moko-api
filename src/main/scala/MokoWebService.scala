@@ -1,12 +1,14 @@
 import akka.http.scaladsl.Http
-import com.mokocharlie.{CoreServices, Routing}
+import com.mokocharlie.CoreServices
+import com.mokocharlie.routing.CoreRoutes
 
 import scala.io.StdIn
 
-object WebServer extends App with CoreServices with Routing{
+object MokoWebService extends App
+  with CoreServices {
 
   val (host, port) = ("localhost", 8080)
-  val bindingFuture = Http().bindAndHandle(routes, host, port)
+  val bindingFuture = Http().bindAndHandle(CoreRoutes.routes, host, port)
 
   bindingFuture.onFailure {
     case ex: Exception => println(s"Could not bind to $host:$port")
