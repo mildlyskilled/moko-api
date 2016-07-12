@@ -18,6 +18,7 @@ libraryDependencies ++= {
     "com.mchange" % "c3p0" % "0.9.5.2",
     "com.typesafe.akka" %% "akka-slf4j"      % akkaVersion,
     "ch.qos.logback"    %  "logback-classic" % "1.1.3",
+    "ch.megard" %% "akka-http-cors" % "0.1.4",
     "com.typesafe.akka" %% "akka-testkit"    % akkaVersion   % "test",
     "org.scalatest"     %% "scalatest"       % "2.2.0"       % "test"
   )

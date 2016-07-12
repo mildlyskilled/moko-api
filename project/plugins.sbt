@@ -1,4 +1,4 @@
-logLevel := Level.Warn
+logLevel := Level.Error
 
 resolvers += Classpaths.typesafeReleases
 
