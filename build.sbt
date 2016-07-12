@@ -6,6 +6,8 @@ scalaVersion := "2.11.8"
 
 organization := "com.mokocharlie"
 
+enablePlugins(JavaServerAppPackaging)
+
 libraryDependencies ++= {
   lazy val akkaVersion = "2.4.7"
   Seq(
