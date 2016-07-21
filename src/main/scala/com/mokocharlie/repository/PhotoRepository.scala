@@ -45,7 +45,7 @@ trait PhotoRepository extends Database with UserRepository {
       published,
       deletedAt,
       cloudImage
-      ) <>((Photo.apply _).tupled, Photo.unapply)
+      ) <> ((Photo.apply _).tupled, Photo.unapply)
 
     // foreign key lookup for user repository
     def ownerFk = foreignKey("owner_fk", ownerId, users)(_.id)
@@ -76,6 +76,14 @@ trait PhotoRepository extends Database with UserRepository {
 
     def findPhotoByID(id: Long): Future[Option[Photo]] = {
       db.run(photos.filter(_.id === id).result.headOption)
+    }
+
+    def findPhotosByUserId(userId: Long, page: Int, limit: Int): Future[Page[Photo]] = {
+      val query = photos.filter(_.ownerId === userId)
+      for {
+        total <- db.run(query.groupBy(_ => 0).map(_._2.length).result)
+        photos <- db.run(query.result)
+      } yield Page(photos, page, limit, total.head)
     }
   }
 

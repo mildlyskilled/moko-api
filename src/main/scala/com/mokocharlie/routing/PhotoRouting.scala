@@ -20,9 +20,7 @@ object PhotoRouting extends PhotoRepository with Marshalling {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
           (pageNumber, limit) => {
             val photosFuture = PhotoDAO.list(pageNumber, limit)
-            onSuccess(photosFuture) {
-              case page => complete(page)
-            }
+            onSuccess(photosFuture)(page => complete(page))
           }
         }
 
