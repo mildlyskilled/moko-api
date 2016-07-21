@@ -71,7 +71,7 @@ trait CommentRepository extends Database
       }
 
       for {
-        comments <- db.run(commentQuery.result)
+      comments <- db.run(commentQuery.result)
       } yield Page(comments, page, offset, totalComments)
 
     }

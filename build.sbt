@@ -1,4 +1,4 @@
-name := "akka-http-moko"
+name := "mokocharlie-api"
 
 version := "1.0"
 
@@ -6,7 +6,13 @@ scalaVersion := "2.11.8"
 
 organization := "com.mokocharlie"
 
-enablePlugins(JavaServerAppPackaging)
+lazy val root = (project in file(".")).
+  enablePlugins(JavaServerAppPackaging).
+  settings(
+    name := "mokocharlie-api",
+    scalaVersion := "2.11.8",
+    version := "1.0"
+  )
 
 libraryDependencies ++= {
   lazy val akkaVersion = "2.4.7"

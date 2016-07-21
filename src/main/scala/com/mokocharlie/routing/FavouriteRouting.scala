@@ -5,21 +5,19 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import ch.megard.akka.http.cors.CorsDirectives._
 import com.mokocharlie.Marshalling
-import com.mokocharlie.repository.CommentRepository
+import com.mokocharlie.repository.FavouriteRepository
 
-object CommentRouting extends CommentRepository with Marshalling {
-
-  var routes: Route = cors() {
-    path ("photos" / LongNumber / "comments") { id =>
+object FavouriteRouting extends FavouriteRepository with Marshalling {
+  val routes: Route = cors() {
+    path("photos" / LongNumber / "favourites") { id =>
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
           (pageNumber, limit) => {
-            val commentsFuture = CommentDAO.findCommentsByImageID(id, pageNumber, limit)
-            onSuccess(commentsFuture)(page => complete(page))
+            val favouriteFuture = FavouriteDAO.findFavouritesByImageID(id, pageNumber, limit)
+            onSuccess(favouriteFuture)(favSeq => complete(favSeq))
           }
         }
       }
     }
-
   }
 }

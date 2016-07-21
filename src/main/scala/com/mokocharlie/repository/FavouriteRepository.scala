@@ -3,10 +3,11 @@ package com.mokocharlie.repository
 import java.sql.Timestamp
 
 import com.mokocharlie.connection.Database
-import com.mokocharlie.model.Favourite
+import com.mokocharlie.model.{Favourite, Page}
 import slick.driver.MySQLDriver.api._
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 trait FavouriteRepository extends Database {
 
@@ -19,15 +20,21 @@ trait FavouriteRepository extends Database {
 
     def createdAt = column[Timestamp]("created_at")
 
-    def * = (id, photoID, userID, createdAt) <>((Favourite.apply _).tupled, Favourite.unapply)
+    def * = (id, photoID, userID, createdAt) <> ((Favourite.apply _).tupled, Favourite.unapply)
   }
 
   val favourites = TableQuery[FavouriteTable]
 
   object FavouriteDAO {
-    def findFavouritesByImageID(imageID: Long): Future[Seq[Favourite]] = {
+    def findFavouritesByImageID(imageID: Long, page: Int, limit: Int): Future[Page[Favourite]] = {
+      val offset = limit * page
+
       val query = favourites filter (_.photoID === imageID)
-      db.run(query.result)
+
+      for {
+        totalFavourites <- db.run(query.groupBy(_ => 0).map(_._2.length).result).map(_.head)
+        favourites <- db.run(query.result)
+      } yield Page(favourites, page, offset, totalFavourites)
     }
 
     def findFavouritesByUserAndImage(imageID: Long, userID: Long): Future[Option[Favourite]] = {
