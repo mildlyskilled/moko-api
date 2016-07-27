@@ -2,7 +2,7 @@ package com.mokocharlie.repository
 
 import java.sql.Timestamp
 
-import com.mokocharlie.model.{User, Page}
+import com.mokocharlie.model.{User, Page, Password}
 import com.mokocharlie.connection.Database
 import slick.driver.MySQLDriver.api._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -10,11 +10,10 @@ import scala.concurrent.Future
 
 trait UserRepository extends Database {
 
-
   class UserTable(tag: Tag) extends Table[User](tag, "common_mokouser") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
-    def password = column[String]("password")
+    def password = column[Password]("password")
 
     def lastLogin = column[Timestamp]("last_login")
 

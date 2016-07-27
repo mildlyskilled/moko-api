@@ -2,36 +2,38 @@ package com.mokocharlie.model
 
 import java.sql.Timestamp
 
+import slick.lifted.MappedTo
+
 sealed trait MokoModel
 
-final case class Album (
-                  id: Long,
-                  albumId: Option[Long],
-                  label: String,
-                  description: String,
-                  coverId: Option[Long],
-                  createdAt: Timestamp,
-                  updatedAt: Option[Timestamp],
-                  published: Boolean,
-                  featured: Boolean) extends MokoModel
+final case class Album(
+                        id: Long,
+                        albumId: Option[Long],
+                        label: String,
+                        description: String,
+                        coverId: Option[Long],
+                        createdAt: Timestamp,
+                        updatedAt: Option[Timestamp],
+                        published: Boolean,
+                        featured: Boolean) extends MokoModel
 
 
 final case class Photo(id: Long,
-                 imageId: String,
-                 name: String,
-                 path: Option[String],
-                 caption: String,
-                 createdAt: Timestamp,
-                 updatedAt: Timestamp,
-                 ownerId: Long,
-                 published: Boolean,
-                 deletedAt: Option[Timestamp],
-                 cloudImage: Option[String]) extends MokoModel
+                       imageId: String,
+                       name: String,
+                       path: Option[String],
+                       caption: String,
+                       createdAt: Timestamp,
+                       updatedAt: Timestamp,
+                       ownerId: Long,
+                       published: Boolean,
+                       deletedAt: Option[Timestamp],
+                       cloudImage: Option[String]) extends MokoModel
 
 final case class PhotoAlbum(id: Long, photo: Long, album: Long) extends MokoModel
 
 final case class User(id: Long,
-                      password: String,
+                      password: Password,
                       lastLogin: Timestamp,
                       isSuperuser: Boolean,
                       email: String,
@@ -49,3 +51,7 @@ final case class Comment(commentID: Long,
                          author: String,
                          createdAt: Timestamp,
                          approved: Boolean) extends MokoModel
+
+case class Password(value: String) extends MappedTo[String] {
+  override def toString: String = "<redacted>"
+}
