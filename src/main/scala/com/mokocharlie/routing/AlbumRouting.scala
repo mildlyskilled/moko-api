@@ -4,6 +4,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
+import ch.megard.akka.http.cors.CorsDirectives._
 import com.mokocharlie.Marshalling
 import com.mokocharlie.model.Album
 import com.mokocharlie.repository.AlbumRepository
@@ -12,14 +13,12 @@ import scala.concurrent.Future
 
 object AlbumRouting extends AlbumRepository with Marshalling {
 
-  val routes: Route = {
+  val routes: Route = cors() {
     path("albums") {
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
           (pageNumber, limit) => val albumsFuture = AlbumDAO.list(pageNumber, limit)
-            onSuccess(albumsFuture) {
-              case page => complete(page)
-            }
+            onSuccess(albumsFuture)(page => complete(page))
         }
       }
     } ~
@@ -28,6 +27,16 @@ object AlbumRouting extends AlbumRepository with Marshalling {
         onSuccess(albumFuture) {
           case Some(album) => complete(album)
           case None => complete(StatusCode.int2StatusCode(404))
+        }
+      } ~
+      pathPrefix("albums" / "featured") {
+        get {
+          parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
+            (pageNumber, limit) => {
+              val featuredAlbumsFuture = AlbumDAO.getFeaturedAlbums(pageNumber, limit)
+              onSuccess(featuredAlbumsFuture)(page => complete(page))
+            }
+          }
         }
       }
   }

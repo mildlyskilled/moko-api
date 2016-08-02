@@ -82,6 +82,15 @@ trait AlbumRepository extends Database {
         }
       }
     }
+
+    def getFeaturedAlbums(page: Int = 1, limit: Int = 10): Future[Page[Album]] = {
+      val offset = limit * (page - 1)
+      val query = albums.filter(_.featured).sortBy(_.createdAt.desc.nullsFirst)
+      for {
+        total <- db.run(query.groupBy(_ => 0).map(_._2.length).result)
+        albums <- db.run(query.drop(offset).take(limit).result)
+      } yield Page(albums, page, offset, total.head)
+    }
   }
 
 }

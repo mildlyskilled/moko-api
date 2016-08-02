@@ -20,5 +20,7 @@ object CoreRoutes extends RouteConcatenation {
     AlbumRouting.routes
   } ~ {
     UserRouting.routes
+  } ~ {
+    CollectionRouting.routes
   }
 }

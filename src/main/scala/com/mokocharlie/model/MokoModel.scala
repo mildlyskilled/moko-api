@@ -15,7 +15,8 @@ final case class Album(
                         createdAt: Timestamp,
                         updatedAt: Option[Timestamp],
                         published: Boolean,
-                        featured: Boolean) extends MokoModel
+                        featured: Boolean
+                      ) extends MokoModel
 
 
 final case class Photo(id: Long,
@@ -28,7 +29,8 @@ final case class Photo(id: Long,
                        ownerId: Long,
                        published: Boolean,
                        deletedAt: Option[Timestamp],
-                       cloudImage: Option[String]) extends MokoModel
+                       cloudImage: Option[String]
+                      ) extends MokoModel
 
 final case class PhotoAlbum(id: Long, photo: Long, album: Long) extends MokoModel
 
@@ -41,7 +43,8 @@ final case class User(id: Long,
                       lastName: String,
                       isStaff: Boolean,
                       isActive: Boolean,
-                      dateJoined: Timestamp) extends MokoModel
+                      dateJoined: Timestamp
+                     ) extends MokoModel
 
 final case class Favourite(id: Long, photoID: Long, userID: Long, createdAt: Timestamp) extends MokoModel
 
@@ -50,7 +53,23 @@ final case class Comment(commentID: Long,
                          comment: String,
                          author: String,
                          createdAt: Timestamp,
-                         approved: Boolean) extends MokoModel
+                         approved: Boolean
+                        ) extends MokoModel
+
+final case class Collection(id: Long,
+                            name: String,
+                            featured: Boolean,
+                            createdAt: Timestamp,
+                            updatedAt: Timestamp,
+                            description: String,
+                            coverAlbumId: Long
+                           ) extends MokoModel
+
+
+final case class CollectionAlbum(id: Long,
+                                 collectionId: Long,
+                                 albumId: Long
+                                ) extends MokoModel
 
 case class Password(value: String) extends MappedTo[String] {
   override def toString: String = "<redacted>"

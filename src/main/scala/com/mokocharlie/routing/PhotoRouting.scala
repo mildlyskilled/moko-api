@@ -33,6 +33,5 @@ object PhotoRouting extends PhotoRepository with Marshalling {
           case None => complete(StatusCode.int2StatusCode(404))
         }
       }
-
   }
 }
