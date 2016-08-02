@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import ch.megard.akka.http.cors.CorsDirectives._
 import com.mokocharlie.Marshalling
-import com.mokocharlie.model.Collection
+import com.mokocharlie.model.{Album, Collection, Page}
 import com.mokocharlie.repository.CollectionRepository
 
 import scala.concurrent.Future
@@ -22,14 +22,16 @@ object CollectionRouting extends CollectionRepository with Marshalling {
             onSuccess(collectionFuture)(page => complete(page))
           }
         }
-        }
-      } ~ pathPrefix("collections" / LongNumber) { id =>
+      }
+    } ~ path("collections" / LongNumber) { id =>
       val collectionFuture: Future[Option[Collection]] = CollectionDAO.findCollectionById(id)
       onSuccess(collectionFuture) {
         case Some(collection) => complete(collection)
         case None => complete(StatusCodes.NotFound)
       }
+    } ~ path("collections" / LongNumber / "albums") { id =>
+      val albumsFuture: Future[Page[Album]] = CollectionDAO.getCollectionAlbums(id)
+      onSuccess(albumsFuture)(page => complete(page))
     }
-    }
-
   }
+}
