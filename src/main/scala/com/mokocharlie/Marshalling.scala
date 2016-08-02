@@ -2,7 +2,7 @@ package com.mokocharlie
 
 import com.mokocharlie.model._
 import spray.json.DefaultJsonProtocol._
-import com.mokocharlie.converter.Conversions._
+import com.mokocharlie.conversions.Conversions._
 import spray.json.JsonFormat
 
 trait Marshalling {

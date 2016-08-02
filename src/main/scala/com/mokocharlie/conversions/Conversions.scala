@@ -1,4 +1,4 @@
-package com.mokocharlie.converter
+package com.mokocharlie.conversions
 
 import java.sql.Timestamp
 
