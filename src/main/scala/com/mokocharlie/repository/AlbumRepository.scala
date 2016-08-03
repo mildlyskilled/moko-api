@@ -83,6 +83,19 @@ trait AlbumRepository extends Database {
       }
     }
 
+    def getAlbumPhotos(albumID: Long, page: Int = 1, limit: Int = 10): Future[Page[Photo]] = {
+      val offset = limit * (page - 1)
+      val photoJoin = for {
+        p <- photos
+        pa <- photoAlbums.filter(_.albumID === albumID) if p.id === pa.photoID
+      } yield p
+
+      for {
+        total <- db.run(photoJoin.length.result)
+        photos <- db.run(photoJoin.result)
+      } yield Page(photos, page, offset, total)
+    }
+
     def getFeaturedAlbums(page: Int = 1, limit: Int = 10): Future[Page[Album]] = {
       val offset = limit * (page - 1)
       val query = albums.filter(_.featured).sortBy(_.createdAt.desc.nullsFirst)
