@@ -92,6 +92,10 @@ trait CommentRepository extends Database
       db.run(commentQuery.result)
     }
 
+    def findCommentByID(id: Long): Future[Option[Comment]] = {
+      db.run(comments.filter(_.id === id).result.headOption)
+    }
+
   }
 
 }
