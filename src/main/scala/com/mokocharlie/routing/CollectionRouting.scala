@@ -22,16 +22,22 @@ object CollectionRouting extends CollectionRepository with Marshalling {
             onSuccess(collectionFuture)(page => complete(page))
           }
         }
-      }
-    } ~ path("collections" / LongNumber) { id =>
+        }
+      } ~ path("collections" / LongNumber) { id =>
       val collectionFuture: Future[Option[Collection]] = CollectionDAO.findCollectionById(id)
       onSuccess(collectionFuture) {
         case Some(collection) => complete(collection)
-        case None => complete(StatusCodes.NotFound)
+        case None => complete(StatusCodes.NotFound.toString)
       }
     } ~ path("collections" / LongNumber / "albums") { id =>
-      val albumsFuture: Future[Page[Album]] = CollectionDAO.getCollectionAlbums(id)
-      onSuccess(albumsFuture)(page => complete(page))
+      parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
+        (page, limit) => {
+          val albumsFuture: Future[Page[Album]] = CollectionDAO.getCollectionAlbums(id, page, limit)
+          onSuccess(albumsFuture)(page => complete(page))
+        }
+      }
+
     }
   }
+
 }
