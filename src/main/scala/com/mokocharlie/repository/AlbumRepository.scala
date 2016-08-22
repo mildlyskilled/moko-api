@@ -64,7 +64,7 @@ trait AlbumRepository extends Database {
       for {
         total <- db.run(query.groupBy(_ => 0).map(_._2.length).result)
         albums <- db.run(query.drop(offset).take(limit).result)
-      } yield Page(albums, page, limit, total.head)
+      } yield Page(albums, page, limit, total.headOption)
     }
 
 
@@ -83,26 +83,13 @@ trait AlbumRepository extends Database {
       }
     }
 
-    def getAlbumPhotos(albumID: Long, page: Int = 1, limit: Int = 10): Future[Page[Photo]] = {
-      val offset = limit * (page - 1)
-      val photoJoin = for {
-        p <- photos
-        pa <- photoAlbums.filter(_.albumID === albumID) if p.id === pa.photoID
-      } yield p
-
-      for {
-        total <- db.run(photoJoin.length.result)
-        photos <- db.run(photoJoin.result)
-      } yield Page(photos, page, offset, total)
-    }
-
     def getFeaturedAlbums(page: Int = 1, limit: Int = 10): Future[Page[Album]] = {
       val offset = limit * (page - 1)
       val query = albums.filter(_.featured).sortBy(_.createdAt.desc.nullsFirst)
       for {
         total <- db.run(query.groupBy(_ => 0).map(_._2.length).result)
         albums <- db.run(query.drop(offset).take(limit).result)
-      } yield Page(albums, page, offset, total.head)
+      } yield Page(albums, page, offset, total.headOption)
     }
   }
 

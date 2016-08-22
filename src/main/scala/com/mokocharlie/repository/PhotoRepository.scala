@@ -53,7 +53,7 @@ trait PhotoRepository extends Database with UserRepository {
 
   val photos = TableQuery[PhotoTable]
 
-  object PhotoDAO {
+  object PhotoDAO extends AlbumPhotoRepository {
 
     def list(page: Int, limit: Int, exclude: Seq[Long] = Seq()): Future[Page[Photo]] = {
       val offset = limit * (page - 1)
@@ -67,7 +67,7 @@ trait PhotoRepository extends Database with UserRepository {
       for {
         total <- db.run(query.groupBy(_ => 0).map(_._2.length).result)
         photos <- db.run(query.drop(offset).take(limit).result)
-      } yield Page(photos, page, limit, total.head)
+      } yield Page(photos, page, limit, total.headOption)
     }
 
     def findPhotoByImageID(imageID: String): Future[Option[Photo]] = {
@@ -83,8 +83,22 @@ trait PhotoRepository extends Database with UserRepository {
       for {
         total <- db.run(query.groupBy(_ => 0).map(_._2.length).result)
         photos <- db.run(query.result)
-      } yield Page(photos, page, limit, total.head)
+      } yield Page(photos, page, limit, total.headOption)
     }
+
+    def getPhotosByAlbumId(albumID: Long, page: Int = 1, limit: Int = 10): Future[Page[Photo]] = {
+      val offset = limit * (page - 1)
+      val photoJoin = for {
+        p <- photos
+        pa <- photoAlbums.filter(_.albumID === albumID) if p.id === pa.photoID
+      } yield p
+
+      for {
+        total <- db.run(photoJoin.length.result)
+        photos <- db.run(photoJoin.result)
+      } yield Page(photos, page, offset, Some(total))
+    }
+
   }
 
 }

@@ -71,6 +71,11 @@ final case class CollectionAlbum(id: Long,
                                  albumId: Long
                                 ) extends MokoModel
 
+final case class Video(id: Long, externalId: String, externalSource: String) extends MokoModel
+
+final case class Documentary(id: Long, description: String, status: String, createdAt: Timestamp, updatedAt: Timestamp)
+  extends MokoModel
+
 case class Password(value: String) extends MappedTo[String] {
   override def toString: String = "<redacted>"
 }

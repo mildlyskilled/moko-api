@@ -6,8 +6,9 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import ch.megard.akka.http.cors.CorsDirectives._
 import com.mokocharlie.Marshalling
-import com.mokocharlie.model.Photo
+import com.mokocharlie.model.{Page, Photo}
 import com.mokocharlie.repository.{CommentRepository, PhotoRepository}
+
 import scala.concurrent.Future
 
 
@@ -39,6 +40,16 @@ object PhotoRouting extends PhotoRepository with CommentRepository with Marshall
           }
         }
       }
+    } ~ path("photos" / "album" / LongNumber) { id => {
+      get {
+        parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
+          (pageNumber, limit) => {
+            val albumPhotos: Future[Page[Photo]] = PhotoDAO.getPhotosByAlbumId(id, pageNumber, limit)
+            onSuccess(albumPhotos)(page => complete(page))
+          }
+        }
+      }
+    }
     }
   }
 }

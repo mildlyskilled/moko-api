@@ -7,11 +7,11 @@ import akka.http.scaladsl.server._
 import ch.megard.akka.http.cors.CorsDirectives._
 import com.mokocharlie.Marshalling
 import com.mokocharlie.model.{Album, Page, Photo}
-import com.mokocharlie.repository.AlbumRepository
+import com.mokocharlie.repository.{AlbumRepository, PhotoRepository}
 
 import scala.concurrent.Future
 
-object AlbumRouting extends AlbumRepository with Marshalling {
+object AlbumRouting extends AlbumRepository with PhotoRepository with Marshalling {
 
   val routes: Route = cors() {
     path("albums") {
@@ -36,17 +36,6 @@ object AlbumRouting extends AlbumRepository with Marshalling {
           }
         }
       }
-    } ~ path("albums" / LongNumber / "photos") { id => {
-      get {
-        parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
-          (pageNumber, limit) => {
-            val albumPhotos: Future[Page[Photo]] = AlbumDAO.getAlbumPhotos(id, pageNumber, limit)
-            onSuccess(albumPhotos)(page => complete(page))
-          }
-        }
-      }
-    }
     }
   }
-
 }

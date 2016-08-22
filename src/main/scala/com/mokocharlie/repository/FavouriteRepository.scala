@@ -32,9 +32,9 @@ trait FavouriteRepository extends Database {
       val query = favourites filter (_.photoID === imageID)
 
       for {
-        totalFavourites <- db.run(query.groupBy(_ => 0).map(_._2.length).result).map(_.head)
+        totalFavourites <- db.run(query.groupBy(_ => 0).map(_._2.length).result)
         favourites <- db.run(query.result)
-      } yield Page(favourites, page, offset, totalFavourites)
+      } yield Page(favourites, page, offset, totalFavourites.headOption)
     }
 
     def findFavouritesByUserAndImage(imageID: Long, userID: Long): Future[Option[Favourite]] = {

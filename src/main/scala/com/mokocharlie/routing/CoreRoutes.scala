@@ -22,5 +22,9 @@ object CoreRoutes extends RouteConcatenation {
     UserRouting.routes
   } ~ {
     CollectionRouting.routes
+  } ~ {
+    VideoRouting.routes
+  } ~ {
+    DocumentaryRouting.routes
   }
 }

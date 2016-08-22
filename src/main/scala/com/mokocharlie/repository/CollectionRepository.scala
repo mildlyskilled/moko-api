@@ -61,7 +61,7 @@ trait CollectionRepository extends Database {
       for {
         total <- db.run(query.groupBy(_ => 0).map(_._2.length).result)
         collections <- db.run(query.result)
-      } yield Page(collections, page, offset, total.head)
+      } yield Page(collections, page, offset, total.headOption)
     }
 
     def getCollectionAlbums(collectionID: Long, page: Int = 1, limit: Int = 10): Future[Page[Album]] = {
@@ -75,7 +75,7 @@ trait CollectionRepository extends Database {
       for {
         total <- db.run(albumJoin.length.result)
         albums <- db.run(albumJoin.drop(offset).take(limit).result)
-      } yield Page(albums, page, offset, total)
+      } yield Page(albums, page, offset, Some(total))
 
     }
   }

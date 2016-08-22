@@ -52,7 +52,7 @@ trait CommentRepository extends Database
       for {
         total <- db.run(commentQuery.groupBy(_ => 0).map(_._2.length).result)
         comments <- db.run(commentQuery.drop(offset).take(limit).result)
-      } yield Page(comments, page, offset, total.head)
+      } yield Page(comments, page, offset, total.headOption)
     }
 
     def findCommentsByImageID(imageID: Long, page: Int, limit: Int): Future[Page[Comment]] = {
@@ -72,7 +72,7 @@ trait CommentRepository extends Database
 
       for {
       comments <- db.run(commentQuery.result)
-      } yield Page(comments, page, offset, totalComments)
+      } yield Page(comments, page, offset, Some(totalComments))
 
     }
 

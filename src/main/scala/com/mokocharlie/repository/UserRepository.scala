@@ -69,7 +69,7 @@ trait UserRepository extends Database {
       for {
         total <- db.run(totalQuery.result)
         user <- db.run(userQuery.result)
-      } yield Page(user, page, offset, total.head)
+      } yield Page(user, page, offset, total.headOption)
     }
 
   }
