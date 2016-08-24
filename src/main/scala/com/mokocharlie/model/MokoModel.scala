@@ -76,6 +76,9 @@ final case class Video(id: Long, externalId: String, externalSource: String) ext
 final case class Documentary(id: Long, description: String, status: String, createdAt: Timestamp, updatedAt: Timestamp)
   extends MokoModel
 
+
+final case class DocumentaryVideo(id: Long, documentaryID: Long, videoID: Long) extends MokoModel
+
 case class Password(value: String) extends MappedTo[String] {
   override def toString: String = "<redacted>"
 }
