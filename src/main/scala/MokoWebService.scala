@@ -1,16 +1,16 @@
 import akka.http.scaladsl.Http
 import com.mokocharlie.CoreServices
 import com.mokocharlie.routing.CoreRoutes
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.io.StdIn
 
-object MokoWebService extends App
-  with CoreServices {
+object MokoWebService extends App with CoreServices with StrictLogging {
 
   val (host, port) = ("localhost", 8080)
   val bindingFuture = Http().bindAndHandle(CoreRoutes.routes, host, port)
 
-  bindingFuture.onFailure {
+  bindingFuture.failed.foreach {
     case ex: Exception => println(s"Could not bind to $host:$port")
   }
 

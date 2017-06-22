@@ -1,14 +1,14 @@
 package com.mokocharlie
 
 import akka.actor.ActorSystem
-import akka.event.{ Logging, LoggingAdapter }
-import akka.stream.{ ActorMaterializer, ActorMaterializerSettings, Materializer, Supervision }
+import akka.event.{Logging, LoggingAdapter}
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Materializer, Supervision}
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.ExecutionContext
 
-trait CoreServices extends GenericServices {
+trait CoreServices extends GenericServices with StrictLogging {
   implicit val system: ActorSystem = ActorSystem()
-  implicit val log: LoggingAdapter = Logging(system, this.getClass)
   val decider: Supervision.Decider = {
     case _ ⇒ Supervision.Resume
   }

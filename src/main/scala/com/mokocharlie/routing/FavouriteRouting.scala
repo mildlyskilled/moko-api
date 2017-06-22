@@ -3,7 +3,7 @@ package com.mokocharlie.routing
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import ch.megard.akka.http.cors.CorsDirectives._
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
 import com.mokocharlie.Marshalling
 import com.mokocharlie.repository.FavouriteRepository
 

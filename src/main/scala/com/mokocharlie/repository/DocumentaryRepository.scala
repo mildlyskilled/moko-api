@@ -4,8 +4,9 @@ import java.sql.Timestamp
 
 import com.mokocharlie.connection.Database
 import com.mokocharlie.model.{Documentary, Page}
-import slick.driver.MySQLDriver.api._
-import slick.profile.SqlProfile.ColumnOption.NotNull
+import slick.jdbc.MySQLProfile.api._
+import slick.sql.SqlProfile.ColumnOption.NotNull
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
