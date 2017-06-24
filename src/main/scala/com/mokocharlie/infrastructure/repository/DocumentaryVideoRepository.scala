@@ -1,6 +1,6 @@
 package com.mokocharlie.infrastructure.repository
 
-import com.mokocharlie.connection.Database
+import com.mokocharlie.incoming.connection.Database
 import com.mokocharlie.domain.DocumentaryVideo
 import slick.lifted.TableQuery
 import slick.driver.MySQLDriver.api._

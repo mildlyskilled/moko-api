@@ -1,4 +1,4 @@
-package com.mokocharlie.infrastructure.inbound
+package com.mokocharlie.infrastructure.inbound.routing
 
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.RouteConcatenation

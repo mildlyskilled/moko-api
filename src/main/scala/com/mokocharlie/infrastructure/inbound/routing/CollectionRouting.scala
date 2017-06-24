@@ -1,17 +1,20 @@
-package com.mokocharlie.infrastructure.inbound
+package com.mokocharlie.infrastructure.inbound.routing
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
 import com.mokocharlie.domain.{Album, Collection, Page}
-import com.mokocharlie.infrastructure.outbound.Marshalling
+import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.repository.CollectionRepository
 
 import scala.concurrent.Future
 
-object CollectionRouting extends CollectionRepository with Marshalling {
+object CollectionRouting
+  extends CollectionRepository
+    with SprayJsonSupport
+    with JsonConversion {
 
   val routes: Route = cors() {
     path("collections") {
@@ -22,8 +25,8 @@ object CollectionRouting extends CollectionRepository with Marshalling {
             onSuccess(collectionFuture)(page => complete(page))
           }
         }
-        }
-      } ~ path("collections" / LongNumber) { id =>
+      }
+    } ~ path("collections" / LongNumber) { id =>
       val collectionFuture: Future[Option[Collection]] = CollectionDAO.findCollectionById(id)
       onSuccess(collectionFuture) {
         case Some(collection) => complete(collection)

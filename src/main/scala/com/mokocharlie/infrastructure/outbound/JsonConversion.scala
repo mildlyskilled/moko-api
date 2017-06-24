@@ -3,7 +3,7 @@ package com.mokocharlie.infrastructure.outbound
 import java.sql.Timestamp
 
 import com.mokocharlie.domain._
-import spray.json.{DefaultJsonProtocol, DeserializationException, JsNumber, JsString, JsValue, RootJsonFormat}
+import spray.json._
 
 trait JsonConversion extends DefaultJsonProtocol {
   implicit object TimestampFormat extends RootJsonFormat[Timestamp] {

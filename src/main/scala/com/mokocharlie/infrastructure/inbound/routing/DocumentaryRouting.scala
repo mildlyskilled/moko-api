@@ -1,14 +1,17 @@
-package com.mokocharlie.infrastructure.inbound
+package com.mokocharlie.infrastructure.inbound.routing
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
-import com.mokocharlie.infrastructure.outbound.Marshalling
+import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.repository.DocumentaryRepository
 
-object DocumentaryRouting extends DocumentaryRepository with Marshalling {
+object DocumentaryRouting
+  extends DocumentaryRepository
+    with SprayJsonSupport
+    with JsonConversion {
 
   def routes: Route = cors() {
     path("documentaries") {
@@ -16,10 +19,7 @@ object DocumentaryRouting extends DocumentaryRepository with Marshalling {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
           (pageNumber, limit) =>
             val documentaryFuture = DocumentaryDAO.list(pageNumber, limit)
-            onSuccess(documentaryFuture) {
-              case page => complete(page)
-              case _ => complete(StatusCodes.NotFound)
-            }
+            onSuccess(documentaryFuture)(page => complete(page))
         }
       }
     } ~ path("documentaries" / LongNumber) { id =>

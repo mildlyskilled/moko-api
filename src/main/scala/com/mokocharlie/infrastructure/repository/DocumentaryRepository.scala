@@ -2,9 +2,8 @@ package com.mokocharlie.infrastructure.repository
 
 import java.sql.Timestamp
 
-import com.mokocharlie.connection.Database
+import com.mokocharlie.incoming.connection.Database
 import com.mokocharlie.domain.{Documentary, Page}
-import com.mokocharlie.model.Page
 import slick.jdbc.MySQLProfile.api._
 import slick.sql.SqlProfile.ColumnOption.NotNull
 

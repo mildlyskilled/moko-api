@@ -2,13 +2,12 @@ package com.mokocharlie.infrastructure.repository
 
 import java.sql.Timestamp
 
-import com.mokocharlie.connection.Database
+import com.mokocharlie.incoming.connection.Database
 import com.mokocharlie.domain.{Album, Collection, Page}
-import com.mokocharlie.model.{Collection, Page}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import slick.lifted.TableQuery
-import slick.driver.MySQLDriver.api._
+import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.Future
 

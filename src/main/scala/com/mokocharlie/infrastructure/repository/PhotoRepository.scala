@@ -2,10 +2,9 @@ package com.mokocharlie.infrastructure.repository
 
 import java.sql.Timestamp
 
-import com.mokocharlie.connection.Database
+import com.mokocharlie.incoming.connection.Database
 import com.mokocharlie.domain.{Page, Photo}
-import slick.driver.MySQLDriver.api._
-import com.mokocharlie.model.Page
+import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
