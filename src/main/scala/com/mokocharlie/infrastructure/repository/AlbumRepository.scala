@@ -1,98 +1,71 @@
 package com.mokocharlie.infrastructure.repository
 
-import java.sql.Timestamp
+import com.mokocharlie.domain.MokoModel._
+import com.mokocharlie.domain.Page
+import com.mokocharlie.domain.common.MokoCharlieServiceError.DatabaseServiceError
+import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
+import com.mokocharlie.infrastructure.repository.common.JdbcRepository
+import com.typesafe.config.Config
+import com.typesafe.scalalogging.StrictLogging
 
-import com.mokocharlie.domain.{Page, Photo}
-import com.mokocharlie.incoming.connection.Database
-import com.mokocharlie.domain.{Album, Page, Photo}
-import slick.lifted.TableQuery
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import slick.jdbc.MySQLProfile.api._
-
-import scala.concurrent.Future
-
-
-trait AlbumRepository extends Database {
-
-  class AlbumTable(tag: Tag) extends Table[Album](tag, "common_album") {
-
-    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
-
-    def albumId = column[Option[Long]]("album_id")
-
-    def label = column[String]("label")
-
-    def description = column[String]("description")
-
-    def coverId = column[Option[Long]]("cover_id")
-
-    def createdAt = column[Timestamp]("created_at")
-
-    def updatedAt = column[Option[Timestamp]]("updated_at")
-
-    def published = column[Boolean]("published", O.Default(false))
-
-    def featured = column[Boolean]("featured", O.Default(false))
-
-    def * = (
-      id,
-      albumId,
-      label,
-      description,
-      coverId,
-      createdAt,
-      updatedAt,
-      published,
-      featured
-      ) <>((Album.apply _).tupled, Album.unapply)
-
-  }
-
-  val albums = TableQuery[AlbumTable]
+import scala.collection.immutable.Seq
+import scalikejdbc._
 
 
-  object AlbumDAO extends AlbumPhotoRepository with PhotoRepository {
+class AlbumRepository(override val config: Config)
+  extends JdbcRepository
+  with StrictLogging {
 
-    def list(page: Int, limit: Int, exclude: Seq[Long] = Seq()): Future[Page[Album]] = {
-      val offset = limit * (page - 1)
-      val select = albums.filter(_.published).sortBy(_.createdAt.desc.nullsFirst)
-
-      val query = {
-        if (exclude.isEmpty) select
-        else select.filterNot(_.id inSet exclude)
-      }
-
-      for {
-        total <- db.run(query.groupBy(_ => 0).map(_._2.length).result)
-        albums <- db.run(query.drop(offset).take(limit).result)
-      } yield Page(albums, page, limit, total.headOption)
-    }
-
-
-    def findAlbumByID(albumID: Long): Future[Option[Album]] = {
-      db.run(albums.filter(_.id === albumID).result.headOption)
-    }
-
-    def getAlbumCoverByAlbumID(albumID: Long): Future[Option[Photo]] = {
-      findAlbumByID(albumID).flatMap { coverOpt: Option[Album] =>
-        coverOpt match {
-          case Some(cover: Album) =>
-            db.run(photos.filter(_.id === cover.coverId).result.headOption)
-          case None =>
-            Future.successful(None)
+    def list(page: Int, limit: Int, exclude: Seq[Long] = Seq.empty): RepositoryResponse[Page[Album]] =
+      readOnlyTransaction{implicit session ⇒
+        try{
+          val offset = (page * limit) + 1
+          val albums = sql"""
+            $defaultSelect
+           LIMIT $offset, $limit
+           """.map(toAlbum).list.apply()
+          Right(Page(albums, page, limit, total()))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
         }
       }
+
+  def findAlbumByID(albumID: Long): RepositoryResponse[Option[Album]] = ???
+
+  def getAlbumCoverByAlbumID(albumID: Long): RepositoryResponse[Option[Photo]] = ???
+
+  def getFeaturedAlbums(page: Int = 1, limit: Int = 10): RepositoryResponse[Page[Album]] = ???
+
+  def total(): Option[Int] =
+    readOnlyTransaction { implicit session ⇒
+      sql"SELECT COUNT(id) AS total FROM common_album".map(rs ⇒ rs.int("total")).single.apply()
     }
 
-    def getFeaturedAlbums(page: Int = 1, limit: Int = 10): Future[Page[Album]] = {
-      val offset = limit * (page - 1)
-      val query = albums.filter(_.featured).sortBy(_.createdAt.desc.nullsFirst)
-      for {
-        total <- db.run(query.groupBy(_ => 0).map(_._2.length).result)
-        albums <- db.run(query.drop(offset).take(limit).result)
-      } yield Page(albums, page, offset, total.headOption)
-    }
-  }
+  private val defaultSelect =
+    sqls"""
+         SELECT
+         id,
+         album_id,
+         label,
+         description,
+         created_at,
+         updated_at,
+         published,
+         featured,
+         cover_id
+         FROM common_album
+       """
 
+  private def toAlbum(rs: WrappedResultSet): Album =
+    Album(
+      rs.int("id"),
+      rs.longOpt("album_id"),
+      rs.string("label"),
+      rs.string("description"),
+      rs.longOpt("cover_id"),
+      rs.timestamp("created_at"),
+      rs.timestampOpt("updated_at"),
+      rs.boolean("published"),
+      rs.boolean("featured")
+    )
 }

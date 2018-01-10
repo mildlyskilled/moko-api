@@ -2,7 +2,8 @@ package com.mokocharlie.infrastructure.outbound
 
 import java.sql.Timestamp
 
-import com.mokocharlie.domain._
+import com.mokocharlie.domain.MokoModel._
+import com.mokocharlie.domain.{Password, Page}
 import spray.json._
 
 trait JsonConversion extends DefaultJsonProtocol {

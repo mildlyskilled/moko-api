@@ -4,43 +4,40 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
-import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
-import com.mokocharlie.domain.{Page, Photo}
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.{CommentRepository, PhotoRepository}
+import com.mokocharlie.infrastructure.service.PhotoService
 
-import scala.concurrent.Future
-
-
-object PhotoRouting
-  extends PhotoRepository
-    with CommentRepository
-    with SprayJsonSupport
+class PhotoRouting(photoService: PhotoService)
+  extends SprayJsonSupport
     with JsonConversion {
 
-  var routes: Route = cors() {
+  var routes: Route = {
     path("photos") {
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
-          (pageNumber, limit) => {
-            val photosFuture = PhotoDAO.list(pageNumber, limit)
-            onSuccess(photosFuture)(page => complete(page))
+          (pageNumber, limit) ⇒ {
+            onSuccess(photoService.list(pageNumber, limit)) {
+              case Right(pageOfPhotos) ⇒ complete(pageOfPhotos)
+              case Left(ex) ⇒ complete(StatusCodes.InternalServerError, ex.msg)
+            }
           }
         }
 
       }
     } ~ path("photos" / LongNumber) { id =>
-      val photoFuture: Future[Option[Photo]] = PhotoDAO.findPhotoByID(id)
-      onSuccess(photoFuture) {
-        case Some(photo) => complete(photo)
-        case None => complete(StatusCodes.NotFound)
+      onSuccess(photoService.photoById(id)) {
+        case Right(photo) ⇒ complete(photo)
+        case Left(e) ⇒ complete(StatusCodes.NotFound, e.msg)
       }
     } ~ path("photos" / LongNumber / "comments") { id =>
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
           (pageNumber, limit) => {
-            val commentsFuture = CommentDAO.findCommentsByImageID(id, pageNumber, limit)
-            onSuccess(commentsFuture)(page => complete(page))
+            val commentsFuture = photoService.commentsByPhotoId(id, pageNumber, limit)
+            onSuccess(commentsFuture) {
+              case Right(page) ⇒ complete(page)
+              case Left(e) ⇒ complete(e.msg)
+            }
           }
         }
       }
@@ -48,8 +45,10 @@ object PhotoRouting
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
           (pageNumber, limit) => {
-            val albumPhotos: Future[Page[Photo]] = PhotoDAO.getPhotosByAlbumId(id, pageNumber, limit)
-            onSuccess(albumPhotos)(page => complete(page))
+            onSuccess(photoService.photosByAlbum(id, pageNumber, limit)) {
+              case Right(page) ⇒ complete(page)
+              case Left(e) ⇒ complete(StatusCodes.InternalServerError, e.msg)
+            }
           }
         }
       }

@@ -1,44 +1,41 @@
 package com.mokocharlie.infrastructure.inbound.routing
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.StatusCode
+import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
-import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
-import com.mokocharlie.domain.Album
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.{AlbumRepository, PhotoRepository}
-import spray.json._
+import com.mokocharlie.infrastructure.service.AlbumService
+import scala.collection.immutable.Seq
 
-import scala.concurrent.Future
-
-object AlbumRouting
-  extends AlbumRepository
-    with PhotoRepository
-    with SprayJsonSupport
+class AlbumRouting(albumService: AlbumService)
+  extends SprayJsonSupport
     with JsonConversion {
 
-  val routes: Route = cors() {
+  val routes: Route = {
     path("albums") {
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
-          (pageNumber, limit) =>
-            val albumsFuture = AlbumDAO.list(pageNumber, limit)
-            onSuccess(albumsFuture)(page => complete(page))
+          (pageNumber, limit) ⇒
+            onSuccess(albumService.list(pageNumber, limit, Seq.empty)){
+              case Right(page) ⇒ complete(page)
+              case Left(error) ⇒ complete(StatusCodes.InternalServerError, error.msg)
+            }
         }
       }
     } ~ path("albums" / LongNumber) { id =>
-      val albumFuture: Future[Option[Album]] = AlbumDAO.findAlbumByID(id)
-      onSuccess(albumFuture) {
-        case Some(album) => complete(album)
-        case None => complete(StatusCode.int2StatusCode(404))
+      onSuccess(albumService.albumById(id)) {
+        case Right(album) => complete(album)
+        case Left(error) => complete(StatusCodes.NotFound, error.msg)
       }
     } ~ path("albums" / "featured") {
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
-          (pageNumber, limit) => {
-            val featuredAlbumsFuture = AlbumDAO.getFeaturedAlbums(pageNumber, limit)
-            onSuccess(featuredAlbumsFuture)(page => complete(page))
+          (pageNumber, limit) ⇒ {
+            onSuccess(albumService.featuredAlbums(pageNumber, limit)){
+              case Right(page) ⇒ complete(page)
+              case Left(error) ⇒ complete(StatusCodes.InternalServerError, error.msg)
+            }
           }
         }
       }
