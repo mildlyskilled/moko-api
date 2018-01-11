@@ -1,0 +1,14 @@
+version: "3"
+services:
+  moko-api:
+    image: hseeberger/scala-sbt
+    deploy:
+      replicas: 2
+    ports:
+      - "8080:8080"
+    volumes:
+      - $PWD/:/home/moko/
+    networks: 
+      - webnet
+networks: 
+  webnet:
