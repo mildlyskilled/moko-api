@@ -1,6 +1,0 @@
-moko-api:
-  image: hseeberger/scala-sbt
-  ports:
-    - "8080:8080"
-  volumes:
-    - $PWD/:/home/moko/

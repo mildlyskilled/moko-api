@@ -10,7 +10,8 @@ import scala.io.StdIn
 
 object MokoCharlieApi extends App with CoreServices with StrictLogging {
 
-  val (host, port) = ("localhost", 8080)
+  val config = ConfigFactory.load()
+  val (host, port) = (config.getString("mokocharlie.http.host"), config.getInt("mokocharlie.http.port"))
   val bindingFuture = Http().bindAndHandle(new CoreRoutes(ConfigFactory.load()).routes, host, port)
 
   bindingFuture.failed.foreach {
@@ -18,8 +19,8 @@ object MokoCharlieApi extends App with CoreServices with StrictLogging {
   }
 
   println(s"Server online at http://$host:$port/\nType 'shutdown' to stop...")
-  Iterator.continually(StdIn.readLine).takeWhile(_ != "shutdown").foreach { command =>
-    println(s"$command not recognised")
+  Iterator.continually(StdIn.readLine).takeWhile(_ != "shutdown").foreach{ command => 
+      if ( command != null) println(s"$command not recognised")
   }
 
   bindingFuture
