@@ -4,23 +4,23 @@ import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, UnknownError}
 import com.mokocharlie.domain.common.ServiceResponse.{RepositoryResponse, ServiceResponse}
-import com.mokocharlie.infrastructure.repository.common.JdbcRepository
+import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
 import scalikejdbc._
 
 class PhotoRepository(override val config: Config)
   extends JdbcRepository
+  with RepoUtils
   with StrictLogging {
 
     def list(page: Int, limit: Int, exclude: Seq[Long] = Seq()): RepositoryResponse[Page[Photo]] =
       readOnlyTransaction { implicit session ⇒
         try {
-          val offset = (page * limit) + 1
           val photos =
             sql"""
               $defaultSelect
-              LIMIT $offset, $limit
+              LIMIT ${offset(page, limit)}, $limit
 
         """
               .map(toPhoto).list().apply()
@@ -66,11 +66,10 @@ class PhotoRepository(override val config: Config)
     def findPhotosByUserId(userId: Long, page: Int, limit: Int): RepositoryResponse[Page[Photo]] =
       readOnlyTransaction { implicit session ⇒
         try {
-          val offset = (page * limit) + 1
           val photos = sql"""
                $defaultSelect
               WHERE ownder = $userId
-              LIMIT $offset, $limit
+              LIMIT , $limit
              """.map(toPhoto).list.apply()
           Right(Page(photos, page, limit, total()))
         } catch {
@@ -82,14 +81,13 @@ class PhotoRepository(override val config: Config)
   def getPhotosByAlbumId(albumID: Long, page: Int = 1, limit: Int = 10): RepositoryResponse[Page[Photo]] =
     readOnlyTransaction { implicit session ⇒
       try {
-        val offset = (page * limit) + 1
         val photos =
           sql"""
             $defaultSelect as p
             LEFT JOIN common_photo_album AS cab
             ON p.id = cab.photo_id
             WHERE cab.album_id = $albumID
-            LIMIT $offset, $limit
+            LIMIT ${offset(page, limit)}, $limit
                """.map(toPhoto).list.apply()
         Right(Page(photos, page, limit, total()))
       } catch {

@@ -8,10 +8,11 @@ import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.Page
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.repository.CollectionRepository
+import com.mokocharlie.infrastructure.service.CollectionService
 
 import scala.concurrent.Future
 
-class CollectionRouting(repo: CollectionRepository)
+class CollectionRouting(service: CollectionService)
   extends SprayJsonSupport
     with JsonConversion {
 
@@ -20,7 +21,7 @@ class CollectionRouting(repo: CollectionRepository)
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
           (page, limit) => {
-            val collectionFuture = repo.getFeaturedCollections(page, limit)
+            val collectionFuture = service.getFeaturedCollections(page, limit)
             onSuccess(collectionFuture)(page => complete(page))
           }
         }
