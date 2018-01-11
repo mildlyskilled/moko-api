@@ -49,4 +49,11 @@ libraryDependencies ++= {
   )
 }
 
+dockerBaseImage       := "openjdk:jre-alpine"
+
 mainClass in assembly := Some("com.mokocharlie.main.MokoCharlieApi")
+
+
+enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)
+enablePlugins(AshScriptPlugin)
