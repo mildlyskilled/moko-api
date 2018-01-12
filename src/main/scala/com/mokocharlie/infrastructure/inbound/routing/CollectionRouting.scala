@@ -8,35 +8,45 @@ import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.Page
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.repository.CollectionRepository
-import com.mokocharlie.infrastructure.service.CollectionService
+import com.mokocharlie.infrastructure.service.{AlbumService, CollectionService}
 
 import scala.concurrent.Future
 
-class CollectionRouting(service: CollectionService)
+class CollectionRouting(service: CollectionService, albumService: AlbumService)
   extends SprayJsonSupport
-    with JsonConversion {
+    with JsonConversion
+  with HttpErrorMapper {
 
   val routes: Route = {
     path("collections") {
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
           (page, limit) => {
-            val collectionFuture = service.getFeaturedCollections(page, limit)
-            onSuccess(collectionFuture)(page => complete(page))
+            onSuccess(service.featuredCollection(page, limit)) {
+              case Right(collectionPage) ⇒ complete(collectionPage)
+              case Left(error) ⇒
+                val apiError = toHttpError(error)
+                complete(apiError.code, apiError.message)
+            }
           }
         }
       }
     } ~ path("collections" / LongNumber) { id =>
-      val collectionFuture: Future[Option[Collection]] = repo.findCollectionById(id)
-      onSuccess(collectionFuture) {
-        case Some(collection) => complete(collection)
-        case None => complete(StatusCodes.NotFound.toString)
+      onSuccess(service.collectionById(id)) {
+        case Right(collection) ⇒ complete(collection)
+        case Left(error) ⇒
+          val apiError = toHttpError(error)
+          complete(apiError.code, apiError.message)
       }
     } ~ path("collections" / LongNumber / "albums") { id =>
       parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
         (page, limit) => {
-          val albumsFuture: Future[Page[Album]] = repo.getCollectionAlbums(id, page, limit)
-          onSuccess(albumsFuture)(page => complete(page))
+          onSuccess(albumService.collectionAlbums(id, page, limit)){
+            case Right(albumPage) ⇒ complete(albumPage)
+            case Left(error) ⇒
+              val apiError = toHttpError(error)
+              complete(apiError.code, apiError.message)
+          }
         }
       }
 

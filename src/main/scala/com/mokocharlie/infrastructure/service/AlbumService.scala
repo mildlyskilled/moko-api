@@ -7,7 +7,7 @@ import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.repository.{AlbumRepository, PhotoRepository}
 import scala.collection.immutable.Seq
 
-class AlbumService(albumRepo: AlbumRepository, photoRepo: PhotoRepository)
+class AlbumService(albumRepo: AlbumRepository)
                   (implicit override val system: ActorSystem) extends MokoCharlieService {
 
   def list(page: Int, limit: Int, exclude: Seq[Long]): ServiceResponse[Page[Album]] =
@@ -18,4 +18,7 @@ class AlbumService(albumRepo: AlbumRepository, photoRepo: PhotoRepository)
 
   def featuredAlbums(pageNumber: Int, limit: Int): ServiceResponse[Page[Album]] =
     dbExecute(albumRepo.getFeaturedAlbums(pageNumber, limit))
+
+  def collectionAlbums(collectionId: Long, page: Int, limit: Int): ServiceResponse[Page[Album]] =
+    dbExecute(albumRepo.getCollectionAlbums(collectionId, page, limit))
 }

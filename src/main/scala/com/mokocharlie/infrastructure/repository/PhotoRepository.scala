@@ -14,12 +14,13 @@ class PhotoRepository(override val config: Config)
   with RepoUtils
   with StrictLogging {
 
-    def list(page: Int, limit: Int, exclude: Seq[Long] = Seq()): RepositoryResponse[Page[Photo]] =
+    def list(page: Int, limit: Int, exclude: Seq[Long] = Seq(), publishedOnly:Option[Boolean] = Some(true)): RepositoryResponse[Page[Photo]] =
       readOnlyTransaction { implicit session ⇒
         try {
           val photos =
             sql"""
-              $defaultSelect
+              ${defaultSelect(publishedOnly)}
+              $defaultOrdering
               LIMIT ${offset(page, limit)}, $limit
 
         """
@@ -38,8 +39,8 @@ class PhotoRepository(override val config: Config)
         try {
           Right{
             sql"""
-               $defaultSelect
-              WHERE image_id = $imageID
+               ${defaultSelect()}
+              AND image_id = $imageID
              """.map(toPhoto).single.apply()
           }
         } catch {
@@ -53,7 +54,7 @@ class PhotoRepository(override val config: Config)
         try {
           Right{
             sql"""
-               $defaultSelect
+               ${defaultSelect()}
               WHERE id = $id
              """.map(toPhoto).single.apply()
           }
@@ -63,11 +64,12 @@ class PhotoRepository(override val config: Config)
         }
       }
 
-    def findPhotosByUserId(userId: Long, page: Int, limit: Int): RepositoryResponse[Page[Photo]] =
+    def findPhotosByUserId(userId: Long, page: Int, limit: Int, publishedOnly: Option[Boolean] = None): RepositoryResponse[Page[Photo]] =
       readOnlyTransaction { implicit session ⇒
         try {
           val photos = sql"""
-               $defaultSelect
+               ${defaultSelect(publishedOnly)}
+               $defaultOrdering
               WHERE ownder = $userId
               LIMIT , $limit
              """.map(toPhoto).list.apply()
@@ -78,12 +80,16 @@ class PhotoRepository(override val config: Config)
         }
       }
 
-  def getPhotosByAlbumId(albumID: Long, page: Int = 1, limit: Int = 10): RepositoryResponse[Page[Photo]] =
+  def getPhotosByAlbumId(
+      albumID: Long,
+      page: Int = 1,
+      limit: Int = 10,
+      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Photo]] =
     readOnlyTransaction { implicit session ⇒
       try {
         val photos =
           sql"""
-            $defaultSelect as p
+            ${defaultSelect()}
             LEFT JOIN common_photo_album AS cab
             ON p.id = cab.photo_id
             WHERE cab.album_id = $albumID
@@ -101,7 +107,8 @@ class PhotoRepository(override val config: Config)
       sql"SELECT COUNT(id) as total FROM common_photo".map(rs ⇒ rs.int("total")).single.apply()
     }
 
-    private val defaultSelect =
+    private def defaultSelect(publishedOnly: Option[Boolean] = None) = {
+      val publish = publishedOnly.map(p ⇒ sqls"WHERE published = $p").getOrElse(sqls"WHERE 1")
       sqls"""
         SELECT
         id,
@@ -115,8 +122,12 @@ class PhotoRepository(override val config: Config)
         published,
         cloud_image,
         owner
-      FROM common_photo
+      FROM common_photo AS p
+      $publish
       """
+    }
+
+  private val defaultOrdering = sqls"ORDER BY created_at DESC"
 
   private def toPhoto(res: WrappedResultSet) =
     Photo(

@@ -44,7 +44,9 @@ class CollectionRepository(override val config: Config) extends JdbcRepository w
       }
     }
 
-  def total(): Option[Int] = sql"SELECT COUNT(id) as total FROM common_collection".map(rs ⇒ rs.int("total")).single.apply()
+  def total(): Option[Int] = readOnlyTransaction { implicit session ⇒
+    sql"SELECT COUNT(id) as total FROM common_collection".map(rs ⇒ rs.int("total")).single.apply()
+  }
 
   private def toCollection(rs: WrappedResultSet): Collection =
     Collection(
