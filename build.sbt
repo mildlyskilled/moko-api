@@ -48,12 +48,10 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-http-testkit" % httpVersion % "test"
   )
 }
-
-dockerBaseImage       := "openjdk:jre-alpine"
-
+enablePlugins(JavaAppPackaging)
 mainClass in assembly := Some("com.mokocharlie.main.MokoCharlieApi")
 
-
-enablePlugins(JavaAppPackaging)
 enablePlugins(DockerPlugin)
+dockerBaseImage       := "openjdk:jre-alpine"
+
 enablePlugins(AshScriptPlugin)
