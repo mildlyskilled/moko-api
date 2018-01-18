@@ -4,23 +4,24 @@ import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, UnknownError}
 import com.mokocharlie.domain.common.ServiceResponse.{RepositoryResponse, ServiceResponse}
-import com.mokocharlie.infrastructure.repository.common.JdbcRepository
+import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
 import scalikejdbc._
 
 class PhotoRepository(override val config: Config)
   extends JdbcRepository
+  with RepoUtils
   with StrictLogging {
 
-    def list(page: Int, limit: Int, exclude: Seq[Long] = Seq()): RepositoryResponse[Page[Photo]] =
+    def list(page: Int, limit: Int, exclude: Seq[Long] = Seq(), publishedOnly:Option[Boolean] = Some(true)): RepositoryResponse[Page[Photo]] =
       readOnlyTransaction { implicit session ⇒
         try {
-          val offset = (page * limit) + 1
           val photos =
             sql"""
-              $defaultSelect
-              LIMIT $offset, $limit
+              ${defaultSelect(publishedOnly)}
+              $defaultOrdering
+              LIMIT ${offset(page, limit)}, $limit
 
         """
               .map(toPhoto).list().apply()
@@ -38,8 +39,8 @@ class PhotoRepository(override val config: Config)
         try {
           Right{
             sql"""
-               $defaultSelect
-              WHERE image_id = $imageID
+               ${defaultSelect()}
+              AND image_id = $imageID
              """.map(toPhoto).single.apply()
           }
         } catch {
@@ -53,7 +54,7 @@ class PhotoRepository(override val config: Config)
         try {
           Right{
             sql"""
-               $defaultSelect
+               ${defaultSelect()}
               WHERE id = $id
              """.map(toPhoto).single.apply()
           }
@@ -63,14 +64,14 @@ class PhotoRepository(override val config: Config)
         }
       }
 
-    def findPhotosByUserId(userId: Long, page: Int, limit: Int): RepositoryResponse[Page[Photo]] =
+    def findPhotosByUserId(userId: Long, page: Int, limit: Int, publishedOnly: Option[Boolean] = None): RepositoryResponse[Page[Photo]] =
       readOnlyTransaction { implicit session ⇒
         try {
-          val offset = (page * limit) + 1
           val photos = sql"""
-               $defaultSelect
+               ${defaultSelect(publishedOnly)}
+               $defaultOrdering
               WHERE ownder = $userId
-              LIMIT $offset, $limit
+              LIMIT , $limit
              """.map(toPhoto).list.apply()
           Right(Page(photos, page, limit, total()))
         } catch {
@@ -79,17 +80,20 @@ class PhotoRepository(override val config: Config)
         }
       }
 
-  def getPhotosByAlbumId(albumID: Long, page: Int = 1, limit: Int = 10): RepositoryResponse[Page[Photo]] =
+  def getPhotosByAlbumId(
+      albumID: Long,
+      page: Int = 1,
+      limit: Int = 10,
+      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Photo]] =
     readOnlyTransaction { implicit session ⇒
       try {
-        val offset = (page * limit) + 1
         val photos =
           sql"""
-            $defaultSelect as p
+            ${defaultSelect()}
             LEFT JOIN common_photo_album AS cab
             ON p.id = cab.photo_id
             WHERE cab.album_id = $albumID
-            LIMIT $offset, $limit
+            LIMIT ${offset(page, limit)}, $limit
                """.map(toPhoto).list.apply()
         Right(Page(photos, page, limit, total()))
       } catch {
@@ -103,7 +107,8 @@ class PhotoRepository(override val config: Config)
       sql"SELECT COUNT(id) as total FROM common_photo".map(rs ⇒ rs.int("total")).single.apply()
     }
 
-    private val defaultSelect =
+    private def defaultSelect(publishedOnly: Option[Boolean] = None) = {
+      val publish = publishedOnly.map(p ⇒ sqls"WHERE published = $p").getOrElse(sqls"WHERE 1")
       sqls"""
         SELECT
         id,
@@ -117,8 +122,12 @@ class PhotoRepository(override val config: Config)
         published,
         cloud_image,
         owner
-      FROM common_photo
+      FROM common_photo AS p
+      $publish
       """
+    }
+
+  private val defaultOrdering = sqls"ORDER BY created_at DESC"
 
   private def toPhoto(res: WrappedResultSet) =
     Photo(

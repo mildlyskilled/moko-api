@@ -5,6 +5,7 @@ trait MokoCharlieServiceError {
 }
 
 object MokoCharlieServiceError{
+  case class EmptyResultSet(msg: String) extends MokoCharlieServiceError
   case class DatabaseServiceError(msg: String) extends MokoCharlieServiceError
   case class UnknownError(exception: Exception) extends MokoCharlieServiceError {
     val msg: String = exception.getMessage

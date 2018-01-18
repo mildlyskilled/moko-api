@@ -11,7 +11,7 @@ object MokoModel {
       albumId: Option[Long],
       label: String,
       description: String,
-      coverId: Option[Long],
+      cover: Option[Photo],
       createdAt: Timestamp,
       updatedAt: Option[Timestamp],
       published: Boolean,
