@@ -98,7 +98,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
         val album =
           sql"""
             ${defaultSelect()}
-           WHERE id = $albumID
+           WHERE a.id = $albumID
            """
             .map(toAlbum)
             .single
