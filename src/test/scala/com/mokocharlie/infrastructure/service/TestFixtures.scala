@@ -22,7 +22,7 @@ object TestFixtures {
 
   val album1 = Album(
     id = 1,
-    albumId = Some(12),
+    albumId = Some(12L),
     label = "Test album",
     description = "This is a test album",
     cover = Some(photo1),

@@ -31,6 +31,13 @@ trait AlbumRepository {
       limit: Int = 10,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]]
 
+  def createAlbum(
+      label: String,
+      description: String,
+      coverId: Long,
+      published: Boolean,
+      featured: Boolean): RepositoryResponse[Option[Album]]
+
   def total(): Option[Int]
 }
 
