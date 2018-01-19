@@ -11,16 +11,44 @@ import com.typesafe.scalalogging.StrictLogging
 import scala.collection.immutable.Seq
 import scalikejdbc._
 
+trait AlbumRepository {
+  def list(
+      page: Int,
+      limit: Int,
+      exclude: Seq[Long] = Seq.empty,
+      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]]
 
-class AlbumRepository(override val config: Config, photoRepository: PhotoRepository)
-  extends JdbcRepository
-  with RepoUtils
-  with StrictLogging {
+  def collectionAlbums(
+      collectionID: Long,
+      page: Int = 1,
+      limit: Int = 10,
+      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]]
 
-    def list(page: Int, limit: Int, exclude: Seq[Long] = Seq.empty, publishedOnly:Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
-      readOnlyTransaction{implicit session ⇒
-        try{
-          val albums = sql"""
+  def albumById(albumID: Long): RepositoryResponse[Option[Album]]
+
+  def featuredAlbums(
+      page: Int = 1,
+      limit: Int = 10,
+      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]]
+
+  def total(): Option[Int]
+}
+
+class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRepository)
+    extends AlbumRepository
+    with JdbcRepository
+    with RepoUtils
+    with StrictLogging {
+
+  def list(
+      page: Int,
+      limit: Int,
+      exclude: Seq[Long] = Seq.empty,
+      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
+    readOnlyTransaction { implicit session ⇒
+      try {
+        val albums =
+          sql"""
             ${defaultSelect(publishedOnly)}
             $defaultOrdering
             LIMIT ${dbPage(page)}, ${offset(page, limit)}
@@ -29,18 +57,23 @@ class AlbumRepository(override val config: Config, photoRepository: PhotoReposit
             .list
             .apply()
 
-          if (albums.nonEmpty) Right(Page(albums, page, limit, total()))
-          else Left(EmptyResultSet("Did not find any albums"))
+        if (albums.nonEmpty) Right(Page(albums, page, limit, total()))
+        else Left(EmptyResultSet("Did not find any albums"))
 
-        } catch {
-          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
-        }
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
+    }
 
-  def getCollectionAlbums(collectionID: Long, page: Int = 1, limit: Int = 10, publishedOnly:Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
-    readOnlyTransaction{implicit session ⇒
-      try{
-        val albums = sql"""
+  def collectionAlbums(
+      collectionID: Long,
+      page: Int = 1,
+      limit: Int = 10,
+      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
+    readOnlyTransaction { implicit session ⇒
+      try {
+        val albums =
+          sql"""
             ${defaultSelect(publishedOnly)}
             LEFT JOIN common_collection_albums AS cab
             ON cab.album_id = a.id
@@ -48,60 +81,51 @@ class AlbumRepository(override val config: Config, photoRepository: PhotoReposit
             LIMIT ${dbPage(page)}, ${offset(page, limit)}
             $defaultOrdering
            """.map(toAlbum).list.apply()
-        if (albums.nonEmpty){
+        if (albums.nonEmpty) {
           Right(Page(albums, page, limit, total()))
         }
-        else Left(EmptyResultSet(s"Did not find any albums with the given collectionID $collectionID"))
+        else
+          Left(EmptyResultSet(s"Did not find any albums with the given collectionID $collectionID"))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
     }
 
-  def findAlbumByID(albumID: Long): RepositoryResponse[Option[Album]] =
-    readOnlyTransaction{implicit session ⇒
-      try{
+  def albumById(albumID: Long): RepositoryResponse[Option[Album]] =
+    readOnlyTransaction { implicit session ⇒
+      try {
 
-          val album = sql"""
+        val album =
+          sql"""
             ${defaultSelect()}
            WHERE id = $albumID
-           """.map(toAlbum)
+           """
+            .map(toAlbum)
             .single
             .apply()
 
-        if (album.nonEmpty) Right(album) else Left(EmptyResultSet(s"Could not find album with given id: $albumID"))
+        if (album.nonEmpty) Right(album)
+        else Left(EmptyResultSet(s"Could not find album with given id: $albumID"))
 
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
     }
 
-  def getAlbumCoverByAlbumID(albumID: Long): RepositoryResponse[Option[Photo]] =
+  def featuredAlbums(
+      page: Int = 1,
+      limit: Int = 10,
+      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
     readOnlyTransaction { implicit session ⇒
-      try{
-        sql"""
-           SELECT
-           cover_id
-           FROM common_album
-          """.map(rs ⇒ rs.long("cover_id"))
-            .single()
-          .apply()
-          .map(photoRepository.findPhotoByID)
-          .getOrElse(Left(EmptyResultSet("Photo not found")))
-      } catch {
-        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
-      }
-    }
-
-  def getFeaturedAlbums(page: Int = 1, limit: Int = 10, publishedOnly:Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
-    readOnlyTransaction{implicit session ⇒
-      try{
-        val albums = sql"""
+      try {
+        val albums =
+          sql"""
             ${defaultSelect()}
             WHERE featured = 1
            LIMIT ${dbPage(page)}, ${offset(page, limit)}
            """.map(toAlbum).list.apply()
 
-        if (albums.nonEmpty){
+        if (albums.nonEmpty) {
           Right(Page(albums, page, limit, total()))
         }
         else Left(EmptyResultSet(s"Did not find any featured albums"))
@@ -147,19 +171,21 @@ class AlbumRepository(override val config: Config, photoRepository: PhotoReposit
   private val defaultOrdering = sqls"ORDER BY created_at DESC"
 
   private def toAlbum(rs: WrappedResultSet): Album = {
-    val photo = rs.longOpt("cover_id").map{_⇒ Photo(
-      rs.int("photo_id"),
-      rs.string("legacy_id"),
-      rs.string("photo_name"),
-      rs.stringOpt("photo_path"),
-      rs.string("photo_caption"),
-      rs.timestamp("photo_created_at"),
-      rs.timestamp("photo_updated_at"),
-      rs.int("photo_owner"),
-      rs.boolean("photo_published"),
-      rs.timestampOpt("photo_deleted_at"),
-      rs.stringOpt("cloud_image")
-    )}
+    val photo = rs.longOpt("cover_id").map { _ ⇒
+      Photo(
+        rs.int("photo_id"),
+        rs.string("legacy_id"),
+        rs.string("photo_name"),
+        rs.stringOpt("photo_path"),
+        rs.string("photo_caption"),
+        rs.timestamp("photo_created_at"),
+        rs.timestamp("photo_updated_at"),
+        rs.int("photo_owner"),
+        rs.boolean("photo_published"),
+        rs.timestampOpt("photo_deleted_at"),
+        rs.stringOpt("cloud_image")
+      )
+    }
 
     Album(
       rs.int("id"),
