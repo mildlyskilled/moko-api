@@ -18,6 +18,7 @@ class AlbumServiceTest
   implicit val system: ActorSystem = ActorSystem("test-system")
   implicit val ec: ExecutionContext = system.dispatcher
   val config: Config = ConfigFactory.load()
+
   override def beforeAll(): Unit = {}
 
   behavior of "AlbumService"
@@ -27,17 +28,16 @@ class AlbumServiceTest
   val albumRepository = new DBAlbumRepository(config, photoRepository)
   val albumService = new AlbumService(albumRepository)
 
-  "AlbumService" should "eventually return a EmptyResultError when given a non-existent id " in {
-    albumService.albumById(1000).map { x ⇒
-      x shouldBe Left(EmptyResultSet("Could not find album with given id: 1000"))
-    }
-  }
-
-  it should "eventually return a list of albums" in {
+  "AlbumService" should "eventually return a list of albums" in {
     albumService.list(1, 10).map {
       case Right(x) ⇒ x.items should have size 10
       case Left(_) ⇒ fail("Album service must return a  successful result")
     }
   }
 
+  it should "eventually return a EmptyResultError when given a non-existent id " in {
+    albumService.albumById(99999999).map { x ⇒
+      x shouldBe Left(EmptyResultSet("Could not find album with given id: 1000"))
+    }
+  }
 }
