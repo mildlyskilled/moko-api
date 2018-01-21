@@ -23,7 +23,11 @@ class AlbumServiceTest
 
   behavior of "AlbumService"
 
-  logger.info(s"Running test on ${config.getString("mokocharlie.db.host")}")
+  logger.info(
+    s"""Running test on
+       |${config.getString("mokocharlie.db.host")} with
+       |${config.getString("mokocharlie.db.user")} and
+       |${config.getString("mokocharlie.db.password")}""".stripMargin)
   val photoRepository = new DBPhotoRepository(config)
   val albumRepository = new DBAlbumRepository(config, photoRepository)
   val albumService = new AlbumService(albumRepository)
