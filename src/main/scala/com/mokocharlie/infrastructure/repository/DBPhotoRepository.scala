@@ -1,9 +1,11 @@
 package com.mokocharlie.infrastructure.repository
 
+import java.sql.Timestamp
+
 import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.Page
-import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, UnknownError}
-import com.mokocharlie.domain.common.ServiceResponse.{RepositoryResponse, ServiceResponse}
+import com.mokocharlie.domain.common.MokoCharlieServiceError.DatabaseServiceError
+import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
@@ -148,6 +150,46 @@ class DBPhotoRepository(override val config: Config)
       sql"SELECT COUNT(id) as total FROM common_photo".map(rs ⇒ rs.int("total")).single.apply()
     }
 
+  def create(
+      name: String,
+      path: Option[String],
+      caption: String,
+      createdAt: Timestamp,
+      updatedAt: Option[Timestamp],
+      deletedAt: Option[Timestamp],
+      published: Boolean,
+      cloudImage: Option[String],
+      owner: Long): RepositoryResponse[Long] =
+    writeTransaction(3, "Could not save new photo") {implicit session ⇒
+      try {
+        val id = sql"""INSERT INTO common_photo(
+               `name`, 
+               path, 
+               caption, 
+               create_at, 
+               updated_at, 
+               deleted_at, 
+               published, 
+               cloud_image, 
+               owner)
+            VALUES (
+            $name,
+            $path,
+            $caption,
+            $createdAt,
+            $updatedAt,
+            $deletedAt,
+            $published,
+            $cloudImage,
+            $owner
+            )""".updateAndReturnGeneratedKey.apply()
+
+        Right(id)
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+    }
+
   private def defaultSelect(publishedOnly: Option[Boolean] = None) = {
     val publish = publishedOnly.map(p ⇒ sqls"WHERE published = $p").getOrElse(sqls"WHERE 1")
     sqls"""
@@ -178,7 +220,7 @@ class DBPhotoRepository(override val config: Config)
       res.stringOpt("path"),
       res.string("caption"),
       res.timestamp("created_at"),
-      res.timestamp("updated_at"),
+      res.timestampOpt("updated_at"),
       res.int("owner"),
       res.boolean("published"),
       res.timestampOpt("deleted_at"),

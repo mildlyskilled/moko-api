@@ -12,29 +12,41 @@ import scala.concurrent.ExecutionContext
 
 class AlbumServiceTest
     extends AsyncFlatSpec
-    with BeforeAndAfterAll
     with Matchers
     with StrictLogging {
   implicit val system: ActorSystem = ActorSystem("test-system")
   implicit val ec: ExecutionContext = system.dispatcher
   val config: Config = ConfigFactory.load()
-
-  override def beforeAll(): Unit = {}
+  val photoRepository = new DBPhotoRepository(config)
+  val albumRepository = new DBAlbumRepository(config, photoRepository)
+  val albumService = new AlbumService(albumRepository)
 
   behavior of "AlbumService"
 
   logger.info(
     s"""Running test on
        |${config.getString("mokocharlie.db.host")} with
-       |${config.getString("mokocharlie.db.user")} and
-       |${config.getString("mokocharlie.db.password")}""".stripMargin)
-  val photoRepository = new DBPhotoRepository(config)
-  val albumRepository = new DBAlbumRepository(config, photoRepository)
-  val albumService = new AlbumService(albumRepository)
+       |user: ${config.getString("mokocharlie.db.user")} and
+       |password: ${config.getString("mokocharlie.db.password")}""".stripMargin)
 
-  "AlbumService" should "eventually return a list of albums" in {
+
+  "AlbumService" should "create new entries in the database" in {
+    albumService.create(
+      TestFixtures.album1.label,
+      TestFixtures.album1.description,
+      TestFixtures.album1.createdAt,
+      TestFixtures.album1.cover.map(_.id),
+      TestFixtures.album1.published,
+      TestFixtures.album1.featured
+    ).map{
+      case Right(id) ⇒ id shouldBe 1
+      case Left(_) ⇒ fail("An album should be created")
+    }
+  }
+
+  it should "eventually return a list of albums" in {
     albumService.list(1, 10).map {
-      case Right(x) ⇒ x.items should have size 10
+      case Right(x) ⇒ x.items should have size 1
       case Left(_) ⇒ fail("Album service must return a  successful result")
     }
   }

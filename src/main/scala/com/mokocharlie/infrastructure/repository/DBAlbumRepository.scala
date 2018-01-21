@@ -1,5 +1,7 @@
 package com.mokocharlie.infrastructure.repository
 
+import java.sql.Timestamp
+
 import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
@@ -30,6 +32,15 @@ trait AlbumRepository {
       page: Int = 1,
       limit: Int = 10,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]]
+
+  def add(
+      label: String,
+      description: String,
+      createdAt: Timestamp,
+      coverImageId: Option[Long],
+      published: Boolean,
+      featured: Boolean): RepositoryResponse[Long]
+
 
   def total(): Option[Int]
 }
@@ -134,6 +145,26 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       }
     }
 
+  override def add(
+      label: String,
+      description: String,
+      createdAt: Timestamp,
+      coverImageId: Option[Long],
+      published: Boolean,
+      featured: Boolean): RepositoryResponse[Long] =
+    writeTransaction(3, "Failed to save this album") { implicit session ⇒
+      try {
+        val id = sql"""
+          INSERT INTO common_album (label, description, created_at, published, featured, cover_id)
+          VALUES ($label, $description, $createdAt, $published, $featured, $coverImageId)""".updateAndReturnGeneratedKey
+          .apply()
+        Right(id)
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+    }
+
+
   def total(): Option[Int] =
     readOnlyTransaction { implicit session ⇒
       sql"SELECT COUNT(id) AS total FROM common_album".map(rs ⇒ rs.int("total")).single.apply()
@@ -199,5 +230,4 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       rs.boolean("featured")
     )
   }
-
 }

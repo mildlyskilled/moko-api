@@ -12,8 +12,3 @@ services:
               - 3306:3306
         volumes:
             - ./src/main/resources/data:/docker-entrypoint-initdb.d
-    adminer:
-        image: adminer
-        restart: always
-        ports:
-          - 8888:8888

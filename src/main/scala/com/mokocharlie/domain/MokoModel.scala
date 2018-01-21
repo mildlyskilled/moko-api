@@ -24,7 +24,7 @@ object MokoModel {
      path: Option[String],
      caption: String,
      createdAt: Timestamp,
-     updatedAt: Timestamp,
+     updatedAt: Option[Timestamp],
      ownerId: Long,
      published: Boolean,
      deletedAt: Option[Timestamp],
