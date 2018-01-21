@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-mysql -h localhost -uroot -proot < ./src/main/resources/data/create.sql
+mysql -h localhost -u${MYSQL_PASSWORD} -p${MYSQL_PASSWORD} < ./src/main/resources/data/create.sql

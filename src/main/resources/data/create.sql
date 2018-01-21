@@ -1,3 +1,5 @@
+CREATE DATABASE mokochalie;
+
 CREATE TABLE admin_honeypot_loginattempt
 (
   id          INT AUTO_INCREMENT
