@@ -4,21 +4,21 @@ import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.Album
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
-import com.mokocharlie.infrastructure.repository.{AlbumRepository, PhotoRepository}
+import com.mokocharlie.infrastructure.repository.DBAlbumRepository
 import scala.collection.immutable.Seq
 
-class AlbumService(albumRepo: AlbumRepository)
-                  (implicit override val system: ActorSystem) extends MokoCharlieService {
+class AlbumService(albumRepo: DBAlbumRepository)(implicit override val system: ActorSystem)
+    extends MokoCharlieService {
 
-  def list(page: Int, limit: Int, exclude: Seq[Long]): ServiceResponse[Page[Album]] =
+  def list(page: Int, limit: Int, exclude: Seq[Long] = Seq.empty): ServiceResponse[Page[Album]] =
     dbExecute(albumRepo.list(page, limit, exclude))
 
   def albumById(id: Long): ServiceResponse[Option[Album]] =
-    dbExecute(albumRepo.findAlbumByID(id))
+    dbExecute(albumRepo.albumById(id))
 
   def featuredAlbums(pageNumber: Int, limit: Int): ServiceResponse[Page[Album]] =
-    dbExecute(albumRepo.getFeaturedAlbums(pageNumber, limit))
+    dbExecute(albumRepo.featuredAlbums(pageNumber, limit))
 
   def collectionAlbums(collectionId: Long, page: Int, limit: Int): ServiceResponse[Page[Album]] =
-    dbExecute(albumRepo.getCollectionAlbums(collectionId, page, limit))
+    dbExecute(albumRepo.collectionAlbums(collectionId, page, limit))
 }
