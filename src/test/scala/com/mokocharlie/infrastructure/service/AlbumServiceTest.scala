@@ -50,7 +50,7 @@ class AlbumServiceTest
 
   it should "eventually return a EmptyResultError when given a non-existent id " in {
     albumService.albumById(99999999).map { x ⇒
-      x shouldBe Left(EmptyResultSet("Could not find album with given id: 1000"))
+      x shouldBe Left(EmptyResultSet("Could not find album with given id: 99999999"))
     }
   }
 }
