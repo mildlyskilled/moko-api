@@ -2,7 +2,6 @@ package com.mokocharlie.infrastructure.service
 
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
-import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.infrastructure.repository.{CommentRepository, DBAlbumRepository, DBPhotoRepository}
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
@@ -41,9 +40,18 @@ class AlbumServiceTest
     }
   }
 
+  it should "create an album without a cover" in {
+    albumService
+      .create(TestFixtures.album1.copy(cover = None))
+      .map{
+        case Right(id) ⇒ id shouldBe 2
+        case Left(_) ⇒ fail("An album should be created")
+      }
+  }
+
   it should "eventually return a list of albums" in {
     albumService.list(1, 10).map {
-      case Right(x) ⇒ x.items should have size 1
+      case Right(x) ⇒ x.items should have size 2
       case Left(_) ⇒ fail("Album service must return a  successful result")
     }
   }

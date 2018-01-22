@@ -2,6 +2,8 @@
 
 API for mokocharlie services (Scala)
 
+[ ![Codeship Status for kaning/moko-api](https://app.codeship.com/projects/be6934c0-e0ba-0135-79ea-7a75524f0ffb/status?branch=master)](https://app.codeship.com/projects/266540)
+
 ## Known Issues
 
 - Repositories
