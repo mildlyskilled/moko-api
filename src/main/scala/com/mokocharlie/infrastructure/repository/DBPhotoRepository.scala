@@ -34,6 +34,8 @@ trait PhotoRepository {
       limit: Int = 10,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Photo]]
 
+  def update(photo: Photo): RepositoryResponse[Long]
+
   def total(): Option[Int]
 
 }
@@ -185,6 +187,29 @@ class DBPhotoRepository(override val config: Config)
             )""".updateAndReturnGeneratedKey.apply()
 
         Right(id)
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+    }
+
+  def update(photo: Photo): RepositoryResponse[Long] =
+    writeTransaction(3, "Could not update photo") { implicit session ⇒
+      try {
+        val update = sql"""
+           UPDATE common_photo 
+           SET `name` = ${photo.name},
+           path = ${photo.path},
+           caption = ${photo.caption},
+           created_at = ${photo.createdAt},
+           updated_at = NOW() ,
+           deleted_at = ${photo.deletedAt},
+           published = ${photo.published},
+           cloud_image = ${photo.cloudImage},
+           owner = ${photo.ownerId}
+           WHERE id = ${photo.id}
+         """.update.apply()
+        if (update > 0) Right(photo.id)
+        else Left(DatabaseServiceError(s"Could not update photo with id ${photo.id}"))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }

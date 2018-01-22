@@ -10,18 +10,26 @@ class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)
     implicit override val system: ActorSystem)
     extends MokoCharlieService {
 
-  def create(photo: Photo): ServiceResponse[Long] =
+  def createOrUpdate(photo: Photo): ServiceResponse[Long] =
     dbExecute {
-      photoRepo.create(
-        photo.name,
-        photo.path,
-        photo.caption,
-        photo.createdAt,
-        photo.updatedAt,
-        photo.deletedAt,
-        photo.published,
-        photo.cloudImage,
-        photo.ownerId)
+      photoRepo
+        .photoById(photo.id)
+        .flatMap { photoOption ⇒
+          photoOption
+            .map(photoRepo.update)
+            .getOrElse {
+              photoRepo.create(
+                photo.name,
+                photo.path,
+                photo.caption,
+                photo.createdAt,
+                photo.updatedAt,
+                photo.deletedAt,
+                photo.published,
+                photo.cloudImage,
+                photo.ownerId)
+            }
+        }
     }
 
   def list(page: Int, limit: Int): ServiceResponse[Page[Photo]] =

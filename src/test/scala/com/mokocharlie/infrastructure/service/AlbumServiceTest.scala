@@ -10,8 +10,6 @@ import com.mokocharlie.infrastructure.repository.{
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
-
-import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 
 class AlbumServiceTest
@@ -27,7 +25,7 @@ class AlbumServiceTest
   val albumRepository = new DBAlbumRepository(config, photoRepository)
   val commentRepository = new CommentRepository(config)
   val photoService = new PhotoService(photoRepository, commentRepository)
-  val albumService = new AlbumService(albumRepository, photoService)
+  val albumService = new AlbumService(albumRepository, photoRepository)
 
   behavior of "AlbumService"
 
@@ -38,7 +36,7 @@ class AlbumServiceTest
 
   "AlbumService" should "create new album with a cover" in {
     albumService
-      .create(
+      .createOrUpdate(
         album1
       )
       .map {
@@ -49,7 +47,7 @@ class AlbumServiceTest
 
   it should "create an album without a cover" in {
     albumService
-      .create(album1.copy(cover = None))
+      .createOrUpdate(album1.copy(id = 2, cover = None))
       .map {
         case Right(result) ⇒ result shouldBe 2
         case Left(_) ⇒ fail("An album should have been created")

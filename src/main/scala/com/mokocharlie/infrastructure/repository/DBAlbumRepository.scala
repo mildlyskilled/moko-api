@@ -41,6 +41,7 @@ trait AlbumRepository {
       published: Boolean,
       featured: Boolean): RepositoryResponse[Long]
 
+  def update(album: Album): RepositoryResponse[Long]
 
   def total(): Option[Int]
 }
@@ -117,7 +118,6 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
 
         if (album.nonEmpty) Right(album)
         else Left(EmptyResultSet(s"Could not find album with given id: $albumID"))
-
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -164,6 +164,26 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       }
     }
 
+  def update(album: Album): RepositoryResponse[Long] =
+    writeTransaction(3, s"Could not update album ${album.id}") { implicit session ⇒
+      try {
+        val update = sql"""
+         UPDATE common_album 
+          SET album_id = ${album.albumId},
+          label = ${album.label},
+           description = ${album.description},
+           created_at = ${album.createdAt},
+           updated_at = NOW(),
+           published = ${album.published},
+           featured = ${album.featured},
+           cover_id = ${album.cover.map(_.id)}
+        """.update.apply()
+        if (update > 0) Right(album.id)
+        else Left(DatabaseServiceError(s"Could not update album: ${album.id}"))
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+    }
 
   def total(): Option[Int] =
     readOnlyTransaction { implicit session ⇒
