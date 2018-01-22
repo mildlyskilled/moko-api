@@ -33,7 +33,7 @@ trait AlbumRepository {
       limit: Int = 10,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]]
 
-  def add(
+  def create(
       label: String,
       description: String,
       createdAt: Timestamp,
@@ -145,7 +145,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       }
     }
 
-  override def add(
+  override def create(
       label: String,
       description: String,
       createdAt: Timestamp,
@@ -210,7 +210,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
         rs.stringOpt("photo_path"),
         rs.string("photo_caption"),
         rs.timestamp("photo_created_at"),
-        rs.timestamp("photo_updated_at"),
+        rs.timestampOpt("photo_updated_at"),
         rs.int("photo_owner"),
         rs.boolean("photo_published"),
         rs.timestampOpt("photo_deleted_at"),

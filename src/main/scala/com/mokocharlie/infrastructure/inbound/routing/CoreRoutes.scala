@@ -21,6 +21,10 @@ class CoreRoutes(config: Config)(implicit system: ActorSystem) extends RouteConc
   private val collectionRepository = new CollectionRepository(config)
   private val videoRepository = new VideoRepository(config)
   private val documentaryRepository = new DocumentaryRepository(config)
+  private val photoService = new PhotoService(photoRepository, commentRepository)
+  private val albumService = new AlbumService(albumRepository, photoService)
+  private val collectionService = new CollectionService(collectionRepository)
+  private val commentService = new CommentService(commentRepository)
 
   val routes: Route = {
     path("") {
@@ -31,16 +35,14 @@ class CoreRoutes(config: Config)(implicit system: ActorSystem) extends RouteConc
   } ~ {
     new FavouriteRouting(favouriteRepository).routes
   } ~ {
-    new CommentRouting(new CommentService(commentRepository)).routes
+    new CommentRouting(commentService).routes
   } ~ {
-    new PhotoRouting(new PhotoService(photoRepository, commentRepository)).routes
+    new PhotoRouting(photoService).routes
   } ~ {
-    new AlbumRouting(new AlbumService(albumRepository)).routes
+    new AlbumRouting(albumService).routes
   } ~ {
     new UserRouting(userRepository).routes
   } ~ {
-    val collectionService = new CollectionService(collectionRepository)
-    val albumService = new AlbumService(albumRepository)
     new CollectionRouting(collectionService, albumService).routes
   } ~ {
     new VideoRouting(videoRepository).routes

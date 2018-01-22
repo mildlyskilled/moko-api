@@ -3,7 +3,7 @@ package com.mokocharlie.infrastructure.service
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
-import com.mokocharlie.infrastructure.repository.{DBAlbumRepository, DBPhotoRepository}
+import com.mokocharlie.infrastructure.repository.{CommentRepository, DBAlbumRepository, DBPhotoRepository}
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, FlatSpec, Matchers}
@@ -19,7 +19,9 @@ class AlbumServiceTest
   val config: Config = ConfigFactory.load()
   val photoRepository = new DBPhotoRepository(config)
   val albumRepository = new DBAlbumRepository(config, photoRepository)
-  val albumService = new AlbumService(albumRepository)
+  val commentRepository = new CommentRepository(config)
+  val photoService = new PhotoService(photoRepository, commentRepository)
+  val albumService = new AlbumService(albumRepository, photoService)
 
   behavior of "AlbumService"
 
@@ -32,12 +34,7 @@ class AlbumServiceTest
 
   "AlbumService" should "create new entries in the database" in {
     albumService.create(
-      TestFixtures.album1.label,
-      TestFixtures.album1.description,
-      TestFixtures.album1.createdAt,
-      TestFixtures.album1.cover.map(_.id),
-      TestFixtures.album1.published,
-      TestFixtures.album1.featured
+      TestFixtures.album1
     ).map{
       case Right(id) ⇒ id shouldBe 1
       case Left(_) ⇒ fail("An album should be created")

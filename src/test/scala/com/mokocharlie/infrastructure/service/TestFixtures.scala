@@ -12,7 +12,7 @@ object TestFixtures {
     name = "A test image",
     caption = "This is a test image",
     createdAt = Timestamp.from(Instant.now()),
-    updatedAt = Timestamp.from(Instant.now()),
+    updatedAt = Some(Timestamp.from(Instant.now())),
     path = Some("12323453245.jpb"),
     ownerId = 1,
     deletedAt = None,

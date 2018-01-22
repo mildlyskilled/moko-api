@@ -6,27 +6,35 @@ import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.Album
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
-import com.mokocharlie.infrastructure.repository.{DBAlbumRepository, PhotoRepository}
+import com.mokocharlie.infrastructure.repository.DBAlbumRepository
 
 import scala.collection.immutable.Seq
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 class AlbumService(albumRepo: DBAlbumRepository, photoService: PhotoService)(
     implicit override val system: ActorSystem)
     extends MokoCharlieService {
 
+  implicit val ec: ExecutionContextExecutor = system.dispatcher
+
   def create(album: Album): ServiceResponse[Long] = {
-    val cover = album.cover.map { photo ⇒
-      photoService.create(photo)
-    }.flatten
+    val cover: Future[Option[Long]] = album.cover.map { photo ⇒
+      photoService.create(photo).map{
+        case Right(id) ⇒ Some(id)
+        case Left(_) ⇒ None
+      }
+    }.get
     dbExecute {
-      albumRepo.add(
-        album.label,
-        album.description,
-        album.createdAt,
-        cover,
-        album.published,
-        album.featured)
-    }
+      cover.map{ id ⇒
+        albumRepo.create(
+          album.label,
+          album.description,
+          album.createdAt,
+          id,
+          album.published,
+          album.featured)
+      }
+    }.flatten
   }
 
   def list(page: Int, limit: Int, exclude: Seq[Long] = Seq.empty): ServiceResponse[Page[Album]] =
