@@ -3,7 +3,9 @@ package com.mokocharlie.infrastructure.service
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.{Comment, Photo}
 import com.mokocharlie.domain.Page
-import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
+import com.mokocharlie.domain.common.MokoCharlieServiceError
+import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
+import com.mokocharlie.domain.common.ServiceResponse.{RepositoryResponse, ServiceResponse}
 import com.mokocharlie.infrastructure.repository.{CommentRepository, DBPhotoRepository}
 
 class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)(
@@ -12,24 +14,33 @@ class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)
 
   def createOrUpdate(photo: Photo): ServiceResponse[Long] =
     dbExecute {
-      photoRepo
-        .photoById(photo.id)
-        .flatMap { photoOption ⇒
-          photoOption
-            .map(photoRepo.update)
-            .getOrElse {
-              photoRepo.create(
-                photo.name,
-                photo.path,
-                photo.caption,
-                photo.createdAt,
-                photo.updatedAt,
-                photo.deletedAt,
-                photo.published,
-                photo.cloudImage,
-                photo.ownerId)
-            }
-        }
+      photoRepo.photoById(photo.id) match {
+        case Right(maybePhoto) ⇒
+          maybePhoto.map(photoRepo.update).getOrElse {
+            photoRepo.create(
+              photo.name,
+              photo.path,
+              photo.caption,
+              photo.createdAt,
+              photo.updatedAt,
+              photo.deletedAt,
+              photo.published,
+              photo.cloudImage,
+              photo.ownerId)
+          }
+        case Left(EmptyResultSet(_)) ⇒
+          photoRepo.create(
+            photo.name,
+            photo.path,
+            photo.caption,
+            photo.createdAt,
+            photo.updatedAt,
+            photo.deletedAt,
+            photo.published,
+            photo.cloudImage,
+            photo.ownerId)
+        case Left(e) ⇒ Left(e)
+      }
     }
 
   def list(page: Int, limit: Int): ServiceResponse[Page[Photo]] =

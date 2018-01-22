@@ -34,6 +34,17 @@ trait PhotoRepository {
       limit: Int = 10,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Photo]]
 
+  def create(
+      name: String,
+      path: Option[String],
+      caption: String,
+      createdAt: Timestamp,
+      updatedAt: Option[Timestamp],
+      deletedAt: Option[Timestamp],
+      published: Boolean,
+      cloudImage: Option[String],
+      owner: Long): RepositoryResponse[Long]
+
   def update(photo: Photo): RepositoryResponse[Long]
 
   def total(): Option[Int]
@@ -55,7 +66,8 @@ class DBPhotoRepository(override val config: Config)
       try {
         val photos =
           sql"""
-              ${defaultSelect(publishedOnly)}
+              $defaultSelect
+              WHERE ${selectPublished(publishedOnly)}
               $defaultOrdering
               LIMIT ${offset(page, limit)}, $limit
 
@@ -76,8 +88,8 @@ class DBPhotoRepository(override val config: Config)
       try {
         Right {
           sql"""
-               ${defaultSelect()}
-              AND image_id = $imageID
+               $defaultSelect
+              WHERE image_id = $imageID
              """.map(toPhoto).single.apply()
         }
       } catch {
@@ -92,8 +104,8 @@ class DBPhotoRepository(override val config: Config)
       try {
         Right {
           sql"""
-               ${defaultSelect()}
-              WHERE id = $id
+               $defaultSelect
+              WHERE p.id = $id
              """.map(toPhoto).single.apply()
         }
       } catch {
@@ -111,7 +123,8 @@ class DBPhotoRepository(override val config: Config)
     readOnlyTransaction { implicit session ⇒
       try {
         val photos = sql"""
-               ${defaultSelect(publishedOnly)}
+               $defaultSelect
+               WHERE ${selectPublished(publishedOnly)}
                $defaultOrdering
               WHERE ownder = $userId
               LIMIT , $limit
@@ -119,7 +132,7 @@ class DBPhotoRepository(override val config: Config)
         Right(Page(photos, page, limit, total()))
       } catch {
         case e: Exception ⇒
-          logger.error("Unable to get photo")
+          logger.error("Unable to get photos")
           Left(DatabaseServiceError(e.getMessage))
       }
     }
@@ -133,10 +146,11 @@ class DBPhotoRepository(override val config: Config)
       try {
         val photos =
           sql"""
-            ${defaultSelect()}
+            $defaultSelect
             LEFT JOIN common_photo_album AS cab
             ON p.id = cab.photo_id
             WHERE cab.album_id = $albumID
+            AND ${selectPublished(publishedOnly)}
             LIMIT ${offset(page, limit)}, $limit
                """.map(toPhoto).list.apply()
         Right(Page(photos, page, limit, total()))
@@ -215,8 +229,7 @@ class DBPhotoRepository(override val config: Config)
       }
     }
 
-  private def defaultSelect(publishedOnly: Option[Boolean] = None) = {
-    val publish = publishedOnly.map(p ⇒ sqls"WHERE published = $p").getOrElse(sqls"WHERE 1")
+  private val defaultSelect = {
     sqls"""
         SELECT
         id,
@@ -231,9 +244,13 @@ class DBPhotoRepository(override val config: Config)
         cloud_image,
         owner
       FROM common_photo AS p
-      $publish
       """
   }
+
+  private def selectPublished(publishedOnly: Option[Boolean]) =
+    publishedOnly
+      .map(p ⇒ sqls"p.published = $p")
+      .getOrElse(sqls"")
 
   private val defaultOrdering = sqls"ORDER BY created_at DESC"
 

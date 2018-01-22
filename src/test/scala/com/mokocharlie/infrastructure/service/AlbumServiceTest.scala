@@ -10,7 +10,8 @@ import com.mokocharlie.infrastructure.repository.{
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
-import scala.concurrent.ExecutionContext
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class AlbumServiceTest
     extends AsyncFlatSpec
@@ -47,7 +48,7 @@ class AlbumServiceTest
 
   it should "create an album without a cover" in {
     albumService
-      .createOrUpdate(album1.copy(id = 2, cover = None))
+      .createOrUpdate(album2)
       .map {
         case Right(result) ⇒ result shouldBe 2
         case Left(_) ⇒ fail("An album should have been created")
@@ -65,5 +66,17 @@ class AlbumServiceTest
     albumService.albumById(99999999).map { x ⇒
       x shouldBe Left(EmptyResultSet("Could not find album with given id: 99999999"))
     }
+  }
+
+  it should "eventually be updated when values are changed" in {
+    albumService.createOrUpdate(album1.copy(label = "Test update")).flatMap {
+      case Right(id) ⇒
+        albumService.albumById(id).map {
+          case Right(Some(album)) ⇒ album.label shouldBe "Test Update"
+          case Left(_) ⇒ fail("An album should have been found")
+        }
+      case Left(e) ⇒ fail(s"The update failed $e")
+    }
+
   }
 }

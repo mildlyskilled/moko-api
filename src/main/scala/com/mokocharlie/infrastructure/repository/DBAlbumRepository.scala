@@ -177,6 +177,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
            published = ${album.published},
            featured = ${album.featured},
            cover_id = ${album.cover.map(_.id)}
+           WHERE id = ${album.id}
         """.update.apply()
         if (update > 0) Right(album.id)
         else Left(DatabaseServiceError(s"Could not update album: ${album.id}"))

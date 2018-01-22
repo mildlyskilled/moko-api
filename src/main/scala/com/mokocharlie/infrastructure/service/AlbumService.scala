@@ -3,7 +3,9 @@ package com.mokocharlie.infrastructure.service
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.Album
 import com.mokocharlie.domain.Page
-import com.mokocharlie.domain.common.ServiceResponse.{RepositoryResponse, ServiceResponse}
+import com.mokocharlie.domain.common.MokoCharlieServiceError
+import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
+import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.repository.{DBAlbumRepository, PhotoRepository}
 
 import scala.collection.immutable.Seq
@@ -17,25 +19,45 @@ class AlbumService(albumRepo: DBAlbumRepository, photoRepository: PhotoRepositor
 
   def createOrUpdate(album: Album): ServiceResponse[Long] = {
     dbExecute {
-      val cover = album.cover.map(p ⇒ photoRepository.photoById(p.id)).flatMap {
-        case Right(response) ⇒ response.map(_.id)
+      val cover = album.cover.map(p ⇒ photoRepository.photoById(p.id)).map {
+        case Right(response) ⇒
+          response.map(_.id).getOrElse {
+            album.cover
+              .map { photo ⇒
+                val what = photoRepository.create(
+                  photo.name,
+                  photo.path,
+                  photo.caption,
+                  photo.createdAt,
+                  photo.updatedAt,
+                  photo.deletedAt,
+                  photo.published,
+                  photo.cloudImage,
+                  photo.ownerId)
+
+                what match {
+                  case Right(rPhoto) ⇒ Some(rPhoto)
+                  case Left(_) ⇒ None
+                }
+              }
+          }
         case Left(_) ⇒ None
       }
 
-      val albumUpdate: Option[RepositoryResponse[Long]] = albumRepo
+      println("COVER ID", cover)
+
+      albumRepo
         .albumById(album.id) match {
-        case Right(albumOption) ⇒ albumOption.map(albumRepo.update)
-        case Left(_) ⇒ None
-      }
-
-      albumUpdate.getOrElse {
-        albumRepo.create(
-          album.label,
-          album.description,
-          album.createdAt,
-          cover,
-          album.published,
-          album.featured)
+        case Right(_) ⇒ albumRepo.update(album)
+        case Left(EmptyResultSet(_)) ⇒
+          albumRepo.create(
+            album.label,
+            album.description,
+            album.createdAt,
+            cover,
+            album.published,
+            album.featured)
+        case Left(ex) ⇒ Left(ex)
       }
     }
   }
