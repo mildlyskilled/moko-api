@@ -1,7 +1,5 @@
 package com.mokocharlie.infrastructure.service
 
-import java.sql.Timestamp
-
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.Album
 import com.mokocharlie.domain.Page
@@ -18,14 +16,17 @@ class AlbumService(albumRepo: DBAlbumRepository, photoService: PhotoService)(
   implicit val ec: ExecutionContextExecutor = system.dispatcher
 
   def create(album: Album): ServiceResponse[Long] = {
-    val cover: Future[Option[Long]] = album.cover.map { photo ⇒
-      photoService.create(photo).map{
-        case Right(id) ⇒ Some(id)
-        case Left(_) ⇒ None
+    val cover: Future[Option[Long]] = album.cover
+      .map { photo ⇒
+        photoService.create(photo).map {
+          case Right(id) ⇒ Some(id)
+          case Left(_) ⇒ None
+        }
       }
-    }.get
+      .getOrElse(Future(None))
+
     dbExecute {
-      cover.map{ id ⇒
+      cover.map { id ⇒
         albumRepo.create(
           album.label,
           album.description,

@@ -1,5 +1,3 @@
-CREATE DATABASE mokochalie;
-
 CREATE TABLE admin_honeypot_loginattempt
 (
   id          INT AUTO_INCREMENT
@@ -342,7 +340,7 @@ CREATE TABLE common_photo
 (
   id          INT AUTO_INCREMENT
     PRIMARY KEY,
-  image_id    VARCHAR(40)  NOT NULL,
+  image_id    VARCHAR(40),
   name        VARCHAR(250) NOT NULL,
   path        VARCHAR(150) NULL,
   caption     LONGTEXT     NOT NULL,

@@ -160,13 +160,13 @@ class DBPhotoRepository(override val config: Config)
       published: Boolean,
       cloudImage: Option[String],
       owner: Long): RepositoryResponse[Long] =
-    writeTransaction(3, "Could not save new photo") {implicit session ⇒
+    writeTransaction(3, "Could not save new photo") { implicit session ⇒
       try {
         val id = sql"""INSERT INTO common_photo(
                `name`, 
                path, 
                caption, 
-               create_at, 
+               created_at, 
                updated_at, 
                deleted_at, 
                published, 

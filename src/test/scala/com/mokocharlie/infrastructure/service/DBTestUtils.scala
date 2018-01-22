@@ -3,9 +3,10 @@ package com.mokocharlie.infrastructure.service
 import java.sql.Timestamp
 import java.time.Instant
 
+import scalikejdbc._
 import com.mokocharlie.domain.MokoModel.{Album, Photo}
 
-object TestFixtures {
+trait DBTestUtils {
   val photo1 = Photo(
     id = 1,
     imageId = "legacy_1",
@@ -31,4 +32,12 @@ object TestFixtures {
     published = true,
     featured = false
   )
+
+  def purgeAlbumTable(): Int = DB.localTx { implicit session: DBSession ⇒
+    sql"TRUNCATE TABLE common_album;".executeUpdate.apply()
+  }
+
+  def purgePhotoTable(): Int = DB.localTx { implicit session: DBSession ⇒
+    sql"TRUNCATE TABLE common_photo".executeUpdate.apply()
+  }
 }

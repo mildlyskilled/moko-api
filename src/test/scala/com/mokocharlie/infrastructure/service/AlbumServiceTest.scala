@@ -2,17 +2,24 @@ package com.mokocharlie.infrastructure.service
 
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
-import com.mokocharlie.infrastructure.repository.{CommentRepository, DBAlbumRepository, DBPhotoRepository}
+import com.mokocharlie.infrastructure.repository.{
+  CommentRepository,
+  DBAlbumRepository,
+  DBPhotoRepository
+}
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
 
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 
 class AlbumServiceTest
     extends AsyncFlatSpec
     with Matchers
-    with StrictLogging {
+    with StrictLogging
+    with DBTestUtils
+    with BeforeAndAfterAll {
   implicit val system: ActorSystem = ActorSystem("test-system")
   implicit val ec: ExecutionContext = system.dispatcher
   val config: Config = ConfigFactory.load()
@@ -24,28 +31,28 @@ class AlbumServiceTest
 
   behavior of "AlbumService"
 
-  logger.info(
-    s"""Running test on
+  logger.info(s"""Running test on
        |${config.getString("mokocharlie.db.host")} with
        |user: ${config.getString("mokocharlie.db.user")} and
        |password: ${config.getString("mokocharlie.db.password")}""".stripMargin)
 
-
-  "AlbumService" should "create new entries in the database" in {
-    albumService.create(
-      TestFixtures.album1
-    ).map{
-      case Right(id) ⇒ id shouldBe 1
-      case Left(_) ⇒ fail("An album should be created")
-    }
+  "AlbumService" should "create new album with a cover" in {
+    albumService
+      .create(
+        album1
+      )
+      .map {
+        case Right(result) ⇒ result shouldBe 1
+        case Left(_) ⇒ fail("An album should have been created")
+      }
   }
 
   it should "create an album without a cover" in {
     albumService
-      .create(TestFixtures.album1.copy(cover = None))
-      .map{
-        case Right(id) ⇒ id shouldBe 2
-        case Left(_) ⇒ fail("An album should be created")
+      .create(album1.copy(cover = None))
+      .map {
+        case Right(result) ⇒ result shouldBe 2
+        case Left(_) ⇒ fail("An album should have been created")
       }
   }
 
