@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.Page
-import com.mokocharlie.domain.common.MokoCharlieServiceError.DatabaseServiceError
+import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
@@ -18,9 +18,9 @@ trait PhotoRepository {
       exclude: Seq[Long] = Seq.empty,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Photo]]
 
-  def photoById(imageID: String): RepositoryResponse[Option[Photo]]
+  def photoById(imageID: String): RepositoryResponse[Photo]
 
-  def photoById(id: Long): RepositoryResponse[Option[Photo]]
+  def photoById(id: Long): RepositoryResponse[Photo]
 
   def photosByUserId(
       userId: Long,
@@ -83,15 +83,18 @@ class DBPhotoRepository(override val config: Config)
       }
     }
 
-  def photoById(imageID: String): RepositoryResponse[Option[Photo]] =
+  def photoById(imageID: String): RepositoryResponse[Photo] =
     readOnlyTransaction { implicit session ⇒
       try {
-        Right {
-          sql"""
+        sql"""
                $defaultSelect
               WHERE image_id = $imageID
-             """.map(toPhoto).single.apply()
-        }
+             """
+          .map(toPhoto)
+          .single
+          .apply()
+          .map(p ⇒ Right(p))
+          .getOrElse(Left(EmptyResultSet(s"Could not find photo with IMAGE_ID $imageID")))
       } catch {
         case e: Exception ⇒
           logger.error("Unable to get photo")
@@ -99,15 +102,18 @@ class DBPhotoRepository(override val config: Config)
       }
     }
 
-  def photoById(id: Long): RepositoryResponse[Option[Photo]] =
+  def photoById(id: Long): RepositoryResponse[Photo] =
     readOnlyTransaction { implicit session ⇒
       try {
-        Right {
-          sql"""
+        sql"""
                $defaultSelect
               WHERE p.id = $id
-             """.map(toPhoto).single.apply()
-        }
+             """
+          .map(toPhoto)
+          .single
+          .apply()
+          .map(p ⇒ Right(p))
+          .getOrElse(Left(EmptyResultSet(s"Could not find photo with id: $id")))
       } catch {
         case e: Exception ⇒
           logger.error("Unable to get photo")

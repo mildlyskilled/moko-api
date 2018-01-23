@@ -26,7 +26,7 @@ trait AlbumRepository {
       limit: Int = 10,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]]
 
-  def albumById(albumID: Long): RepositoryResponse[Option[Album]]
+  def albumById(albumID: Long): RepositoryResponse[Album]
 
   def featuredAlbums(
       page: Int = 1,
@@ -103,21 +103,18 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       }
     }
 
-  def albumById(albumID: Long): RepositoryResponse[Option[Album]] =
+  def albumById(albumID: Long): RepositoryResponse[Album] =
     readOnlyTransaction { implicit session ⇒
       try {
-
-        val album =
-          sql"""
+        sql"""
             ${defaultSelect()}
            WHERE a.id = $albumID
            """
-            .map(toAlbum)
-            .single
-            .apply()
-
-        if (album.nonEmpty) Right(album)
-        else Left(EmptyResultSet(s"Could not find album with given id: $albumID"))
+          .map(toAlbum)
+          .single
+          .apply()
+          .map(a ⇒ Right(a))
+          .getOrElse(Left(EmptyResultSet(s"Could not find album with given id: $albumID")))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }

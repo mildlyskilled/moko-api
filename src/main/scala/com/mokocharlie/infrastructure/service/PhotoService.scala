@@ -15,19 +15,7 @@ class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)
   def createOrUpdate(photo: Photo): ServiceResponse[Long] =
     dbExecute {
       photoRepo.photoById(photo.id) match {
-        case Right(maybePhoto) ⇒
-          maybePhoto.map(photoRepo.update).getOrElse {
-            photoRepo.create(
-              photo.name,
-              photo.path,
-              photo.caption,
-              photo.createdAt,
-              photo.updatedAt,
-              photo.deletedAt,
-              photo.published,
-              photo.cloudImage,
-              photo.ownerId)
-          }
+        case Right(foundPhoto) ⇒ photoRepo.update(foundPhoto)
         case Left(EmptyResultSet(_)) ⇒
           photoRepo.create(
             photo.name,
@@ -46,10 +34,10 @@ class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)
   def list(page: Int, limit: Int): ServiceResponse[Page[Photo]] =
     dbExecute(photoRepo.list(page, limit))
 
-  def photoById(id: Long): ServiceResponse[Option[Photo]] =
+  def photoById(id: Long): ServiceResponse[Photo] =
     dbExecute(photoRepo.photoById(id))
 
-  def photoById(id: String): ServiceResponse[Option[Photo]] =
+  def photoById(id: String): ServiceResponse[Photo] =
     dbExecute(photoRepo.photoById(id))
 
   def photosByAlbum(id: Long, pageNumber: Int, limit: Int): ServiceResponse[Page[Photo]] =

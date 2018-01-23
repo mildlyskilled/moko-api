@@ -22,7 +22,7 @@ class CoreRoutes(config: Config)(implicit system: ActorSystem) extends RouteConc
   private val videoRepository = new VideoRepository(config)
   private val documentaryRepository = new DocumentaryRepository(config)
   private val photoService = new PhotoService(photoRepository, commentRepository)
-  private val albumService = new AlbumService(albumRepository, photoRepository)
+  private val albumService = new AlbumService(albumRepository, photoService)
   private val collectionService = new CollectionService(collectionRepository)
   private val commentService = new CommentService(commentRepository)
 

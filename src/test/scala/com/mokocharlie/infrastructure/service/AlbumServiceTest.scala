@@ -26,7 +26,7 @@ class AlbumServiceTest
   val albumRepository = new DBAlbumRepository(config, photoRepository)
   val commentRepository = new CommentRepository(config)
   val photoService = new PhotoService(photoRepository, commentRepository)
-  val albumService = new AlbumService(albumRepository, photoRepository)
+  val albumService = new AlbumService(albumRepository, photoService)
 
   behavior of "AlbumService"
 
@@ -51,7 +51,7 @@ class AlbumServiceTest
       .createOrUpdate(album2)
       .map {
         case Right(result) ⇒ result shouldBe 2
-        case Left(_) ⇒ fail("An album should have been created")
+        case Left(ex) ⇒ fail(s"An album should have been created ${ex.msg}")
       }
   }
 
@@ -69,11 +69,11 @@ class AlbumServiceTest
   }
 
   it should "eventually be updated when values are changed" in {
-    albumService.createOrUpdate(album1.copy(label = "Test update")).flatMap {
+    albumService.createOrUpdate(album1.copy(label = "Test Update")).flatMap {
       case Right(id) ⇒
         albumService.albumById(id).map {
-          case Right(Some(album)) ⇒ album.label shouldBe "Test Update"
-          case Left(_) ⇒ fail("An album should have been found")
+          case Right(album) ⇒ album.label shouldBe "Test Update"
+          case Left(ex) ⇒ fail(s"An album should have been found ${ex.msg}")
         }
       case Left(e) ⇒ fail(s"The update failed $e")
     }
