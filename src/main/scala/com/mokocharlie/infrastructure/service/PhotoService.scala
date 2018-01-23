@@ -3,9 +3,8 @@ package com.mokocharlie.infrastructure.service
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.{Comment, Photo}
 import com.mokocharlie.domain.Page
-import com.mokocharlie.domain.common.MokoCharlieServiceError
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
-import com.mokocharlie.domain.common.ServiceResponse.{RepositoryResponse, ServiceResponse}
+import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.repository.{CommentRepository, DBPhotoRepository}
 
 class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)(

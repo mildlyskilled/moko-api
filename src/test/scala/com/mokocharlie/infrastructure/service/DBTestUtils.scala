@@ -35,11 +35,4 @@ trait DBTestUtils {
 
   val album2: Album = album1.copy(id = 2, cover = None)
 
-  def purgeAlbumTable(): Int = DB.localTx { implicit session: DBSession ⇒
-    sql"TRUNCATE TABLE common_album;".executeUpdate.apply()
-  }
-
-  def purgePhotoTable(): Int = DB.localTx { implicit session: DBSession ⇒
-    sql"TRUNCATE TABLE common_photo".executeUpdate.apply()
-  }
 }
