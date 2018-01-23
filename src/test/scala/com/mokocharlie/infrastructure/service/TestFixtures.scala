@@ -6,7 +6,7 @@ import java.time.Instant
 import scalikejdbc._
 import com.mokocharlie.domain.MokoModel.{Album, Photo}
 
-trait DBTestUtils {
+trait TestFixtures {
   val photo1 = Photo(
     id = 1,
     imageId = "legacy_1",

@@ -43,6 +43,8 @@ trait AlbumRepository {
 
   def update(album: Album): RepositoryResponse[Long]
 
+  def savePhotosToAlbum(albumId: Long, photos: Seq[Long]): RepositoryResponse[Unit]
+
   def total(): Option[Int]
 }
 
@@ -182,6 +184,10 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
     }
+
+  def savePhotosToAlbum(albumId: Long, photos: Seq[Long]): RepositoryResponse[Unit] =
+    writeTransaction(1, "Could not update album") { implicit session ⇒
+      }
 
   def total(): Option[Int] =
     readOnlyTransaction { implicit session ⇒

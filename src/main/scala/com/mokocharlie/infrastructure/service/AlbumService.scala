@@ -1,7 +1,7 @@
 package com.mokocharlie.infrastructure.service
 
 import akka.actor.ActorSystem
-import com.mokocharlie.domain.MokoModel.Album
+import com.mokocharlie.domain.MokoModel.{Album, Photo}
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.repository.DBAlbumRepository
@@ -60,5 +60,8 @@ class AlbumService(albumRepo: DBAlbumRepository, photoService: PhotoService)(
 
   def collectionAlbums(collectionId: Long, page: Int, limit: Int): ServiceResponse[Page[Album]] =
     dbExecute(albumRepo.collectionAlbums(collectionId, page, limit))
+
+  def savePhotosToAlbum(albumId: Long, photos: Seq[Long]): ServiceResponse[Unit] =
+    dbExecute(albumRepo.savePhotosToAlbum(albumId, photos))
 
 }

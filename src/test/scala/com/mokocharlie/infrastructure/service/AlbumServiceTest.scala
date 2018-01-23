@@ -2,14 +2,10 @@ package com.mokocharlie.infrastructure.service
 
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
-import com.mokocharlie.infrastructure.repository.{
-  CommentRepository,
-  DBAlbumRepository,
-  DBPhotoRepository
-}
+import com.mokocharlie.infrastructure.repository.{CommentRepository, DBAlbumRepository, DBPhotoRepository}
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers, WordSpec}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -17,7 +13,7 @@ class AlbumServiceTest
     extends AsyncFlatSpec
     with Matchers
     with StrictLogging
-    with DBTestUtils
+    with TestFixtures
     with BeforeAndAfterAll {
   implicit val system: ActorSystem = ActorSystem("test-system")
   implicit val ec: ExecutionContext = system.dispatcher
@@ -77,6 +73,9 @@ class AlbumServiceTest
         }
       case Left(e) ⇒ fail(s"The update failed $e")
     }
+  }
 
+  it should "save photos to a given album" in {
+    albumService.savePhotosToAlbum(album1.id, Seq(photo1.id))
   }
 }

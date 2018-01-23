@@ -10,6 +10,7 @@ import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUti
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
 import scalikejdbc._
+import scala.collection.immutable.Seq
 
 trait PhotoRepository {
   def list(
