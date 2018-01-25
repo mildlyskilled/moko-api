@@ -23,11 +23,6 @@ class PhotoServiceTest
   val commentRepo = new CommentRepository(config)
   val photoService = new PhotoService(photoRepo, commentRepo)
 
-  override def beforeAll() = {
-    acquire()
-    purgeTables()
-  }
-
   behavior of "PhotoService"
 
   "PhotoService" should "save a photo model" in {
