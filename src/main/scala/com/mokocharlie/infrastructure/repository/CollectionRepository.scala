@@ -2,7 +2,7 @@ package com.mokocharlie.infrastructure.repository
 
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.MokoModel._
-import com.mokocharlie.domain.common.MokoCharlieServiceError.DatabaseServiceError
+import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
@@ -10,7 +10,27 @@ import scalikejdbc._
 
 class CollectionRepository(override val config: Config) extends JdbcRepository with RepoUtils {
 
-  def list(page: Int, limit: Int): RepositoryResponse[Page[Collection]] = ???
+  def list(
+      page: Int,
+      limit: Int,
+      publishedOnly: Option[Boolean] = None): RepositoryResponse[Page[Collection]] =
+    readOnlyTransaction { implicit session ⇒
+      try {
+        val list = sql"""
+          $defaultSelect
+          ${selectPublished(publishedOnly)}
+          LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+        """
+          .map(toCollection)
+          .list()
+          .apply()
+
+        if (list.isEmpty) Left(EmptyResultSet("Could not find any collections"))
+        Right(Page(list, page, rowCount(page, limit), Some(limit)))
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+    }
 
   def findCollectionById(id: Long): RepositoryResponse[Option[Collection]] =
     readOnlyTransaction { implicit session ⇒
@@ -63,14 +83,18 @@ class CollectionRepository(override val config: Config) extends JdbcRepository w
   private val defaultSelect: SQLSyntax =
     sqls"""
          SELECT
-          id,
-          name,
-          featured,
-          created_at,
-          updated_at,
-          descripion,
-          cover_album_id
-          FROM common_collection
+          c.id,
+          c.name,
+          c.featured,
+          c.created_at,
+          c.updated_at,
+          c.description,
+          c.cover_album_id
+          FROM common_collection AS c
         """
 
+  private def selectPublished(publishedOnly: Option[Boolean], joiner: String = "WHERE") =
+    publishedOnly
+      .map(p ⇒ sqls"$joiner c.published = $p")
+      .getOrElse(sqls"")
 }

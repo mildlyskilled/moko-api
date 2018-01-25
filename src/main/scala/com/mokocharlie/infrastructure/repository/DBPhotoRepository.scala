@@ -69,7 +69,7 @@ class DBPhotoRepository(override val config: Config)
         val photos =
           sql"""
               $defaultSelect
-              WHERE ${selectPublished(publishedOnly)}
+              ${selectPublished(publishedOnly)}
               $defaultOrdering
               LIMIT ${rowCount(page, limit)}, $limit
 
@@ -132,9 +132,9 @@ class DBPhotoRepository(override val config: Config)
       try {
         val photos = sql"""
                $defaultSelect
-               WHERE ${selectPublished(publishedOnly)}
+               ${selectPublished(publishedOnly)}
+              AND owner = $userId
                $defaultOrdering
-              WHERE ownder = $userId
               LIMIT , $limit
              """.map(toPhoto).list.apply()
         Right(Page(photos, page, limit, total()))
@@ -158,8 +158,8 @@ class DBPhotoRepository(override val config: Config)
             LEFT JOIN common_photo_albums AS cab
             ON p.id = cab.photo_id
             WHERE cab.album_id = $albumID
-            AND ${selectPublished(publishedOnly)}
-            LIMIT ${dbPage(1)}, ${rowCount(page, limit)}
+            ${selectPublished(publishedOnly, "AND")}
+            LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
                """.map(toPhoto).list.apply()
         Right(Page(photos, page, limit, total()))
       } catch {
@@ -258,9 +258,15 @@ class DBPhotoRepository(override val config: Config)
       """
   }
 
-  private def selectPublished(publishedOnly: Option[Boolean]) =
+  private def selectPublished(publishedOnly: Option[Boolean], joiner: String = "WHERE") =
     publishedOnly
-      .map(p ⇒ sqls"p.published = $p")
+      .map { p ⇒
+        val j = joiner match {
+          case "AND" ⇒ sqls"AND"
+          case _ ⇒ sqls"WHERE"
+        }
+        sqls" $j p.published = $p"
+      }
       .getOrElse(sqls"")
 
   private val defaultOrdering = sqls"ORDER BY created_at DESC"

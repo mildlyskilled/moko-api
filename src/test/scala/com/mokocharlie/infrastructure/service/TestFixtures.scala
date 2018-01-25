@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.time.{Instant, LocalDateTime}
 
 import com.mokocharlie.SettableClock
-import com.mokocharlie.domain.MokoModel.{Album, Photo}
+import com.mokocharlie.domain.MokoModel.{Album, Collection, Photo}
 
 trait TestFixtures {
   val clock: SettableClock = new SettableClock(LocalDateTime.of(2018, 1, 25, 12, 24, 0))
@@ -32,6 +32,16 @@ trait TestFixtures {
     updatedAt = Some(Timestamp.from(Instant.now(clock))),
     published = true,
     featured = false
+  )
+
+  val collection1 = Collection(
+    id = 1L,
+    name = "Hotels",
+    featured = true,
+    description = "This is a test collection",
+    createdAt = Timestamp.from(Instant.now(clock)),
+    updatedAt = Timestamp.from(Instant.now(clock)),
+    coverAlbumId = 1L
   )
 
   val album2: Album = album1.copy(id = 2, cover = None)

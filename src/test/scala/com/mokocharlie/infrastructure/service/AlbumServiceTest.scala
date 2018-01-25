@@ -1,6 +1,7 @@
 package com.mokocharlie.infrastructure.service
 
 import akka.actor.ActorSystem
+import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
 import com.mokocharlie.infrastructure.repository.{
   CommentRepository,
@@ -24,6 +25,8 @@ class AlbumServiceTest extends AsyncFlatSpec with Matchers with StrictLogging wi
   val commentRepository = new CommentRepository(config)
   val photoService = new PhotoService(photoRepository, commentRepository)
   val albumService = new AlbumService(albumRepository, photoService)
+  val photo2: Photo =
+    photo1.copy(id = 2, imageId = Some("legacy_2"), caption = "This is a second picture")
 
   behavior of "AlbumService"
 
@@ -55,7 +58,7 @@ class AlbumServiceTest extends AsyncFlatSpec with Matchers with StrictLogging wi
   it should "eventually return a list of albums" in {
     albumService.list(1, 10).map {
       case Right(x) ⇒ x.items should have size 2
-      case Left(_) ⇒ fail("Album service must return a  successful result")
+      case Left(ex) ⇒ fail(s"Album service must return a  successful result {$ex}")
     }
   }
 
@@ -77,13 +80,38 @@ class AlbumServiceTest extends AsyncFlatSpec with Matchers with StrictLogging wi
   }
 
   it should "save photos to a given album" in {
-    albumService.savePhotosToAlbum(album1.id, Seq(photo1.id)).flatMap {
+    photoService
+      .createOrUpdate(photo2)
+      .flatMap {
+        case Right(newImageId) ⇒
+          albumService.savePhotosToAlbum(album1.id, Seq(photo1.id, newImageId)).flatMap {
+            case Right(_) ⇒
+              photoService.photosByAlbum(album1.id, 1, 3).map {
+                case Right(photos) ⇒ photos.items should contain allOf (photo1, photo2)
+                case Left(ex) ⇒ fail(s"A photo should be returned ${ex.msg}")
+              }
+            case Left(ex) ⇒ fail(s"Photos were not saved ${ex.msg}")
+          }
+        case Left(ex) ⇒ fail(s"Could not create second image ${ex.msg}")
+      }
+  }
+
+  it should "remove images from a given album" in {
+    albumService.removePhotosFromAlbum(album1.id, Seq(photo1.id)).flatMap {
       case Right(_) ⇒
         photoService.photosByAlbum(album1.id, 1, 3).map {
-          case Right(photos) ⇒ photos.items should contain(photo1)
-          case Left(_) ⇒ fail("A photo should be returned")
+          case Right(photos) ⇒
+            photos.items should not contain photo1
+          case Left(ex) ⇒ fail(s"Failed to  ${ex.msg}")
         }
-      case Left(_) ⇒ fail("Photos were not saved")
+      case Left(ex) ⇒ fail(s"Images were not removed ${ex.msg}")
+    }
+  }
+
+  it should "still contain remaining photo" in {
+    photoService.photosByAlbum(album1.id, 1, 3).map {
+      case Right(photos) ⇒ photos.items should contain(photo2)
+      case Left(ex) ⇒ fail(s"Failed to fetch images ${ex.msg}")
     }
   }
 }

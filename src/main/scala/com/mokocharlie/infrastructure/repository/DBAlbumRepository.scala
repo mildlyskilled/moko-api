@@ -43,7 +43,9 @@ trait AlbumRepository {
 
   def update(album: Album): RepositoryResponse[Long]
 
-  def savePhotosToAlbum(albumId: Long, photos: Seq[Long]): RepositoryResponse[Seq[Int]]
+  def savePhotosToAlbum(albumId: Long, photoIds: Seq[Long]): RepositoryResponse[Seq[Int]]
+
+  def removePhotosFromAlbum(albumId: Long, photoIds: Seq[Long]): RepositoryResponse[Seq[Int]]
 
   def total(): Option[Int]
 }
@@ -63,7 +65,8 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       try {
         val albums =
           sql"""
-            ${defaultSelect(publishedOnly)}
+            ${defaultSelect}
+            ${selectPublished(publishedOnly, "WHERE")}
             $defaultOrdering
             LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
            """
@@ -88,10 +91,11 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       try {
         val albums =
           sql"""
-            ${defaultSelect(publishedOnly)}
+            ${defaultSelect}
             LEFT JOIN common_collection_albums AS cab
             ON cab.album_id = a.id
             WHERE cab.collection_id = $collectionID
+            ${selectPublished(publishedOnly, "AND")}
             LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
             $defaultOrdering
            """.map(toAlbum).list.apply()
@@ -109,7 +113,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
     readOnlyTransaction { implicit session ⇒
       try {
         sql"""
-            ${defaultSelect()}
+            ${defaultSelect}
            WHERE a.id = $albumID
            """
           .map(toAlbum)
@@ -130,7 +134,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       try {
         val albums =
           sql"""
-            ${defaultSelect()}
+            ${defaultSelect}
             WHERE featured = 1
            LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
            """.map(toAlbum).list.apply()
@@ -185,10 +189,10 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       }
     }
 
-  def savePhotosToAlbum(albumId: Long, photos: Seq[Long]): RepositoryResponse[Seq[Int]] =
+  def savePhotosToAlbum(albumId: Long, photoIds: Seq[Long]): RepositoryResponse[Seq[Int]] =
     writeTransaction(1, "Could not update album") { implicit session ⇒
       try {
-        val inserts = photos.map(p ⇒ Seq(albumId, p))
+        val inserts = photoIds.map(id ⇒ Seq(albumId, id))
         val res = sql"""INSERT INTO common_photo_albums (album_id, photo_id)
            VALUES (?, ?)
          """
@@ -201,13 +205,27 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
 
     }
 
+  def removePhotosFromAlbum(albumId: Long, photoIds: Seq[Long]): RepositoryResponse[Seq[Int]] =
+    writeTransaction(3, s"Could not remove photos from album $albumId") { implicit session ⇒
+      try {
+        val deletes = photoIds.map(id ⇒ Seq(albumId, id))
+        val res = sql"""
+          DELETE FROM common_photo_albums
+          WHERE photo_id = ? AND album_id = ? """
+          .batch(deletes: _*)
+          .apply()
+        Right(res)
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+    }
+
   def total(): Option[Int] =
     readOnlyTransaction { implicit session ⇒
       sql"SELECT COUNT(id) AS total FROM common_album".map(rs ⇒ rs.int("total")).single.apply()
     }
 
-  private def defaultSelect(publishedOnly: Option[Boolean] = Some(true)) = {
-    val published = publishedOnly.map(p ⇒ sqls"AND a.published = $p").getOrElse(sqls"")
+  private val defaultSelect = {
     sqls"""
           |SELECT
           |	a.id,
@@ -231,7 +249,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
           |	p.cloud_image,
           |	p.published AS photo_published
           |FROM common_album AS a
-          |LEFT JOIN common_photo p ON a.cover_id = p.id $published
+          |LEFT JOIN common_photo p ON a.cover_id = p.id
        """.stripMargin
   }
 
@@ -266,4 +284,15 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       rs.boolean("featured")
     )
   }
+
+  private def selectPublished(publishedOnly: Option[Boolean], joiner: String = "WHERE") =
+    publishedOnly
+      .map { p ⇒
+        val j = joiner match {
+          case "AND" ⇒ sqls"AND"
+          case _ ⇒ sqls"WHERE"
+        }
+        sqls" $j a.published = $p"
+      }
+      .getOrElse(sqls"")
 }

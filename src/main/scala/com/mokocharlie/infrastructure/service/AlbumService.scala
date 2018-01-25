@@ -61,7 +61,10 @@ class AlbumService(albumRepo: DBAlbumRepository, photoService: PhotoService)(
   def collectionAlbums(collectionId: Long, page: Int, limit: Int): ServiceResponse[Page[Album]] =
     dbExecute(albumRepo.collectionAlbums(collectionId, page, limit))
 
-  def savePhotosToAlbum(albumId: Long, photos: Seq[Long]): ServiceResponse[Seq[Int]] =
-    dbExecute(albumRepo.savePhotosToAlbum(albumId, photos))
+  def savePhotosToAlbum(albumId: Long, photoIds: Seq[Long]): ServiceResponse[Seq[Int]] =
+    dbExecute(albumRepo.savePhotosToAlbum(albumId, photoIds))
+
+  def removePhotosFromAlbum(albumId: Long, photoIds: Seq[Long]): ServiceResponse[Seq[Int]] =
+    dbExecute(albumRepo.removePhotosFromAlbum(albumId, photoIds))
 
 }
