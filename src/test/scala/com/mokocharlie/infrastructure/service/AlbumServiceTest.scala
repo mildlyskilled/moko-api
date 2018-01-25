@@ -1,9 +1,6 @@
 package com.mokocharlie.infrastructure.service
 
-import java.time.LocalDateTime
-
 import akka.actor.ActorSystem
-import com.mokocharlie.SettableClock
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
 import com.mokocharlie.infrastructure.repository.{
   CommentRepository,
@@ -12,18 +9,13 @@ import com.mokocharlie.infrastructure.repository.{
 }
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
+import org.scalatest.{AsyncFlatSpec, DoNotDiscover, Matchers}
 
 import scala.concurrent.ExecutionContext
 import scala.collection.immutable.Seq
 
-class AlbumServiceTest
-    extends AsyncFlatSpec
-    with Matchers
-    with StrictLogging
-    with TestFixtures
-    with TestDBUtils
-    with BeforeAndAfterAll {
+@DoNotDiscover
+class AlbumServiceTest extends AsyncFlatSpec with Matchers with StrictLogging with TestFixtures {
   implicit val system: ActorSystem = ActorSystem("test-system")
   implicit val ec: ExecutionContext = system.dispatcher
   val config: Config = ConfigFactory.load()
@@ -32,11 +24,6 @@ class AlbumServiceTest
   val commentRepository = new CommentRepository(config)
   val photoService = new PhotoService(photoRepository, commentRepository)
   val albumService = new AlbumService(albumRepository, photoService)
-
-  override def beforeAll() = {
-    acquire()
-    purgeTables()
-  }
 
   behavior of "AlbumService"
 
@@ -98,10 +85,5 @@ class AlbumServiceTest
         }
       case Left(_) ⇒ fail("Photos were not saved")
     }
-  }
-
-  override def afterAll() = {
-    purgeTables()
-    release()
   }
 }

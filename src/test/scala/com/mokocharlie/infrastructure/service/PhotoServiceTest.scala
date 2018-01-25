@@ -4,17 +4,12 @@ import akka.actor.ActorSystem
 import com.mokocharlie.infrastructure.repository.{CommentRepository, DBPhotoRepository}
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
+import org.scalatest.{AsyncFlatSpec, DoNotDiscover, Matchers}
 
 import scala.concurrent.ExecutionContextExecutor
 
-class PhotoServiceTest
-    extends AsyncFlatSpec
-    with TestFixtures
-    with TestDBUtils
-    with BeforeAndAfterAll
-    with Matchers
-    with StrictLogging {
+@DoNotDiscover
+class PhotoServiceTest extends AsyncFlatSpec with TestFixtures with Matchers with StrictLogging {
 
   implicit val system: ActorSystem = ActorSystem("PhotoTestSystem")
   implicit val ec: ExecutionContextExecutor = system.dispatcher
@@ -41,10 +36,5 @@ class PhotoServiceTest
         }
       case Left(ex) ⇒ fail(s"Image should have been updated ${ex.msg}")
     }
-  }
-
-  override def afterAll() = {
-    purgeTables()
-    release()
   }
 }
