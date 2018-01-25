@@ -1,8 +1,24 @@
 package com.mokocharlie.infrastructure.service
 
+import java.util.concurrent.Semaphore
+
+import com.typesafe.scalalogging.StrictLogging
 import scalikejdbc._
 
-trait TestDBUtils {
+trait TestDBUtils extends StrictLogging {
+  val semaphore = new Semaphore(1, true)
+
+  def acquire(): Unit = {
+    logger.info("Waiting for database lock")
+    semaphore.acquire()
+    logger.info("Got database lock")
+  }
+
+  def release(): Unit = {
+    semaphore.release()
+    logger.info("Released database lock")
+  }
+
   def foreignKeys(check: Int) = DB.localTx { implicit session ⇒
     sql"SET FOREIGN_KEY_CHECKS = $check".executeUpdate().apply()
   }

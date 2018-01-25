@@ -33,7 +33,10 @@ class AlbumServiceTest
   val photoService = new PhotoService(photoRepository, commentRepository)
   val albumService = new AlbumService(albumRepository, photoService)
 
-  override def beforeAll() = purgeTables()
+  override def beforeAll() = {
+    acquire()
+    purgeTables()
+  }
 
   behavior of "AlbumService"
 
@@ -97,5 +100,8 @@ class AlbumServiceTest
     }
   }
 
-  override def afterAll() = purgeTables()
+  override def afterAll() = {
+    purgeTables()
+    release()
+  }
 }

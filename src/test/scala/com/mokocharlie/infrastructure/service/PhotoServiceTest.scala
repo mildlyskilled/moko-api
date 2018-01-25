@@ -23,7 +23,10 @@ class PhotoServiceTest
   val commentRepo = new CommentRepository(config)
   val photoService = new PhotoService(photoRepo, commentRepo)
 
-  override def beforeAll() = purgeTables()
+  override def beforeAll() = {
+    acquire()
+    purgeTables()
+  }
 
   behavior of "PhotoService"
 
@@ -45,5 +48,8 @@ class PhotoServiceTest
     }
   }
 
-  override def afterAll() = purgeTables()
+  override def afterAll() = {
+    purgeTables()
+    release()
+  }
 }
