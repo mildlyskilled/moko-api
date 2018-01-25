@@ -8,18 +8,18 @@ import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUti
 import com.typesafe.config.Config
 import scalikejdbc._
 
-
 class CollectionRepository(override val config: Config) extends JdbcRepository with RepoUtils {
 
   def list(page: Int, limit: Int): RepositoryResponse[Page[Collection]] = ???
 
   def findCollectionById(id: Long): RepositoryResponse[Option[Collection]] =
-    readOnlyTransaction{ implicit session ⇒
-      try{
+    readOnlyTransaction { implicit session ⇒
+      try {
         val collection = sql"""
             $defaultSelect
             WHERE id = $id
-        """.map(toCollection)
+        """
+          .map(toCollection)
           .single
           .apply()
         Right(collection)
@@ -29,13 +29,14 @@ class CollectionRepository(override val config: Config) extends JdbcRepository w
     }
 
   def getFeaturedCollections(page: Int = 1, limit: Int = 10): RepositoryResponse[Page[Collection]] =
-    readOnlyTransaction{ implicit  session ⇒
-      try{
+    readOnlyTransaction { implicit session ⇒
+      try {
         val collections = sql"""
             $defaultSelect
             WHERE featured = 1
-            LIMT ${offset(page, limit)}, $limit
-        """.map(toCollection)
+            LIMT ${rowCount(page, limit)}, $limit
+        """
+          .map(toCollection)
           .list
           .apply()
         Right(Page(collections, page, limit, total()))
@@ -60,7 +61,7 @@ class CollectionRepository(override val config: Config) extends JdbcRepository w
     )
 
   private val defaultSelect: SQLSyntax =
-      sqls"""
+    sqls"""
          SELECT
           id,
           name,

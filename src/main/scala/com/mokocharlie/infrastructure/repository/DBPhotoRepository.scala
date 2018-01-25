@@ -36,6 +36,7 @@ trait PhotoRepository {
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Photo]]
 
   def create(
+      imageId: Option[String],
       name: String,
       path: Option[String],
       caption: String,
@@ -70,7 +71,7 @@ class DBPhotoRepository(override val config: Config)
               $defaultSelect
               WHERE ${selectPublished(publishedOnly)}
               $defaultOrdering
-              LIMIT ${offset(page, limit)}, $limit
+              LIMIT ${rowCount(page, limit)}, $limit
 
         """.map(toPhoto)
             .list()
@@ -154,11 +155,11 @@ class DBPhotoRepository(override val config: Config)
         val photos =
           sql"""
             $defaultSelect
-            LEFT JOIN common_photo_album AS cab
+            LEFT JOIN common_photo_albums AS cab
             ON p.id = cab.photo_id
             WHERE cab.album_id = $albumID
             AND ${selectPublished(publishedOnly)}
-            LIMIT ${offset(page, limit)}, $limit
+            LIMIT ${dbPage(1)}, ${rowCount(page, limit)}
                """.map(toPhoto).list.apply()
         Right(Page(photos, page, limit, total()))
       } catch {
@@ -174,6 +175,7 @@ class DBPhotoRepository(override val config: Config)
     }
 
   def create(
+      imageId: Option[String],
       name: String,
       path: Option[String],
       caption: String,
@@ -186,6 +188,7 @@ class DBPhotoRepository(override val config: Config)
     writeTransaction(3, "Could not save new photo") { implicit session ⇒
       try {
         val id = sql"""INSERT INTO common_photo(
+               image_id,
                `name`, 
                path, 
                caption, 
@@ -196,6 +199,7 @@ class DBPhotoRepository(override val config: Config)
                cloud_image, 
                owner)
             VALUES (
+            $imageId,
             $name,
             $path,
             $caption,
@@ -222,7 +226,7 @@ class DBPhotoRepository(override val config: Config)
            path = ${photo.path},
            caption = ${photo.caption},
            created_at = ${photo.createdAt},
-           updated_at = NOW() ,
+           updated_at = ${photo.updatedAt},
            deleted_at = ${photo.deletedAt},
            published = ${photo.published},
            cloud_image = ${photo.cloudImage},
@@ -239,17 +243,17 @@ class DBPhotoRepository(override val config: Config)
   private val defaultSelect = {
     sqls"""
         SELECT
-        id,
-        image_id,
-        name,
-        path,
-        caption,
-        created_at,
-        updated_at,
-        deleted_at,
-        published,
-        cloud_image,
-        owner
+        p.id,
+        p.image_id,
+        p.name,
+        p.path,
+        p.caption,
+        p.created_at,
+        p.updated_at,
+        p.deleted_at,
+        p.published,
+        p.cloud_image,
+        p.owner
       FROM common_photo AS p
       """
   }
@@ -264,7 +268,7 @@ class DBPhotoRepository(override val config: Config)
   private def toPhoto(res: WrappedResultSet) =
     Photo(
       res.int("id"),
-      res.string("image_id"),
+      res.stringOpt("image_id"),
       res.string("name"),
       res.stringOpt("path"),
       res.string("caption"),

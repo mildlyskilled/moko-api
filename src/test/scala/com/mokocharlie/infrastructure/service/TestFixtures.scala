@@ -1,19 +1,20 @@
 package com.mokocharlie.infrastructure.service
 
 import java.sql.Timestamp
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 
-import scalikejdbc._
+import com.mokocharlie.SettableClock
 import com.mokocharlie.domain.MokoModel.{Album, Photo}
 
 trait TestFixtures {
+  val clock: SettableClock = new SettableClock(LocalDateTime.of(2018, 1, 25, 12, 24, 0))
   val photo1 = Photo(
     id = 1,
-    imageId = "legacy_1",
+    imageId = Some("legacy_1"),
     name = "A test image",
     caption = "This is a test image",
-    createdAt = Timestamp.from(Instant.now()),
-    updatedAt = Some(Timestamp.from(Instant.now())),
+    createdAt = Timestamp.from(Instant.now(clock)),
+    updatedAt = Some(Timestamp.from(Instant.now(clock))),
     path = Some("12323453245.jpb"),
     ownerId = 1,
     deletedAt = None,
@@ -27,8 +28,8 @@ trait TestFixtures {
     label = "Test album",
     description = "This is a test album",
     cover = Some(photo1),
-    createdAt = Timestamp.from(Instant.now()),
-    updatedAt = Some(Timestamp.from(Instant.now())),
+    createdAt = Timestamp.from(Instant.now(clock)),
+    updatedAt = Some(Timestamp.from(Instant.now(clock))),
     published = true,
     featured = false
   )

@@ -7,7 +7,6 @@ import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.repository.{CommentRepository, DBPhotoRepository}
 import com.typesafe.scalalogging.StrictLogging
-import scala.collection.immutable.Seq
 
 class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)(
     implicit override val system: ActorSystem)
@@ -23,6 +22,7 @@ class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)
         case Left(EmptyResultSet(_)) ⇒
           logger.info(s"Photo not found, creating ${photo.name}")
           photoRepo.create(
+            photo.imageId,
             photo.name,
             photo.path,
             photo.caption,

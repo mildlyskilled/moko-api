@@ -1,13 +1,21 @@
 package com.mokocharlie.infrastructure.service
 
+import java.time.LocalDateTime
+
 import akka.actor.ActorSystem
+import com.mokocharlie.SettableClock
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
-import com.mokocharlie.infrastructure.repository.{CommentRepository, DBAlbumRepository, DBPhotoRepository}
+import com.mokocharlie.infrastructure.repository.{
+  CommentRepository,
+  DBAlbumRepository,
+  DBPhotoRepository
+}
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers, WordSpec}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.collection.immutable.Seq
 
 class AlbumServiceTest
     extends AsyncFlatSpec
@@ -76,6 +84,12 @@ class AlbumServiceTest
   }
 
   it should "save photos to a given album" in {
-    albumService.savePhotosToAlbum(album1.id, Seq(photo1.id))
+    albumService.savePhotosToAlbum(album1.id, Seq(photo1.id)).flatMap {
+      case Right(_) ⇒
+        photoService.photosByAlbum(album1.id, 1, 3).map {
+          case Right(photos) ⇒ photos.items should contain(photo1)
+        }
+    }
+
   }
 }

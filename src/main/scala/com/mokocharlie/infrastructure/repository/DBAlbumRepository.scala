@@ -43,7 +43,7 @@ trait AlbumRepository {
 
   def update(album: Album): RepositoryResponse[Long]
 
-  def savePhotosToAlbum(albumId: Long, photos: Seq[Long]): RepositoryResponse[Unit]
+  def savePhotosToAlbum(albumId: Long, photos: Seq[Long]): RepositoryResponse[Seq[Int]]
 
   def total(): Option[Int]
 }
@@ -65,7 +65,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
           sql"""
             ${defaultSelect(publishedOnly)}
             $defaultOrdering
-            LIMIT ${dbPage(page)}, ${offset(page, limit)}
+            LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
            """
             .map(toAlbum)
             .list
@@ -92,7 +92,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
             LEFT JOIN common_collection_albums AS cab
             ON cab.album_id = a.id
             WHERE cab.collection_id = $collectionID
-            LIMIT ${dbPage(page)}, ${offset(page, limit)}
+            LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
             $defaultOrdering
            """.map(toAlbum).list.apply()
         if (albums.nonEmpty) {
@@ -132,7 +132,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
           sql"""
             ${defaultSelect()}
             WHERE featured = 1
-           LIMIT ${dbPage(page)}, ${offset(page, limit)}
+           LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
            """.map(toAlbum).list.apply()
 
         if (albums.nonEmpty) {
@@ -172,7 +172,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
           label = ${album.label},
            description = ${album.description},
            created_at = ${album.createdAt},
-           updated_at = NOW(),
+           updated_at = ${album.updatedAt},
            published = ${album.published},
            featured = ${album.featured},
            cover_id = ${album.cover.map(_.id)}
@@ -185,9 +185,21 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       }
     }
 
-  def savePhotosToAlbum(albumId: Long, photos: Seq[Long]): RepositoryResponse[Unit] =
+  def savePhotosToAlbum(albumId: Long, photos: Seq[Long]): RepositoryResponse[Seq[Int]] =
     writeTransaction(1, "Could not update album") { implicit session ⇒
+      try {
+        val inserts = photos.map(p ⇒ Seq(albumId, p))
+        val res = sql"""INSERT INTO common_photo_albums (album_id, photo_id)
+           VALUES (?, ?)
+         """
+          .batch(inserts: _*)
+          .apply()
+        Right(res)
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
+
+    }
 
   def total(): Option[Int] =
     readOnlyTransaction { implicit session ⇒
@@ -229,7 +241,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
     val photo = rs.longOpt("cover_id").map { _ ⇒
       Photo(
         rs.int("photo_id"),
-        rs.string("legacy_id"),
+        rs.stringOpt("legacy_id"),
         rs.string("photo_name"),
         rs.stringOpt("photo_path"),
         rs.string("photo_caption"),
