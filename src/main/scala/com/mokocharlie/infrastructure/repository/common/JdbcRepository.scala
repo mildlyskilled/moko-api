@@ -3,7 +3,10 @@ package com.mokocharlie.infrastructure.repository.common
 import java.sql.Timestamp
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 
-import com.mokocharlie.domain.common.MokoCharlieServiceError.{MaximumNumberOfAttemptsReached, UnknownError}
+import com.mokocharlie.domain.common.MokoCharlieServiceError.{
+  MaximumNumberOfAttemptsReached,
+  UnknownError
+}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
@@ -29,13 +32,13 @@ object JdbcParameters {
 }
 
 case class JdbcParameters(
-     protocol: String,
-     host: String,
-     port: Int,
-     dbName: String,
-     user: String,
-     password: String,
-     socketTimeout: Int = 0) {
+    protocol: String,
+    host: String,
+    port: Int,
+    dbName: String,
+    user: String,
+    password: String,
+    socketTimeout: Int = 0) {
 
   val url = s"$protocol://$host:$port/$dbName?reconnect=true"
 }
@@ -49,6 +52,17 @@ object JdbcRepository {
 }
 
 trait JdbcRepository extends StrictLogging {
+
+  GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
+    enabled = true,
+    singleLineMode = true,
+    printUnprocessedStackTrace = false,
+    stackTraceDepth = 15,
+    logLevel = 'debug,
+    warningEnabled = false,
+    warningThresholdMillis = 3000L,
+    warningLogLevel = 'warn
+  )
 
   val writePool = "write"
 
@@ -96,7 +110,7 @@ trait JdbcRepository extends StrictLogging {
     writeTransaction[T](1, "No retries allowed. This should't be ever logged")(f)
 
   def writeTransaction[T](maxAttempts: Int, logMessage: String)(
-    f: (DBSession) ⇒ RepositoryResponse[T]): RepositoryResponse[T] = {
+      f: (DBSession) ⇒ RepositoryResponse[T]): RepositoryResponse[T] = {
     executeAndRetryOnFail(maxAttempts, logMessage, {
       using(DB(ConnectionPool.get(writePool).borrow())) {
         _.localTx { implicit session ⇒
@@ -107,10 +121,10 @@ trait JdbcRepository extends StrictLogging {
   }
 
   private[common] def executeAndRetryOnFail[T](
-    numberOfAttempts: Int,
-    logMessage: String,
-    f: ⇒ RepositoryResponse[T],
-    attempt: Int = 0): RepositoryResponse[T] = {
+      numberOfAttempts: Int,
+      logMessage: String,
+      f: ⇒ RepositoryResponse[T],
+      attempt: Int = 0): RepositoryResponse[T] = {
 
     val result = try {
       f
@@ -154,11 +168,11 @@ trait JdbcRepository extends StrictLogging {
     }
 
   protected def writeInExistingTx[T](queryName: String)(update: DBSession ⇒ T)(
-    implicit session: DBSession): RepositoryResponse[T] =
+      implicit session: DBSession): RepositoryResponse[T] =
     perform(queryName, update)
 
   private def perform[T](queryName: String, op: DBSession ⇒ T)(
-    implicit session: DBSession): RepositoryResponse[T] =
+      implicit session: DBSession): RepositoryResponse[T] =
     try {
       Right(op(session))
     } catch {

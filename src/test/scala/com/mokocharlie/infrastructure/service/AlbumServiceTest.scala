@@ -22,6 +22,7 @@ class AlbumServiceTest
     with Matchers
     with StrictLogging
     with TestFixtures
+    with TestDBUtils
     with BeforeAndAfterAll {
   implicit val system: ActorSystem = ActorSystem("test-system")
   implicit val ec: ExecutionContext = system.dispatcher
@@ -31,6 +32,8 @@ class AlbumServiceTest
   val commentRepository = new CommentRepository(config)
   val photoService = new PhotoService(photoRepository, commentRepository)
   val albumService = new AlbumService(albumRepository, photoService)
+
+  override def beforeAll() = purgeTables()
 
   behavior of "AlbumService"
 
@@ -88,8 +91,11 @@ class AlbumServiceTest
       case Right(_) ⇒
         photoService.photosByAlbum(album1.id, 1, 3).map {
           case Right(photos) ⇒ photos.items should contain(photo1)
+          case Left(_) ⇒ fail("A photo should be returned")
         }
+      case Left(_) ⇒ fail("Photos were not saved")
     }
-
   }
+
+  override def afterAll() = purgeTables()
 }

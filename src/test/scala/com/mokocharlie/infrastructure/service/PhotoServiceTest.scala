@@ -4,11 +4,17 @@ import akka.actor.ActorSystem
 import com.mokocharlie.infrastructure.repository.{CommentRepository, DBPhotoRepository}
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
-import org.scalatest.{AsyncFlatSpec, Matchers}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
 
 import scala.concurrent.ExecutionContextExecutor
 
-class PhotoServiceTest extends AsyncFlatSpec with TestFixtures with Matchers with StrictLogging {
+class PhotoServiceTest
+    extends AsyncFlatSpec
+    with TestFixtures
+    with TestDBUtils
+    with BeforeAndAfterAll
+    with Matchers
+    with StrictLogging {
 
   implicit val system: ActorSystem = ActorSystem("PhotoTestSystem")
   implicit val ec: ExecutionContextExecutor = system.dispatcher
@@ -16,6 +22,8 @@ class PhotoServiceTest extends AsyncFlatSpec with TestFixtures with Matchers wit
   val photoRepo = new DBPhotoRepository(config)
   val commentRepo = new CommentRepository(config)
   val photoService = new PhotoService(photoRepo, commentRepo)
+
+  override def beforeAll() = purgeTables()
 
   behavior of "PhotoService"
 
@@ -37,7 +45,5 @@ class PhotoServiceTest extends AsyncFlatSpec with TestFixtures with Matchers wit
     }
   }
 
-  /*it should "retrieve images associated with an album in " in {
-
-  }*/
+  override def afterAll() = purgeTables()
 }
