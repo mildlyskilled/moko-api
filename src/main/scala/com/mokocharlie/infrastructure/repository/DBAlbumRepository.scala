@@ -90,8 +90,8 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
             ON cab.album_id = a.id
             WHERE cab.collection_id = $collectionID
             ${selectPublished(publishedOnly, "AND")}
-            LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
             $defaultOrdering
+            LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
            """.map(toAlbum).list.apply()
         if (albums.nonEmpty) {
           Right(Page(albums, page, limit, total()))

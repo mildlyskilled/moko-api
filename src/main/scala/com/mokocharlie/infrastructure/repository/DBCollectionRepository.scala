@@ -7,6 +7,7 @@ import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
 import scalikejdbc._
+import scala.collection.immutable.Seq
 
 trait CollectionRepository {
   def list(
@@ -21,6 +22,8 @@ trait CollectionRepository {
   def create(collection: Collection): RepositoryResponse[Long]
 
   def update(collection: Collection): RepositoryResponse[Long]
+
+  def saveAlbumToCollection(collectionId: Long, albums: Seq[Long]): RepositoryResponse[Seq[Int]]
 
   def total(): Option[Int]
 }
@@ -141,6 +144,21 @@ class DBCollectionRepository(override val config: Config)
         }
     }
 
+  def saveAlbumToCollection(collectionId: Long, albumIds: Seq[Long]): RepositoryResponse[Seq[Int]] =
+    writeTransaction(3, "Could not save albums to collection") { implicit session ⇒
+      try {
+        val inserts = albumIds.map(id ⇒ Seq(collectionId, id))
+        val ids = sql"""
+           INSERT INTO common_collection_albums(collection_id, album_id) VALUES (?, ?)
+         """
+          .batch(inserts: _*)
+          .apply()
+        Right(ids)
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+
+    }
   def total(): Option[Int] = readOnlyTransaction { implicit session ⇒
     sql"SELECT COUNT(id) as total FROM common_collection".map(rs ⇒ rs.int("total")).single.apply()
   }

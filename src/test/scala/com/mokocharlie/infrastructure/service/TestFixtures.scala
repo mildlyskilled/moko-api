@@ -33,6 +33,7 @@ trait TestFixtures {
     published = true,
     featured = false
   )
+  val album2: Album = album1.copy(id = 2, cover = None)
 
   val collection1 = Collection(
     id = 1L,
@@ -44,7 +45,5 @@ trait TestFixtures {
     updatedAt = Timestamp.from(Instant.now(clock)),
     coverAlbumId = 1L
   )
-
-  val album2: Album = album1.copy(id = 2, cover = None)
 
 }
