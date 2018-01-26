@@ -138,7 +138,8 @@ class DBCollectionRepository(override val config: Config)
                 WHERE id = ${collection.id}
              """.update
             .apply()
-          Right(collection.id)
+          if (res > 0) Right(collection.id)
+          else Left(DatabaseServiceError(s"Could not update album: ${collection.id}"))
         } catch {
           case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
         }

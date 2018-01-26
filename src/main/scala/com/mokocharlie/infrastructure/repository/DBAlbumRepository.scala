@@ -146,11 +146,13 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
     writeTransaction(3, "Failed to save this album") { implicit session ⇒
       try {
         val id = sql"""
-          INSERT INTO common_album (label, description, created_at, published, featured, cover_id)
+          INSERT INTO common_album (label, album_id, description, created_at, updated_at, published, featured, cover_id)
           VALUES (
           ${album.label},
+          ${album.albumId},
           ${album.description},
           ${album.createdAt},
+          ${album.updatedAt},
           ${album.published},
           ${album.featured},
           ${album.cover.map(_.id)})""".updateAndReturnGeneratedKey
