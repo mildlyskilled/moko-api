@@ -66,7 +66,8 @@ object MokoModel {
       createdAt: Timestamp,
       updatedAt: Timestamp,
       description: String,
-      coverAlbumId: Long)
+      coverAlbumId: Long,
+      published: Boolean)
       extends MokoModel
 
   final case class CollectionAlbum(id: Long, collectionId: Long, albumId: Long) extends MokoModel

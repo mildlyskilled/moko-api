@@ -24,7 +24,7 @@ trait JsonConversion extends DefaultJsonProtocol {
     def read(value: JsValue) = {
       value.asJsObject.getFields("value") match {
         case Seq(JsString(v)) => Password(v)
-        case _ => throw DeserializationException("Password expected")
+        case _                => throw DeserializationException("Password expected")
       }
     }
   }
@@ -35,7 +35,7 @@ trait JsonConversion extends DefaultJsonProtocol {
   implicit val commentFormat = jsonFormat6(Comment)
   implicit val favouriteFormat = jsonFormat4(Favourite)
   implicit val userFormat = jsonFormat10(User)
-  implicit val collectionFormat = jsonFormat7(Collection)
+  implicit val collectionFormat = jsonFormat8(Collection)
   implicit val videoFormat = jsonFormat3(Video)
   implicit val documentaryFormat = jsonFormat5(Documentary)
 
@@ -43,7 +43,9 @@ trait JsonConversion extends DefaultJsonProtocol {
   implicit val albumPageFormat = jsonFormat(Page[Album], "items", "page", "offset", "total")
   implicit val commentPageFormat = jsonFormat(Page[Comment], "items", "page", "offset", "total")
   implicit val favouritePageFormat = jsonFormat(Page[Favourite], "items", "page", "offset", "total")
-  implicit val collectionPageFormat = jsonFormat(Page[Collection], "items", "page", "offset", "total")
+  implicit val collectionPageFormat =
+    jsonFormat(Page[Collection], "items", "page", "offset", "total")
   implicit val videoPageFormat = jsonFormat(Page[Video], "items", "page", "offset", "total")
-  implicit val documentaryPageFormat = jsonFormat(Page[Documentary], "items", "page", "offset", "total")
+  implicit val documentaryPageFormat =
+    jsonFormat(Page[Documentary], "items", "page", "offset", "total")
 }

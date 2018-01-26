@@ -17,16 +17,9 @@ class AlbumService(albumRepo: DBAlbumRepository, photoService: PhotoService)(
 
   def createOrUpdate(album: Album): ServiceResponse[Long] = {
     album.cover
-      .map { c ⇒
-        photoService.createOrUpdate(c).map {
-          case Right(id) ⇒
-            albumRepo.create(
-              album.label,
-              album.description,
-              album.createdAt,
-              Some(id),
-              album.published,
-              album.featured)
+      .map { cover ⇒
+        photoService.createOrUpdate(cover).map {
+          case Right(_) ⇒ albumRepo.create(album)
           case Left(e) ⇒ Left(e)
         }
       }
@@ -35,16 +28,7 @@ class AlbumService(albumRepo: DBAlbumRepository, photoService: PhotoService)(
           albumRepo
             .albumById(album.id)
             .map(albumRepo.update)
-            .getOrElse {
-              albumRepo.create(
-                album.label,
-                album.description,
-                album.createdAt,
-                None,
-                album.published,
-                album.featured)
-
-            }
+            .getOrElse(albumRepo.create(album))
         }
       }
   }

@@ -33,13 +33,7 @@ trait AlbumRepository {
       limit: Int = 10,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]]
 
-  def create(
-      label: String,
-      description: String,
-      createdAt: Timestamp,
-      coverImageId: Option[Long],
-      published: Boolean,
-      featured: Boolean): RepositoryResponse[Long]
+  def create(album: Album): RepositoryResponse[Long]
 
   def update(album: Album): RepositoryResponse[Long]
 
@@ -148,18 +142,18 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       }
     }
 
-  override def create(
-      label: String,
-      description: String,
-      createdAt: Timestamp,
-      coverImageId: Option[Long],
-      published: Boolean,
-      featured: Boolean): RepositoryResponse[Long] =
+  override def create(album: Album): RepositoryResponse[Long] =
     writeTransaction(3, "Failed to save this album") { implicit session ⇒
       try {
         val id = sql"""
           INSERT INTO common_album (label, description, created_at, published, featured, cover_id)
-          VALUES ($label, $description, $createdAt, $published, $featured, $coverImageId)""".updateAndReturnGeneratedKey
+          VALUES (
+          ${album.label},
+          ${album.description},
+          ${album.createdAt},
+          ${album.published},
+          ${album.featured},
+          ${album.cover.map(_.id)})""".updateAndReturnGeneratedKey
           .apply()
         Right(id)
       } catch {

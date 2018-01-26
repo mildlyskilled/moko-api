@@ -18,7 +18,7 @@ class CoreRoutes(config: Config)(implicit system: ActorSystem) extends RouteConc
   private val favouriteRepository = new FavouriteRepository(config)
   private val albumRepository = new DBAlbumRepository(config, photoRepository)
   private val userRepository = new UserRepository(config)
-  private val collectionRepository = new CollectionRepository(config)
+  private val collectionRepository = new DBCollectionRepository(config)
   private val videoRepository = new VideoRepository(config)
   private val documentaryRepository = new DocumentaryRepository(config)
   private val photoService = new PhotoService(photoRepository, commentRepository)

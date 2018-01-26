@@ -10,12 +10,20 @@ class CollectionService(repo: CollectionRepository)(implicit override val system
     extends MokoCharlieService {
 
   def list(page: Int, limit: Int): ServiceResponse[Page[Collection]] =
-    dbExecute(repo.list(page, limit))
+    dbExecute(repo.list(page, limit, Some(true)))
+
+  def createOrUpdate(collection: Collection): ServiceResponse[Long] =
+    dbExecute {
+      repo
+        .collectionById(collection.id)
+        .map(col ⇒ repo.update(col))
+        .getOrElse(repo.create(collection))
+    }
 
   def featuredCollection(page: Int, limit: Int): ServiceResponse[Page[Collection]] =
-    dbExecute(repo.getFeaturedCollections(page, limit))
+    dbExecute(repo.featuredCollections(page, limit))
 
-  def collectionById(id: Long): ServiceResponse[Option[Collection]] =
-    dbExecute(repo.findCollectionById(id))
+  def collectionById(id: Long): ServiceResponse[Collection] =
+    dbExecute(repo.collectionById(id))
 
 }

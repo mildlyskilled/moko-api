@@ -38,6 +38,7 @@ trait TestFixtures {
     id = 1L,
     name = "Hotels",
     featured = true,
+    published = true,
     description = "This is a test collection",
     createdAt = Timestamp.from(Instant.now(clock)),
     updatedAt = Timestamp.from(Instant.now(clock)),
