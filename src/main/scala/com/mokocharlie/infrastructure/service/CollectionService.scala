@@ -16,7 +16,7 @@ class CollectionService(repo: CollectionRepository)(implicit override val system
     dbExecute {
       repo
         .collectionById(collection.id)
-        .map(col ⇒ repo.update(col))
+        .map(_ ⇒ repo.update(collection))
         .getOrElse(repo.create(collection))
     }
 
