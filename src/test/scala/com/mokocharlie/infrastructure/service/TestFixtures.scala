@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.time.{Instant, LocalDateTime}
 
 import com.mokocharlie.SettableClock
-import com.mokocharlie.domain.MokoModel.{Album, Collection, Photo}
+import com.mokocharlie.domain.MokoModel.{Album, Collection, Comment, Photo}
 
 trait TestFixtures {
   val clock: SettableClock = new SettableClock(LocalDateTime.of(2018, 1, 25, 12, 24, 0))
@@ -44,6 +44,15 @@ trait TestFixtures {
     createdAt = Timestamp.from(Instant.now(clock)),
     updatedAt = Timestamp.from(Instant.now(clock)),
     coverAlbum = Some(album1)
+  )
+
+  val comment1 = Comment(
+    id = 1L,
+    photo = photo1,
+    author = "Kwabena Aning",
+    comment = "This is a robust API",
+    createdAt = Timestamp.from(Instant.now(clock)),
+    approved = true
   )
 
 }

@@ -19,7 +19,14 @@ class CommentServiceTest extends AsyncFlatSpec with Matchers with TestFixtures {
 
   behavior of "CommentService"
 
-  "Comment Service " should "retrieve most recent comments" in {
+  "Comment Service " should "create a new comment in" in {
+    commentService.createOrUpdate(comment1).map{
+      case Right(id) ⇒ id shouldBe comment1.id
+      case Left(ex) ⇒ fail(s"A comment should have been created ${ex.msg}")
+    }
+  }
+
+  it should "retrieve most recent comments" in {
     commentService.mostRecentComments(1, 2, Some(true)).map {
       case Right(comments) ⇒ comments.items should not be empty
       case Left(ex) ⇒ fail(s"Could not retrieve most recent comments ${ex.msg}")

@@ -19,7 +19,7 @@ object MokoModel {
       extends MokoModel
 
   final case class Photo(
-      id: Long,
+      id: Long = 0L,
       imageId: Option[String],
       name: String,
       path: Option[String],
@@ -51,7 +51,7 @@ object MokoModel {
       extends MokoModel
 
   final case class Comment(
-      commentID: Long,
+      id: Long = 0L,
       photo: Photo,
       comment: String,
       author: String,
