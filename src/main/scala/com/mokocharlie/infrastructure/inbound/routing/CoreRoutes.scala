@@ -14,7 +14,7 @@ import com.typesafe.config.Config
 
 class CoreRoutes(config: Config)(implicit system: ActorSystem) extends RouteConcatenation {
   private val photoRepository = new DBPhotoRepository(config)
-  private val commentRepository = new CommentRepository(config)
+  private val commentRepository = new DBCommentRepository(config)
   private val favouriteRepository = new FavouriteRepository(config)
   private val albumRepository = new DBAlbumRepository(config, photoRepository)
   private val userRepository = new UserRepository(config)

@@ -3,11 +3,7 @@ package com.mokocharlie.infrastructure.service
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
-import com.mokocharlie.infrastructure.repository.{
-  CommentRepository,
-  DBAlbumRepository,
-  DBPhotoRepository
-}
+import com.mokocharlie.infrastructure.repository._
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatest.{AsyncFlatSpec, DoNotDiscover, Matchers}
@@ -22,7 +18,7 @@ class AlbumServiceTest extends AsyncFlatSpec with Matchers with StrictLogging wi
   val config: Config = ConfigFactory.load()
   val photoRepository = new DBPhotoRepository(config)
   val albumRepository = new DBAlbumRepository(config, photoRepository)
-  val commentRepository = new CommentRepository(config)
+  val commentRepository = new DBCommentRepository(config)
   val photoService = new PhotoService(photoRepository, commentRepository)
   val albumService = new AlbumService(albumRepository, photoService)
   val photo2: Photo =

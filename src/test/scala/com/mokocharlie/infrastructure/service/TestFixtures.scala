@@ -43,7 +43,7 @@ trait TestFixtures {
     description = "This is a test collection",
     createdAt = Timestamp.from(Instant.now(clock)),
     updatedAt = Timestamp.from(Instant.now(clock)),
-    coverAlbumId = 1L
+    coverAlbum = Some(album1)
   )
 
 }

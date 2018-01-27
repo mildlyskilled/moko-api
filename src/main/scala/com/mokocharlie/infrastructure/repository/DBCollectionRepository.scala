@@ -62,7 +62,7 @@ class DBCollectionRepository(override val config: Config)
       try {
         sql"""
             $defaultSelect
-            WHERE id = $id
+            WHERE c.id = $id
         """
           .map(toCollection)
           .single
@@ -79,7 +79,7 @@ class DBCollectionRepository(override val config: Config)
       try {
         val collections = sql"""
             $defaultSelect
-            WHERE featured = 1
+            WHERE c.featured = 1
             LIMT ${rowCount(page, limit)}, $limit
         """
           .map(toCollection)
@@ -112,7 +112,7 @@ class DBCollectionRepository(override val config: Config)
            ${collection.createdAt},
            ${collection.updatedAt},
            ${collection.description},
-           ${collection.coverAlbumId}
+           ${collection.coverAlbum.map(_.id)}
            
            )
          """.updateAndReturnGeneratedKey()
@@ -136,7 +136,7 @@ class DBCollectionRepository(override val config: Config)
                 created_at = ${collection.createdAt},
                 updated_at = ${collection.updatedAt},
                 description = ${collection.description},
-                cover_album_id = ${collection.coverAlbumId}
+                cover_album_id = ${collection.coverAlbum.map(_.id)}
                 WHERE id = ${collection.id}
              """.update
             .apply()
@@ -182,31 +182,41 @@ class DBCollectionRepository(override val config: Config)
     sql"SELECT COUNT(id) as total FROM common_collection".map(rs ⇒ rs.int("total")).single.apply()
   }
 
-  private def toCollection(rs: WrappedResultSet): Collection =
-    Collection(
-      id = rs.long("id"),
-      name = rs.string("name"),
-      featured = rs.boolean("featured"),
-      published = rs.boolean("published"),
-      createdAt = rs.timestamp("created_at"),
-      updatedAt = rs.timestamp("updated_at"),
-      description = rs.string("description"),
-      coverAlbumId = rs.long("cover_album_id")
-    )
 
   private val defaultSelect: SQLSyntax =
     sqls"""
          SELECT
-          c.id,
-          c.name,
-          c.featured,
-          c.created_at,
-          c.updated_at,
-          c.description,
-          c.published,
-          c.cover_album_id
-          FROM common_collection AS c
-        """
+          | c.id AS collection_id,
+          | c.name,
+          | c.featured,
+          | c.created_at,
+          | c.updated_at,
+          | c.description,
+          | c.published,
+          | c.cover_album_id,
+          | a.label AS album_label,
+          | a.album_id AS legacy_album_id,
+          | a.description AS album_description,
+          | a.published AS album_published,
+          | a.featured AS album_featured,
+          | a.created_at as album_created_at,
+          | a.updated_at AS album_updated_at,
+          | a.cover_id AS album_cover,
+          |	p.id AS photo_id,
+          |	p.image_id AS legacy_image_id,
+          |	p.name AS photo_name,
+          |	p.caption AS photo_caption,
+          |	p.created_at AS photo_created_at,
+          |	p.deleted_at AS photo_deleted_at,
+          |	p.`owner` AS photo_owner,
+          |	p.path AS photo_path,
+          |	p.`updated_at` AS photo_updated_at,
+          |	p.cloud_image,
+          |	p.published AS photo_published
+          | FROM common_collection AS c
+          | LEFT JOIN common_album AS a ON c.cover_album_id = a.id
+          | LEFT JOIN common_photo AS p ON p.id = a.cover_id
+        """.stripMargin
 
   private def selectPublished(publishedOnly: Option[Boolean], joiner: String = "WHERE") =
     publishedOnly
@@ -219,4 +229,47 @@ class DBCollectionRepository(override val config: Config)
       }
       .getOrElse(sqls"")
 
+  private def toCollection(rs: WrappedResultSet): Collection = {
+    val coverAlbum = rs.longOpt("cover_album_id").map{ coverAlbumId ⇒
+
+      val cover = rs.longOpt("album_cover"). map{ _ ⇒
+        Photo(
+          rs.int("photo_id"),
+          rs.stringOpt("legacy_image_id"),
+          rs.string("photo_name"),
+          rs.stringOpt("photo_path"),
+          rs.string("photo_caption"),
+          rs.timestamp("photo_created_at"),
+          rs.timestampOpt("photo_updated_at"),
+          rs.int("photo_owner"),
+          rs.boolean("photo_published"),
+          rs.timestampOpt("photo_deleted_at"),
+          rs.stringOpt("cloud_image")
+        )
+      }
+
+      Album(
+        id = coverAlbumId,
+        albumId = rs.longOpt("legacy_album_id"),
+        label = rs.string("album_label"),
+        description = rs.string("album_description"),
+        published = rs.boolean("album_published"),
+        featured = rs.boolean("album_featured"),
+        createdAt = rs.timestamp("album_created_at"),
+        updatedAt = rs.timestampOpt("album_updated_at"),
+        cover = cover
+      )
+    }
+
+    Collection(
+      id = rs.long("collection_id"),
+      name = rs.string("name"),
+      featured = rs.boolean("featured"),
+      published = rs.boolean("published"),
+      createdAt = rs.timestamp("created_at"),
+      updatedAt = rs.timestamp("updated_at"),
+      description = rs.string("description"),
+      coverAlbum  = coverAlbum
+    )
+  }
 }

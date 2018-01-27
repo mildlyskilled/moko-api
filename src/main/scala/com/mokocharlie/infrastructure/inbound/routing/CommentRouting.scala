@@ -17,7 +17,7 @@ class CommentRouting(commentService: CommentService)
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
           (pageNum, limit) ⇒ {
-            onSuccess(commentService.mostRecentComments(pageNum, limit)){
+            onSuccess(commentService.mostRecentComments(pageNum, limit, None)){
               case Right(page) ⇒ complete(page)
               case Left(error) ⇒ complete(StatusCodes.InternalServerError, error.msg)
             }

@@ -52,7 +52,7 @@ object MokoModel {
 
   final case class Comment(
       commentID: Long,
-      imageId: Long,
+      photo: Photo,
       comment: String,
       author: String,
       createdAt: Timestamp,
@@ -66,7 +66,7 @@ object MokoModel {
       createdAt: Timestamp,
       updatedAt: Timestamp,
       description: String,
-      coverAlbumId: Long,
+      coverAlbum: Option[Album],
       published: Boolean)
       extends MokoModel
 

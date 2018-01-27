@@ -1,7 +1,7 @@
 package com.mokocharlie.infrastructure.service
 
 import akka.actor.ActorSystem
-import com.mokocharlie.infrastructure.repository.{CommentRepository, DBAlbumRepository, DBCollectionRepository, DBPhotoRepository}
+import com.mokocharlie.infrastructure.repository._
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{AsyncFlatSpec, DoNotDiscover, Matchers}
 
@@ -15,7 +15,7 @@ class CollectionServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixt
   val config: Config = ConfigFactory.load()
   val collectionRepo = new DBCollectionRepository(config)
   val photoRepo = new DBPhotoRepository(config)
-  val commentRepo = new CommentRepository(config)
+  val commentRepo = new DBCommentRepository(config)
   val photoService = new PhotoService(photoRepo, commentRepo)
   val albumRepo = new DBAlbumRepository(config, photoRepo)
   val collectionService = new CollectionService(collectionRepo)

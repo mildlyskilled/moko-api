@@ -33,7 +33,7 @@ class PhotoRouting(photoService: PhotoService)
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) {
           (pageNumber, limit) => {
-            val commentsFuture = photoService.commentsByPhotoId(id, pageNumber, limit)
+            val commentsFuture = photoService.commentsByPhotoId(id, pageNumber, limit, None)
             onSuccess(commentsFuture) {
               case Right(page) ⇒ complete(page)
               case Left(e) ⇒ complete(e.msg)
