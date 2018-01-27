@@ -6,6 +6,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{AsyncFlatSpec, DoNotDiscover, Matchers}
 
 import scala.concurrent.ExecutionContextExecutor
+import scala.collection.immutable.Seq
 
 @DoNotDiscover
 class CollectionServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixtures with Matchers {
@@ -57,7 +58,7 @@ class CollectionServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixt
                     case Right(_) ⇒
                       albumService.collectionAlbums(collection1.id, 1, 5).map {
                         case Right(albumPage) ⇒
-                          albumPage.items should contain allElementsOf List(album1, album2)
+                          albumPage.items should contain allOf (album1, album2)
                         case Left(ex) ⇒ fail(s"Could not retrieve collection albums ${ex.msg}")
                       }
                     case Left(ex) ⇒ fail(s"Should retrieve albums in collection ${ex.msg}")
@@ -67,6 +68,16 @@ class CollectionServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixt
           case Left(ex) ⇒ fail(s"Should have creaed album2 ${ex.msg}")
         }
       case Left(ex) ⇒ fail(s"Should have created album1 ${ex.msg}")
+    }
+  }
+
+  it should "remove albums form collection" in {
+    collectionService.removeAlbumFromCollection(collection1.id, Seq(album1.id, album2.id)).flatMap {
+      case Right(_) ⇒ albumService.collectionAlbums(collection1.id, 1, 5).map{
+        case Right(albumPage) ⇒ albumPage.items should not contain allOf (album1, album2)
+        case Left(ex) ⇒ fail(s"Could not retrieve albums in collection ${ex.msg}")
+      }
+      case Left(ex) ⇒ fail(s"Could not remove album from collection ${ex.msg}")
     }
   }
 }

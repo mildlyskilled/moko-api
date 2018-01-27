@@ -5,6 +5,7 @@ import com.mokocharlie.domain.MokoModel.Collection
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.repository.CollectionRepository
+
 import scala.collection.immutable.Seq
 
 class CollectionService(repo: CollectionRepository)(implicit override val system: ActorSystem)
@@ -27,7 +28,10 @@ class CollectionService(repo: CollectionRepository)(implicit override val system
   def collectionById(id: Long): ServiceResponse[Collection] =
     dbExecute(repo.collectionById(id))
 
-  def saveAlbumToCollection(collectionId: Long, albumIds: Seq[Long]) =
+  def saveAlbumToCollection(collectionId: Long, albumIds: Seq[Long]): ServiceResponse[Seq[Int]] =
     dbExecute(repo.saveAlbumToCollection(collectionId, albumIds))
+
+  def removeAlbumFromCollection(collectionId: Long, albumIds: Seq[Long]): ServiceResponse[Seq[Int]] =
+    dbExecute(repo.removeAlbumFromCollection(collectionId, albumIds))
 
 }

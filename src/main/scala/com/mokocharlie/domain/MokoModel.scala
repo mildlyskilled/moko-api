@@ -7,7 +7,7 @@ sealed trait MokoModel
 object MokoModel {
 
   final case class Album(
-      id: Long,
+      id: Long = 0L,
       albumId: Option[Long],
       label: String,
       description: String,

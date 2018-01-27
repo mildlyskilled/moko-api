@@ -25,6 +25,8 @@ trait CollectionRepository {
 
   def saveAlbumToCollection(collectionId: Long, albums: Seq[Long]): RepositoryResponse[Seq[Int]]
 
+  def removeAlbumFromCollection(collectionId: Long, albums: Seq[Long]): RepositoryResponse[Seq[Int]]
+
   def total(): Option[Int]
 }
 
@@ -158,8 +160,24 @@ class DBCollectionRepository(override val config: Config)
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
-
     }
+
+  def removeAlbumFromCollection(collectionId: Long, albums: Seq[Long]): RepositoryResponse[Seq[Int]] =
+    writeTransaction(3, "Could not remove albums from collection"){implicit session ⇒
+      try {
+        val deletes = albums.map(id ⇒ Seq(collectionId, id))
+        val res =
+          sql"""
+            DELETE FROM common_collection_albums
+            WHERE collection_id = ? AND album_id = ?
+      """.batch(deletes: _*).apply()
+        Right(res)
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+    }
+
+
   def total(): Option[Int] = readOnlyTransaction { implicit session ⇒
     sql"SELECT COUNT(id) as total FROM common_collection".map(rs ⇒ rs.int("total")).single.apply()
   }
