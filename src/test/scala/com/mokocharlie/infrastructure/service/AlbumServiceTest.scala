@@ -31,9 +31,7 @@ class AlbumServiceTest extends AsyncFlatSpec with Matchers with StrictLogging wi
 
   "AlbumService" should "create new album with a cover" in {
     albumService
-      .createOrUpdate(
-        album1
-      )
+      .createOrUpdate(album1)
       .map {
         case Right(result) ⇒ result shouldBe 1
         case Left(_) ⇒ fail("An album should have been created")

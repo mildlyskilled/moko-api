@@ -21,8 +21,9 @@ class UserServiceTest extends AsyncFlatSpec with TestFixtures with TestDBUtils w
       case Right(id) ⇒
         userService.userById(id).map {
           case Right(user) ⇒
-            println(user.password)
             user.firstName shouldBe "Kwabena"
+            user.lastName shouldBe "Aning"
+            user.email shouldBe "kwabena.aning@gmail.com"
           case Left(ex) ⇒ fail(s"A user should have been retrieved ${ex.msg}")
         }
       case Left(ex) ⇒ fail(s"A user should have been created ${ex.msg}")
