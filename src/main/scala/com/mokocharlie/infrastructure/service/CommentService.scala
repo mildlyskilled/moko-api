@@ -10,10 +10,11 @@ import com.mokocharlie.infrastructure.repository.CommentRepository
 import com.typesafe.scalalogging.StrictLogging
 
 class CommentService(repo: CommentRepository)(implicit override val system: ActorSystem)
-    extends MokoCharlieService with StrictLogging {
+    extends MokoCharlieService
+    with StrictLogging {
 
   def createOrUpdate(comment: Comment): ServiceResponse[Long] =
-    dbExecute{
+    dbExecute {
       repo.commentById(comment.id) match {
         case Right(_) ⇒
           logger.info(s"Comment exists updating ID ${comment.id}")
@@ -30,10 +31,26 @@ class CommentService(repo: CommentRepository)(implicit override val system: Acto
       }
     }
 
-
-  def mostRecentComments(page: Int, limit: Int, approvedOnly: Option[Boolean]): ServiceResponse[Page[Comment]] =
+  def mostRecentComments(
+      page: Int,
+      limit: Int,
+      approvedOnly: Option[Boolean]): ServiceResponse[Page[Comment]] =
     dbExecute(repo.getMostRecent(page, limit, approvedOnly))
 
   def commentById(id: Long): ServiceResponse[Comment] =
     dbExecute(repo.commentById(id))
+
+  def commentsByImage(
+      photoId: Long,
+      page: Int,
+      limit: Int,
+      approvedOnly: Option[Boolean]): ServiceResponse[Page[Comment]] =
+    dbExecute(repo.commentsByImage(photoId, page, limit, approvedOnly))
+
+  def commentsByAlbum(
+      albumId: Long,
+      page: Int,
+      limit: Int,
+      approvedOnly: Option[Boolean]): ServiceResponse[Page[Comment]] =
+    dbExecute(repo.commentsByAlbum(albumId, page, limit, approvedOnly))
 }

@@ -19,14 +19,16 @@ trait CommentRepository {
       limit: Int = 6,
       approvedOnly: Option[Boolean]): RepositoryResponse[Page[Comment]]
 
-  def findCommentsByImageID(
+  def commentsByImage(
       imageID: Long,
       page: Int,
       limit: Int,
       approvedOnly: Option[Boolean]): RepositoryResponse[Page[Comment]]
 
-  def findCommentsByAlbumID(
-      albumID: Long,
+  def commentsByAlbum(
+      albumId: Long,
+      page: Int,
+      limit: Int,
       approvedOnly: Option[Boolean]): RepositoryResponse[Page[Comment]]
 
   def commentById(id: Long): RepositoryResponse[Comment]
@@ -66,21 +68,58 @@ class DBCommentRepository(override val config: Config)
 
     }
 
-  def findCommentsByImageID(
-      imageID: Long,
+  def commentsByImage(
+      photoId: Long,
       page: Int,
       limit: Int,
-      approvedOnly: Option[Boolean]): RepositoryResponse[Page[Comment]] = ???
+      approvedOnly: Option[Boolean]): RepositoryResponse[Page[Comment]] = readOnlyTransaction {
+    implicit session ⇒
+      try {
+        val comments = sql"""
+          $defaultSelect
+          WHERE p.id = $photoId
+          ${selectApproved(approvedOnly, "AND")}
+          LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+          """
+          .map(toComment)
+          .list
+          .apply()
+        Right(Page(comments, page, dbPage(page), Some(limit)))
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+  }
 
-  def findCommentsByAlbumID(
-      albumID: Long,
-      approvedOnly: Option[Boolean]): RepositoryResponse[Page[Comment]] = ???
+  def commentsByAlbum(
+      albumId: Long,
+      page: Int,
+      limit: Int,
+      approvedOnly: Option[Boolean]): RepositoryResponse[Page[Comment]] = readOnlyTransaction {
+    implicit session ⇒
+      try {
+        val comments =
+          sql"""
+            $defaultSelect
+             LEFT JOIN common_photo_albums AS cpa ON cpa.photo_id = p.id
+             WHERE cpa.album_id = $albumId
+             ${selectApproved(approvedOnly, "AND")}
+             LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+          """
+            .map(toComment)
+            .list
+            .apply()
+        Right(Page(comments, page, dbPage(page), Some(limit)))
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+  }
 
   def commentById(id: Long): RepositoryResponse[Comment] =
     readOnlyTransaction { implicit session ⇒
-      try{
-        val comment = sql"$defaultSelect WHERE c.id = $id".map(toComment).single.apply()
-        comment.map(c ⇒ Right(c))
+      try {
+        val comment = sql"$defaultSelect WHERE c.comment_id = $id".map(toComment).single.apply()
+        comment
+          .map(c ⇒ Right(c))
           .getOrElse(Left(EmptyResultSet(s"Could not find comment with id: ${id}")))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))

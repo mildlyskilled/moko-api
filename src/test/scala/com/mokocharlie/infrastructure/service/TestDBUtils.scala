@@ -47,6 +47,10 @@ trait TestDBUtils extends StrictLogging {
     sql"TRUNCATE TABLE common_collection".executeUpdate().apply()
   }
 
+  def purgeComments() = DB.localTx { implicit session ⇒
+    sql"TRUNCATE TABLE common_comment".executeUpdate().apply()
+  }
+
   def purgeTables() = {
     foreignKeys(0)
     purgeCollectionAlbums()
@@ -54,6 +58,7 @@ trait TestDBUtils extends StrictLogging {
     purgePhotoAlbums()
     purgeAlbums()
     purgePhotos()
+    purgeComments()
     foreignKeys(1)
   }
 }

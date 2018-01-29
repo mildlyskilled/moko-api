@@ -37,7 +37,7 @@ class CoreRoutes(config: Config)(implicit system: ActorSystem) extends RouteConc
   } ~ {
     new CommentRouting(commentService).routes
   } ~ {
-    new PhotoRouting(photoService).routes
+    new PhotoRouting(photoService, commentService).routes
   } ~ {
     new AlbumRouting(albumService).routes
   } ~ {

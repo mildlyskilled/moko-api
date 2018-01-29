@@ -21,8 +21,6 @@ class AlbumServiceTest extends AsyncFlatSpec with Matchers with StrictLogging wi
   val commentRepository = new DBCommentRepository(config)
   val photoService = new PhotoService(photoRepository, commentRepository)
   val albumService = new AlbumService(albumRepository, photoService)
-  val photo2: Photo =
-    photo1.copy(id = 2, imageId = Some("legacy_2"), caption = "This is a second picture")
 
   behavior of "AlbumService"
 

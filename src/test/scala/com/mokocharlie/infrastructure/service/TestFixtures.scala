@@ -22,6 +22,8 @@ trait TestFixtures {
     cloudImage = None
   )
 
+  val photo2 = photo1.copy(id = 2, imageId = Some("legacy_2"), name = "Photo number two")
+
   val album1 = Album(
     id = 1,
     albumId = Some(12L),
@@ -55,4 +57,5 @@ trait TestFixtures {
     approved = true
   )
 
+  val comment2 = comment1.copy(id = 2L, photo = photo2, comment = "This is a second comment")
 }
