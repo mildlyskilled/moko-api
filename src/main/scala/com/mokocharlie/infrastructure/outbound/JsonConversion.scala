@@ -23,8 +23,8 @@ trait JsonConversion extends DefaultJsonProtocol {
 
     def read(value: JsValue) = {
       value.asJsObject.getFields("value") match {
-        case Seq(JsString(v)) => Password(v)
-        case _                => throw DeserializationException("Password expected")
+        case Seq(JsString(v)) ⇒ Password(v)
+        case _ ⇒ throw DeserializationException("Password expected")
       }
     }
   }

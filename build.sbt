@@ -41,7 +41,7 @@ libraryDependencies ++= {
     "org.codehaus.janino" % "janino" % "2.7.8",
 
     //other 3rd party
-    "org.typelevel" %% "cats" % catsVersion,
+    "io.github.nremond" %% "pbkdf2-scala" % "0.6.3",
 
     // Test dependencies
     "org.scalatest" %% "scalatest" % "3.0.1" % "test",

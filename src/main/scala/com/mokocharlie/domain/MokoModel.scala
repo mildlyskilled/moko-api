@@ -35,7 +35,7 @@ object MokoModel {
   final case class PhotoAlbum(id: Long, photo: Long, album: Long) extends MokoModel
 
   final case class User(
-      id: Long,
+      id: Long = 0L,
       password: Password,
       lastLogin: Timestamp,
       isSuperuser: Boolean,

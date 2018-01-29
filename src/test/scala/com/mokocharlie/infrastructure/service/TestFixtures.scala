@@ -4,7 +4,8 @@ import java.sql.Timestamp
 import java.time.{Instant, LocalDateTime}
 
 import com.mokocharlie.SettableClock
-import com.mokocharlie.domain.MokoModel.{Album, Collection, Comment, Photo}
+import com.mokocharlie.domain.MokoModel._
+import com.mokocharlie.domain.Password
 
 trait TestFixtures {
   val clock: SettableClock = new SettableClock(LocalDateTime.of(2018, 1, 25, 12, 24, 0))
@@ -54,8 +55,21 @@ trait TestFixtures {
     author = "Kwabena Aning",
     comment = "This is a robust API",
     createdAt = Timestamp.from(Instant.now(clock)),
-    approved = true
-  )
+    approved = true)
 
-  val comment2 = comment1.copy(id = 2L, photo = photo2, comment = "This is a second comment")
+  val comment2: Comment =
+    comment1.copy(id = 2L, photo = photo2, comment = "This is a second comment")
+
+  val user1 = User(
+    id = 1L,
+    password = Password("testess"),
+    lastLogin = Timestamp.from(Instant.now(clock)),
+    isSuperuser = true,
+    email = "kwabena.aning@gmail.com",
+    firstName = "Kwabena",
+    lastName = "Aning",
+    isActive = true,
+    isStaff = true,
+    dateJoined = Timestamp.from(Instant.now(clock))
+  )
 }

@@ -53,6 +53,7 @@ trait TestDBUtils extends StrictLogging {
 
   def purgeTables() = {
     foreignKeys(0)
+    purgeUsers()
     purgeCollectionAlbums()
     purgeCollection()
     purgePhotoAlbums()
@@ -61,4 +62,5 @@ trait TestDBUtils extends StrictLogging {
     purgeComments()
     foreignKeys(1)
   }
+
 }

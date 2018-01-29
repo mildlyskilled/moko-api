@@ -4,6 +4,7 @@ import org.scalatest.{BeforeAndAfterAll, Suites}
 
 class ServiceTests
     extends Suites(
+      new UserServiceTest,
       new PhotoServiceTest,
       new AlbumServiceTest,
       new CollectionServiceTest,

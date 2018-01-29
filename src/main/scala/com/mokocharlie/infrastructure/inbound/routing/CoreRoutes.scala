@@ -4,12 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Route, RouteConcatenation}
 import com.mokocharlie.infrastructure.repository._
-import com.mokocharlie.infrastructure.service.{
-  AlbumService,
-  CollectionService,
-  CommentService,
-  PhotoService
-}
+import com.mokocharlie.infrastructure.service._
 import com.typesafe.config.Config
 
 class CoreRoutes(config: Config)(implicit system: ActorSystem) extends RouteConcatenation {
@@ -17,7 +12,8 @@ class CoreRoutes(config: Config)(implicit system: ActorSystem) extends RouteConc
   private val commentRepository = new DBCommentRepository(config)
   private val favouriteRepository = new FavouriteRepository(config)
   private val albumRepository = new DBAlbumRepository(config, photoRepository)
-  private val userRepository = new UserRepository(config)
+  private val userRepository = new DBUserRepository(config)
+  private val userService = new UserService(userRepository)
   private val collectionRepository = new DBCollectionRepository(config)
   private val videoRepository = new VideoRepository(config)
   private val documentaryRepository = new DocumentaryRepository(config)
@@ -41,7 +37,7 @@ class CoreRoutes(config: Config)(implicit system: ActorSystem) extends RouteConc
   } ~ {
     new AlbumRouting(albumService).routes
   } ~ {
-    new UserRouting(userRepository).routes
+    new UserRouting(userService).routes
   } ~ {
     new CollectionRouting(collectionService, albumService).routes
   } ~ {

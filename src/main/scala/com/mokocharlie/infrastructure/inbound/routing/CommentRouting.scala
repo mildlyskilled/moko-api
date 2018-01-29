@@ -7,7 +7,10 @@ import akka.http.scaladsl.server.Route
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.service.CommentService
 
-class CommentRouting(commentService: CommentService) extends SprayJsonSupport with JsonConversion {
+class CommentRouting(commentService: CommentService)
+    extends SprayJsonSupport
+    with JsonConversion
+    with HttpErrorMapper {
 
   var routes: Route = {
     path("comments") {
@@ -26,7 +29,7 @@ class CommentRouting(commentService: CommentService) extends SprayJsonSupport wi
         {
           onSuccess(commentService.commentById(id)) {
             case Right(comment) ⇒ complete(comment)
-            case Left(error) ⇒ complete(StatusCodes.NotFound, error.msg)
+            case Left(error) ⇒ completeWithError(error)
           }
         }
       }
@@ -37,7 +40,7 @@ class CommentRouting(commentService: CommentService) extends SprayJsonSupport wi
           val commentsFuture = commentService.commentsByImage(id, pageNumber, limit, None)
           onSuccess(commentsFuture) {
             case Right(page) ⇒ complete(page)
-            case Left(e) ⇒ complete(e.msg)
+            case Left(error) ⇒ completeWithError(error)
           }
         }
       }
