@@ -29,4 +29,25 @@ class UserServiceTest extends AsyncFlatSpec with TestFixtures with TestDBUtils w
       case Left(ex) ⇒ fail(s"A user should have been created ${ex.msg}")
     }
   }
+
+  it should "update an existing user" in {
+    userService.createOrUpdate(user1.copy(firstName = "Kobby")).flatMap{
+      case Right(id) ⇒ userService.userById(id).map{
+        case Right(user) ⇒ user.firstName shouldBe "Kobby"
+        case Left(ex) ⇒ fail(s"A user should have been retreived ${ex.msg}")
+      }
+      case Left(ex) ⇒ fail(s"An update should have occured ${ex.msg}")
+    }
+  }
+
+  it should "retrieve a list of users" in {
+    userService.list(1, 5).map{
+      case Right(usersPage) ⇒ usersPage should not be empty
+      case Left(ex) ⇒ fail(s"A list of users should be returned ${ex.msg}")
+    }
+  }
+
+  it should "change a password after verifying an older one"
+
+  it should "reset a password"
 }

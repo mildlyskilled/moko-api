@@ -27,7 +27,7 @@ class AlbumService(albumRepo: DBAlbumRepository, photoService: PhotoService)(
         dbExecute {
           albumRepo
             .albumById(album.id)
-            .map(albumRepo.update)
+            .map(_ ⇒ albumRepo.update(album))
             .getOrElse(albumRepo.create(album))
         }
       }

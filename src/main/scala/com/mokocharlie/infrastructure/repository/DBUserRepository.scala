@@ -4,7 +4,7 @@ import com.mokocharlie.domain.MokoModel.User
 import com.mokocharlie.domain.{Page, Password}
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
-import com.mokocharlie.infrastructure.repository.common.JdbcRepository
+import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
 import io.github.nremond.SecureHash
@@ -18,11 +18,12 @@ trait UserRepository {
 
   def create(user: User): RepositoryResponse[Long]
 
-  def list(limit: Int, page: Int): RepositoryResponse[Page[User]]
+  def list(page: Int, limit: Int): RepositoryResponse[Page[User]]
 }
 
 class DBUserRepository(override val config: Config)
     extends UserRepository
+    with RepoUtils
     with JdbcRepository
     with StrictLogging {
 
@@ -42,7 +43,21 @@ class DBUserRepository(override val config: Config)
     }
   }
 
-  def list(limit: Int, page: Int): RepositoryResponse[Page[User]] = ???
+  def list(page: Int, limit: Int): RepositoryResponse[Page[User]] = readOnlyTransaction {
+    implicit session ⇒
+      try {
+        val users =
+          sql"""
+          $defaultSelect
+          LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+        """.map(toUser)
+            .list
+            .apply()
+        Right(Page(users, page, limit, total()))
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+  }
 
   def changePassword(password: String): RepositoryResponse[Boolean] = ???
 
@@ -102,6 +117,14 @@ class DBUserRepository(override val config: Config)
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
+    }
+
+  private def total(): Option[Int] =
+    readOnlyTransaction { implicit session ⇒
+      sql"SELECT COUNT(id) AS total FROM common_mokouser"
+        .map(rs ⇒ rs.int("total"))
+        .single
+        .apply()
     }
 
   private val defaultSelect: SQLSyntax =

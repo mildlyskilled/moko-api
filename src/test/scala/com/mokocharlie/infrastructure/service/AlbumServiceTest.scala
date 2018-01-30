@@ -49,7 +49,7 @@ class AlbumServiceTest extends AsyncFlatSpec with Matchers with StrictLogging wi
 
   it should "eventually return a list of albums" in {
     albumService.list(1, 10).map {
-      case Right(x) ⇒ x.items should have size 2
+      case Right(albumPage) ⇒ albumPage should have size 2
       case Left(ex) ⇒ fail(s"Album service must return a  successful result {$ex}")
     }
   }
