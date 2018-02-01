@@ -8,7 +8,7 @@ import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.Page
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.repository.DBCollectionRepository
-import com.mokocharlie.infrastructure.service.{AlbumService, CollectionService}
+import com.mokocharlie.service.{AlbumService, CollectionService}
 
 import scala.concurrent.Future
 

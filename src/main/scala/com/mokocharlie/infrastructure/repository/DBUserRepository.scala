@@ -12,13 +12,18 @@ import scalikejdbc._
 
 trait UserRepository {
 
-  def userById(id: Long): RepositoryResponse[User]
+  def user(id: Long): RepositoryResponse[User]
+
+  def user(email: String): RepositoryResponse[User]
 
   def update(user: User): RepositoryResponse[Long]
 
   def create(user: User): RepositoryResponse[Long]
 
   def list(page: Int, limit: Int): RepositoryResponse[Page[User]]
+
+  def changePassword(id: Long, currentPassword: String, newPassword: String): RepositoryResponse[Long]
+
 }
 
 class DBUserRepository(override val config: Config)
@@ -27,7 +32,7 @@ class DBUserRepository(override val config: Config)
     with JdbcRepository
     with StrictLogging {
 
-  def userById(id: Long): RepositoryResponse[User] = readOnlyTransaction { implicit session ⇒
+  def user(id: Long): RepositoryResponse[User] = readOnlyTransaction { implicit session ⇒
     try {
       sql"""
            $defaultSelect
@@ -38,6 +43,22 @@ class DBUserRepository(override val config: Config)
         .apply()
         .map(user ⇒ Right(user))
         .getOrElse(Left(EmptyResultSet(s"Could not find user with id: $id")))
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+    }
+  }
+
+  def user(email: String): RepositoryResponse[User] = readOnlyTransaction{ implicit session ⇒
+    try {
+      sql"""
+           $defaultSelect
+           WHERE u.email = $email
+          """
+        .map(toUser)
+        .single
+        .apply()
+        .map(user ⇒ Right(user))
+        .getOrElse(Left(EmptyResultSet(s"Could not find user with id: $email")))
     } catch {
       case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
@@ -59,7 +80,32 @@ class DBUserRepository(override val config: Config)
       }
   }
 
-  def changePassword(password: String): RepositoryResponse[Boolean] = ???
+  def changePassword(id: Long, currentPassword: String, newPassword: String): RepositoryResponse[Long] =
+    writeTransaction(3, "Could not update password") { implicit session ⇒
+      try{
+        sql"SELECT password FROM common_mokouser WHERE id = $id".map(rs ⇒ rs.string("password"))
+          .single
+          .apply()
+          .map { pass ⇒
+            logger.info(s"${SecureHash.validatePassword(currentPassword, pass)}")
+            SecureHash.validatePassword(currentPassword, pass)
+          }.map { verified ⇒
+            if (verified) {
+              val res =
+                sql"""UPDATE common_mokouser
+                  SET password = ${SecureHash.createHash(newPassword)}
+                  WHERE id = $id""".update.apply()
+              if (res > 0) Right(id)
+              else Left(EmptyResultSet("No columns were updated check current password"))
+            }
+            else {
+              Left(EmptyResultSet("Current password mismatch"))
+            }
+          }.getOrElse(Left(EmptyResultSet(s"Did not find a user with id $id")))
+      } catch {
+        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+      }
+    }
 
   def update(user: User): RepositoryResponse[Long] =
     writeTransaction(3, "Could not update user") { implicit session ⇒

@@ -1,5 +1,7 @@
 package com.mokocharlie.main
 
+import java.time.Clock
+
 import akka.http.scaladsl.Http
 import com.mokocharlie.incoming.CoreServices
 import com.mokocharlie.infrastructure.inbound.routing.CoreRoutes
@@ -11,8 +13,9 @@ import scala.io.StdIn
 object MokoCharlieApi extends App with CoreServices with StrictLogging {
 
   val config = ConfigFactory.load()
+  val clock = Clock.systemUTC()
   val (host, port) = (config.getString("mokocharlie.http.host"), config.getInt("mokocharlie.http.port"))
-  val bindingFuture = Http().bindAndHandle(new CoreRoutes(ConfigFactory.load()).routes, host, port)
+  val bindingFuture = Http().bindAndHandle(new CoreRoutes(ConfigFactory.load(), clock).routes, host, port)
 
   bindingFuture.failed.foreach {
     case ex: Exception => logger.error(s"Could not bind to $host:$port", ex)

@@ -7,7 +7,7 @@ import akka.http.scaladsl.server._
 import com.mokocharlie.domain.common.MokoCharlieServiceError
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.service.{CommentService, PhotoService}
+import com.mokocharlie.service.{CommentService, PhotoService}
 
 class PhotoRouting(photoService: PhotoService, commentService: CommentService)
     extends SprayJsonSupport
