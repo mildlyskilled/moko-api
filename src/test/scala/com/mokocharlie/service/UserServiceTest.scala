@@ -1,9 +1,13 @@
 package com.mokocharlie.service
 
+import java.sql.Timestamp
+import java.time.{Instant, LocalDateTime}
+
 import akka.actor.ActorSystem
+import com.mokocharlie.SettableClock
 import com.mokocharlie.domain.Token
-import com.mokocharlie.domain.common.MokoCharlieServiceError.{EmptyResultSet, MaximumNumberOfAttemptsReached}
-import com.mokocharlie.infrastructure.repository.{DBTokenRepository, DBUserRepository}
+import com.mokocharlie.domain.common.MokoCharlieServiceError.AuthenticationError
+import com.mokocharlie.infrastructure.repository.{DBTokenRepository, DBUserRepository, FakeTokenRepository}
 import com.mokocharlie.infrastructure.spartan.BearerTokenGenerator
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
@@ -23,9 +27,9 @@ class UserServiceTest
   implicit val ec: ExecutionContext = system.dispatcher
   val config: Config = ConfigFactory.load()
   val userRepo = new DBUserRepository(config)
-  val tokenRepo = new DBTokenRepository(config)
+  val tokenClock: SettableClock =  new SettableClock(LocalDateTime.of(2018, 1, 26, 12, 24, 0))
+  val tokenRepo = new FakeTokenRepository(config, tokenClock)
   val userService = new UserService(userRepo, tokenRepo, new BearerTokenGenerator, clock)
-  var token: Token = _
 
   behavior of "UserService"
 
@@ -81,19 +85,22 @@ class UserServiceTest
 
   it should "return a token given the correct username and password" in {
     userService.auth(user1.email, "newPassword").map {
-      case Right(x) ⇒ x.map(_.value) should not be empty
+      case Right(authToken) ⇒  authToken shouldBe tokenRepo.fakeToken
       case Left(ex) ⇒ fail(s"An auth token should be returned ${ex.msg}")
     }
   }
 
   it should "not authenticate given an incorrect username and password" in {
     userService.auth(user1.email, "wrongPassword").map{
-      case Right(x) ⇒
-        x.foreach(t ⇒ token = t)
-        x shouldBe empty
-      case Left(ex) ⇒ fail(s"We should still get a right ${ex.msg}")
+      case Right(x) ⇒ fail(s"This should not have succeeded $x")
+      case Left(ex) ⇒ ex shouldBe AuthenticationError("Invalid credentials provided")
     }
   }
 
-  it should "validate a token"
+  it should "validate a token" in {
+    userService.validateToken(tokenRepo.fakeToken.value).map{
+      case Right(v) ⇒ v shouldBe true
+      case Left(ex) ⇒ fail(s"Could not validate toke $ex")
+    }
+  }
 }

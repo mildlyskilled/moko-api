@@ -11,7 +11,7 @@ import scalikejdbc._
 trait TokenRepository {
   def check(token: String): RepositoryResponse[Token]
 
-  def store(token: Token): RepositoryResponse[Long]
+  def store(token: Token): RepositoryResponse[Token]
 
 }
 
@@ -37,7 +37,7 @@ class DBTokenRepository(override val config: Config)
       }
     }
 
-  def store(token: Token): RepositoryResponse[Long] =
+  def store(token: Token): RepositoryResponse[Token] =
     writeTransaction(3, "Could not store token") { implicit session ⇒
       try{
         val res = sql"""
@@ -46,7 +46,8 @@ class DBTokenRepository(override val config: Config)
         """
           .updateAndReturnGeneratedKey()
           .apply()
-        Right(res)
+        if (res > 0) Right(token)
+        else Left(DatabaseServiceError("Could not store token"))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
