@@ -85,6 +85,8 @@ object MokoModel {
   final case class DocumentaryVideo(id: Long, documentaryID: Long, videoID: Long) extends MokoModel
 
 }
-case class Password(value: String) {
+final case class Password(value: String) {
   override def toString: String = "<redacted>"
 }
+
+final case class Token(value: String, expiresAt: Timestamp)

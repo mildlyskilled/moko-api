@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.service.CommentService
+import com.mokocharlie.service.CommentService
 
 class CommentRouting(commentService: CommentService)
     extends SprayJsonSupport

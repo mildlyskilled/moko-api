@@ -1,4 +1,4 @@
-package com.mokocharlie.infrastructure.service
+package com.mokocharlie.service
 
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.{Album, Photo}
