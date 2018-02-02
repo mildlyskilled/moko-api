@@ -16,7 +16,7 @@ trait TokenRepository {
 
   def store(token: Token): RepositoryResponse[Token]
 
-  def refresh(refresh: String): RepositoryResponse[Token]
+  def refresh(refresh: String, threshold: Timestamp): RepositoryResponse[Token]
 
 }
 
@@ -76,13 +76,13 @@ class DBTokenRepository(override val config: Config)
       }
     }
 
-  override def refresh(refresh: String): RepositoryResponse[Token] =
+  override def refresh(refresh: String, threshold: Timestamp): RepositoryResponse[Token] =
     writeTransaction(3, "Could not refresh token") { implicit session ⇒
       try {
         sql"""
             $defaultSelect
             WHERE t.refresh = $refresh
-            AND t.expires_at > now()
+            AND t.expires_at > $threshold
         """
           .map(toToken)
           .single

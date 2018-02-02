@@ -58,7 +58,7 @@ class UserService(
     }
 
   def refreshToken(refreshToken: String): ServiceResponse[Token] =
-    dbExecute{tokenRepo.refresh(refreshToken)}
+    dbExecute{tokenRepo.refresh(refreshToken, Timestamp.from(Instant.now(clock)))}
 
   def validateToken(token: String): ServiceResponse[Boolean] =
     dbExecute {

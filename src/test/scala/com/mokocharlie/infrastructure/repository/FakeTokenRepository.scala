@@ -24,5 +24,5 @@ class FakeTokenRepository(override val config: Config, override val clock: Setta
 
   override def store(token: Token): RepositoryResponse[Token] = Right(fakeToken)
 
-  override def refresh(refresh: String): RepositoryResponse[Token] = Right(fakeToken)
+  override def refresh(refresh: String, threshold: Timestamp): RepositoryResponse[Token] = Right(fakeToken)
 }
