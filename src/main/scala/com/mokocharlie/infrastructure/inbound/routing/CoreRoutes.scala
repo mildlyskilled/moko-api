@@ -13,7 +13,8 @@ import com.typesafe.config.Config
 class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem) extends RouteConcatenation {
   private val photoRepository = new DBPhotoRepository(config)
   private val commentRepository = new DBCommentRepository(config)
-  private val favouriteRepository = new FavouriteRepository(config)
+  private val favouriteRepository = new DBFavouriteRepository(config)
+  private val favouriteService = new FavouriteService(favouriteRepository)
   private val albumRepository = new DBAlbumRepository(config, photoRepository)
   private val userRepository = new DBUserRepository(config)
   private val tokenRepository = new DBTokenRepository(config)
@@ -33,7 +34,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem) ext
       }
     }
   } ~ {
-    new FavouriteRouting(favouriteRepository).routes
+    new FavouriteRouting(favouriteService).routes
   } ~ {
     new CommentRouting(commentService).routes
   } ~ {

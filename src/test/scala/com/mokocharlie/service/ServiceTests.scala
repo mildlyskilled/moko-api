@@ -8,7 +8,9 @@ class ServiceTests
       new PhotoServiceTest,
       new AlbumServiceTest,
       new CollectionServiceTest,
-      new CommentServiceTest)
+      new CommentServiceTest,
+      new FavouriteServiceTest
+    )
     with BeforeAndAfterAll
     with TestDBUtils {
   override def beforeAll(): Unit = {

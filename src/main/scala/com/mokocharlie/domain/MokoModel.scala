@@ -47,7 +47,7 @@ object MokoModel {
       dateJoined: Timestamp)
       extends MokoModel
 
-  final case class Favourite(id: Long, photoID: Long, userID: Long, createdAt: Timestamp)
+  final case class Favourite(id: Long = 0L, photo: Photo, user: User, createdAt: Timestamp)
       extends MokoModel
 
   final case class Comment(

@@ -72,4 +72,6 @@ trait TestFixtures {
     isStaff = true,
     dateJoined = Timestamp.from(Instant.now(clock))
   )
+
+  val favourite1 = Favourite(photo = photo1, user = user1, createdAt = Timestamp.from(Instant.now(clock)))
 }

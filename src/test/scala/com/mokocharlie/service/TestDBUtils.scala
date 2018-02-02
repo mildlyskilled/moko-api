@@ -55,6 +55,10 @@ trait TestDBUtils extends StrictLogging {
     sql"TRUNCATE TABLE common_token".executeUpdate().apply()
   }
 
+  def purgeFavourites(): Int = DB.localTx { implicit session ⇒
+    sql"TRUNCATE TABLE common_favourite".executeUpdate().apply()
+  }
+
   def purgeTables(): Int = {
     foreignKeys(0)
     purgeUsers()
@@ -65,6 +69,7 @@ trait TestDBUtils extends StrictLogging {
     purgePhotos()
     purgeComments()
     purgeTokens()
+    purgeFavourites()
     foreignKeys(1)
   }
 
