@@ -609,8 +609,10 @@ CREATE INDEX social_auth_users_user_id_193b2d80880502b2_fk_common_mokouser_id
 
 CREATE TABLE common_token (
     id  INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
     token VARCHAR(65) NOT NULL,
+    refresh VARCHAR(65) NOT NULL,
     expires_at DATETIME NOT NULL,
     CONSTRAINT token_uniqueness
-    UNIQUE (token, expires_at)
+    UNIQUE (token, email)
 );

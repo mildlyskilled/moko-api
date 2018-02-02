@@ -22,12 +22,12 @@ object MokoCharlieApi extends App with CoreServices with StrictLogging {
   }
 
   println(s"Server online at http://$host:$port/\nType 'shutdown' to stop...")
-  Iterator.continually(StdIn.readLine).takeWhile(_ != "shutdown").foreach{ command => 
+  Iterator.continually(StdIn.readLine).takeWhile(_ != "shutdown").foreach{ command ⇒
       if ( command != null) println(s"$command not recognised")
   }
 
   bindingFuture
     .flatMap(_.unbind()) // trigger unbinding from the port
-    .onComplete(_ => system.terminate()) // and shutdown when done
+    .onComplete(_ ⇒ system.terminate()) // and shutdown when done
 
 }

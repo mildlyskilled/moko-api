@@ -3,7 +3,8 @@ package com.mokocharlie.infrastructure.outbound
 import java.sql.Timestamp
 
 import com.mokocharlie.domain.MokoModel._
-import com.mokocharlie.domain.{Password, Page}
+import com.mokocharlie.domain.RequestEntity.AuthRequest
+import com.mokocharlie.domain.{Page, Password, Token}
 import spray.json._
 
 trait JsonConversion extends DefaultJsonProtocol {
@@ -11,7 +12,7 @@ trait JsonConversion extends DefaultJsonProtocol {
 
     def write(obj: Timestamp) = JsString(obj.toString)
 
-    def read(json: JsValue) = json match {
+    def read(json: JsValue): Timestamp = json match {
       case JsNumber(time) => new Timestamp(time.toLong)
 
       case _ => throw DeserializationException("Date expected")
@@ -21,7 +22,7 @@ trait JsonConversion extends DefaultJsonProtocol {
   implicit object PasswordFormat extends RootJsonFormat[Password] {
     def write(obj: Password) = JsString(obj.toString)
 
-    def read(value: JsValue) = {
+    def read(value: JsValue): Password = {
       value.asJsObject.getFields("value") match {
         case Seq(JsString(v)) ⇒ Password(v)
         case _ ⇒ throw DeserializationException("Password expected")
@@ -38,6 +39,9 @@ trait JsonConversion extends DefaultJsonProtocol {
   implicit val collectionFormat = jsonFormat8(Collection)
   implicit val videoFormat = jsonFormat3(Video)
   implicit val documentaryFormat = jsonFormat5(Documentary)
+  implicit val tokenFormat = jsonFormat4(Token)
+  // Request Serialisers
+  implicit val authRequestFormat = jsonFormat2(AuthRequest)
 
   implicit val photoPageFormat = jsonFormat(Page[Photo], "items", "page", "offset", "total")
   implicit val albumPageFormat = jsonFormat(Page[Album], "items", "page", "offset", "total")

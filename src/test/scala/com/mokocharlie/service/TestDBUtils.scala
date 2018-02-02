@@ -19,7 +19,7 @@ trait TestDBUtils extends StrictLogging {
     logger.info("Released database lock")
   }
 
-  def foreignKeys(check: Int) = DB.localTx { implicit session ⇒
+  def foreignKeys(check: Int): Int = DB.localTx { implicit session ⇒
     sql"SET FOREIGN_KEY_CHECKS = $check".executeUpdate().apply()
   }
 
@@ -35,31 +35,36 @@ trait TestDBUtils extends StrictLogging {
     sql"TRUNCATE TABLE common_photo_albums".executeUpdate().apply()
   }
 
-  def purgeAlbums() = DB.localTx { implicit session ⇒
+  def purgeAlbums(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_album".executeUpdate().apply()
   }
 
-  def purgeCollectionAlbums() = DB.localTx { implicit session ⇒
+  def purgeCollectionAlbums(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_collection_albums".executeUpdate().apply()
   }
 
-  def purgeCollection() = DB.localTx { implicit session ⇒
+  def purgeCollection(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_collection".executeUpdate().apply()
   }
 
-  def purgeComments() = DB.localTx { implicit session ⇒
+  def purgeComments(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_comment".executeUpdate().apply()
   }
 
-  def purgeTables() = {
+  def purgeTokens(): Int = DB.localTx { implicit session ⇒
+    sql"TRUNCATE TABLE common_token".executeUpdate().apply()
+  }
+
+  def purgeTables(): Int = {
     foreignKeys(0)
-    purgeUsers()
+    //purgeUsers()
     purgeCollectionAlbums()
     purgeCollection()
     purgePhotoAlbums()
     purgeAlbums()
     purgePhotos()
     purgeComments()
+    //purgeTokens()
     foreignKeys(1)
   }
 

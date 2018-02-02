@@ -89,4 +89,4 @@ final case class Password(value: String) {
   override def toString: String = "<redacted>"
 }
 
-final case class Token(value: String, expiresAt: Timestamp)
+final case class Token(value: String, refreshToken: String, email: String, expiresAt: Timestamp)

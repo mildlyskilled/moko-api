@@ -33,6 +33,9 @@ class UserService(
   def userById(userId: Long): ServiceResponse[User] =
     dbExecute(repo.user(userId))
 
+  def userByEmail(email: String): ServiceResponse[User] =
+    dbExecute(repo.user(email))
+
   def changePassword(
       id: Long,
       currentPassword: String,
@@ -47,10 +50,15 @@ class UserService(
           u ⇒ SecureHash.validatePassword(password, u.password.value),
           AuthenticationError("Invalid credentials provided"))
         .flatMap { _ ⇒
+          val toke = tokenGenerator.generateSHAToken("moko")
+          val refresh = tokenGenerator.generateSHAToken(toke)
           tokenRepo.store(
-            Token(tokenGenerator.generateSHAToken("moko"), Timestamp.from(Instant.now(clock))))
+            Token(toke, refresh, email, Timestamp.from(Instant.now(clock).plusSeconds(15 * 60))))
         }
     }
+
+  def refreshToken(refreshToken: String): ServiceResponse[Token] =
+    dbExecute{tokenRepo.refresh(refreshToken)}
 
   def validateToken(token: String): ServiceResponse[Boolean] =
     dbExecute {
