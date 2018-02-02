@@ -1,7 +1,5 @@
 package com.mokocharlie.infrastructure.repository
 
-import java.sql.Timestamp
-
 import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}

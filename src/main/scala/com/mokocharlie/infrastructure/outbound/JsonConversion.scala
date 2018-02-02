@@ -3,7 +3,7 @@ package com.mokocharlie.infrastructure.outbound
 import java.sql.Timestamp
 
 import com.mokocharlie.domain.MokoModel._
-import com.mokocharlie.domain.RequestEntity.AuthRequest
+import com.mokocharlie.domain.common.RequestEntity.AuthRequest
 import com.mokocharlie.domain.{Page, Password, Token}
 import spray.json._
 

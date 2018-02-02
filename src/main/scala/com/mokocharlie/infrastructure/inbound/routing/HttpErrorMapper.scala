@@ -1,12 +1,11 @@
 package com.mokocharlie.infrastructure.inbound.routing
 
-import akka.http.scaladsl.model.{StatusCode, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.StandardRoute
 import com.mokocharlie.domain.common.MokoCharlieServiceError
 import com.mokocharlie.domain.common.MokoCharlieServiceError._
 
-case class APIError(code: StatusCode, message: String)
 trait HttpErrorMapper {
 
   private def toHttpError(serviceError: MokoCharlieServiceError): APIError = serviceError match {
@@ -22,6 +21,6 @@ trait HttpErrorMapper {
 
   def completeWithError(error: MokoCharlieServiceError): StandardRoute = {
     val httpError = toHttpError(error)
-    complete(httpError.code, httpError.message)
+    complete(httpError.code, httpError.msg)
   }
 }

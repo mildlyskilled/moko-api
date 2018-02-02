@@ -1,4 +1,4 @@
-package com.mokocharlie.domain
+package com.mokocharlie.domain.common
 
 sealed trait RequestEntity
 
