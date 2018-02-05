@@ -16,6 +16,8 @@ trait UserRepository {
 
   def user(email: String): RepositoryResponse[User]
 
+  def userByToken(token: String): RepositoryResponse[User]
+
   def update(user: User): RepositoryResponse[Long]
 
   def create(user: User): RepositoryResponse[Long]
@@ -163,6 +165,20 @@ class DBUserRepository(override val config: Config)
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
+    }
+
+  def userByToken(token: String): RepositoryResponse[User] =
+    readOnlyTransaction{ implicit session ⇒
+      sql"""
+         $defaultSelect
+          LEFT JOIN common_token AS t ON t.user_id = u.id
+          WHERE t.token = $token
+        """
+        .map(toUser)
+        .single
+        .apply()
+        .map(u ⇒ Right(u))
+        .getOrElse(Left(EmptyResultSet(s"Could not find user with given token: $token")))
     }
 
   private def total(): Option[Int] =

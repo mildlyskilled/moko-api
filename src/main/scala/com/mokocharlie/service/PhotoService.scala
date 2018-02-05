@@ -1,12 +1,13 @@
 package com.mokocharlie.service
 
 import akka.actor.ActorSystem
-import com.mokocharlie.domain.MokoModel.{Comment, Photo}
+import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.repository.{CommentRepository, DBPhotoRepository}
 import com.typesafe.scalalogging.StrictLogging
+import scala.collection.immutable.Seq
 
 class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)(
     implicit override val system: ActorSystem)
@@ -38,8 +39,8 @@ class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)
       }
     }
 
-  def list(page: Int, limit: Int): ServiceResponse[Page[Photo]] =
-    dbExecute(photoRepo.list(page, limit))
+  def list(page: Int, limit: Int, publishedOnly: Option[Boolean]): ServiceResponse[Page[Photo]] =
+    dbExecute(photoRepo.list(page, limit, Seq.empty, publishedOnly))
 
   def photoById(id: Long): ServiceResponse[Photo] =
     dbExecute(photoRepo.photoById(id))

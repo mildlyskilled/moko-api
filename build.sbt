@@ -42,12 +42,15 @@ libraryDependencies ++= {
 
     //other 3rd party
     "io.github.nremond" %% "pbkdf2-scala" % "0.6.3",
+    "org.typelevel" %% "cats-core" % "1.0.1",
 
     // Test dependencies
     "org.scalatest" %% "scalatest" % "3.0.1" % "test",
     "com.typesafe.akka" %% "akka-http-testkit" % httpVersion % "test"
   )
 }
+
+scalacOptions += "-Ypartial-unification"
 
 enablePlugins(JavaAppPackaging)
 mainClass in assembly := Some("com.mokocharlie.main.MokoCharlieApi")

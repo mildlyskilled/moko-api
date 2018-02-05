@@ -17,7 +17,7 @@ class FakeTokenRepository(override val config: Config, override val clock: Setta
     Token(
       "somestupidhasgofdatathatmakesnosense",
       "somestupidhasgofdatathatmakesnosense",
-      user1.email,
+      user1.id,
       Timestamp.from(Instant.now(clock)))
 
   override def check(token: String): RepositoryResponse[Token] = Right(fakeToken)

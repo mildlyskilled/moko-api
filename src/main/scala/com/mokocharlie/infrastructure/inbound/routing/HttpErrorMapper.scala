@@ -16,6 +16,7 @@ trait HttpErrorMapper {
       ourError
         .map(toHttpError)
         .getOrElse(APIError(StatusCodes.InternalServerError, msg))
+    case OperationDisallowed(x) ⇒ APIError(StatusCodes.Forbidden, x)
     case ex ⇒ APIError(StatusCodes.InternalServerError, ex.msg)
   }
 

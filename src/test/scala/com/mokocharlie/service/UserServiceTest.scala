@@ -128,4 +128,13 @@ class UserServiceTest
       case Left(ex) ⇒ fail(s"we should recieve a new token ${ex.msg}")
     }
   }
+
+  it should "retrieve a user given a token" in {
+    uService2.userByToken(token.value).map{
+      case Right(user) ⇒
+        user.id shouldBe user1.id
+        user.email shouldBe user1.email
+      case Left(ex) ⇒ fail(s"A user should have been returned ${ex.msg}")
+    }
+  }
 }

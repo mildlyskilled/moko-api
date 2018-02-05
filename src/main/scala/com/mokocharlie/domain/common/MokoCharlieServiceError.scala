@@ -17,5 +17,6 @@ object MokoCharlieServiceError{
     error: Option[MokoCharlieServiceError] = None,
     exception: Option[Exception] = None) extends MokoCharlieServiceError
   final case class AuthenticationError(msg: String) extends MokoCharlieServiceError
+  final case class OperationDisallowed(msg: String) extends MokoCharlieServiceError
   final case class APIError(code: StatusCode, msg: String) extends MokoCharlieServiceError
 }

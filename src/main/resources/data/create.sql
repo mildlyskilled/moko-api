@@ -10,7 +10,7 @@ CREATE TABLE admin_honeypot_loginattempt
   path        LONGTEXT     NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE TABLE auth_group
 (
@@ -21,7 +21,7 @@ CREATE TABLE auth_group
   UNIQUE (name)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE TABLE auth_group_permissions
 (
@@ -35,7 +35,7 @@ CREATE TABLE auth_group_permissions
   FOREIGN KEY (group_id) REFERENCES auth_group (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX auth_group__permission_id_1f49ccbbdc69d2fc_fk_auth_permission_id
   ON auth_group_permissions (permission_id);
@@ -51,7 +51,7 @@ CREATE TABLE auth_permission
   UNIQUE (content_type_id, codename)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 ALTER TABLE auth_group_permissions
   ADD CONSTRAINT auth_group__permission_id_1f49ccbbdc69d2fc_fk_auth_permission_id
@@ -69,7 +69,7 @@ CREATE TABLE captcha_captchastore
   UNIQUE (hashkey)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE TABLE common_album
 (
@@ -85,7 +85,7 @@ CREATE TABLE common_album
   cover_id    INT          NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_album_a39ff6ed
   ON common_album (cover_id);
@@ -105,7 +105,7 @@ CREATE TABLE common_classified
   type_id     INT          NOT NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_classified_6d82f13d
   ON common_classified (contact_id);
@@ -127,7 +127,7 @@ CREATE TABLE common_classifiedtype
   updated_at  DATETIME     NOT NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 ALTER TABLE common_classified
   ADD CONSTRAINT common_class_type_id_16f5c39a504ae0c_fk_common_classifiedtype_id
@@ -148,7 +148,7 @@ CREATE TABLE common_collection
   FOREIGN KEY (cover_album_id) REFERENCES common_album (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_collec_cover_album_id_6539b02bac8f646d_fk_common_album_id
   ON common_collection (cover_album_id);
@@ -167,7 +167,7 @@ CREATE TABLE common_collection_albums
   FOREIGN KEY (album_id) REFERENCES common_album (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_collection_al_album_id_f7d9786a8e346ab_fk_common_album_id
   ON common_collection_albums (album_id);
@@ -183,7 +183,7 @@ CREATE TABLE common_comment
   image_id         INT          NOT NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_comment_f33175e6
   ON common_comment (image_id);
@@ -199,7 +199,7 @@ CREATE TABLE common_contact
   owner_id   INT          NOT NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_contact_owner_id_4a7ecaf6d4907c06_fk_common_mokouser_id
   ON common_contact (owner_id);
@@ -218,7 +218,7 @@ CREATE TABLE common_favourite
   user_id    INT         NOT NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_favourite_b4e75e23
   ON common_favourite (photo_id);
@@ -243,7 +243,7 @@ CREATE TABLE common_hospitality
   FOREIGN KEY (contact_id) REFERENCES common_contact (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_hospitality_6d82f13d
   ON common_hospitality (contact_id);
@@ -262,7 +262,7 @@ CREATE TABLE common_hospitality_albums
   FOREIGN KEY (album_id) REFERENCES common_album (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_hospitality__album_id_5736eee66ca8b470_fk_common_album_id
   ON common_hospitality_albums (album_id);
@@ -284,7 +284,7 @@ CREATE TABLE common_mokouser
   UNIQUE (email)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 ALTER TABLE common_classified
   ADD CONSTRAINT common_classifie_owner_id_15d97309cff7d304_fk_common_mokouser_id
@@ -312,7 +312,7 @@ CREATE TABLE common_mokouser_groups
   FOREIGN KEY (group_id) REFERENCES auth_group (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_mokouser_group_group_id_58cf30e489b7b144_fk_auth_group_id
   ON common_mokouser_groups (group_id);
@@ -331,7 +331,7 @@ CREATE TABLE common_mokouser_user_permissions
   FOREIGN KEY (permission_id) REFERENCES auth_permission (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_moko_permission_id_7ce1e321ca716e71_fk_auth_permission_id
   ON common_mokouser_user_permissions (permission_id);
@@ -354,7 +354,7 @@ CREATE TABLE common_photo
   FOREIGN KEY (owner) REFERENCES common_mokouser (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_photo_owner_3de443e05ccbce09_fk_common_mokouser_id
   ON common_photo (owner);
@@ -385,7 +385,7 @@ CREATE TABLE common_photo_albums
   FOREIGN KEY (album_id) REFERENCES common_album (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_photo_albums_album_id_52775e9acf3d9ae4_fk_common_album_id
   ON common_photo_albums (album_id);
@@ -402,7 +402,7 @@ CREATE TABLE common_photo_video
   FOREIGN KEY (photo_id) REFERENCES common_photo (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_photo_video_video_id_46e23a856c8da0d2_fk_common_video_id
   ON common_photo_video (video_id);
@@ -420,7 +420,7 @@ CREATE TABLE common_photostory
   FOREIGN KEY (album_id) REFERENCES common_album (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_photostory_album_id_142bf69bd2d3c232_fk_common_album_id
   ON common_photostory (album_id);
@@ -438,7 +438,7 @@ CREATE TABLE common_photoviews
   FOREIGN KEY (user_id) REFERENCES common_mokouser (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX common_photoviews_b4e75e23
   ON common_photoviews (photo_id);
@@ -462,7 +462,7 @@ CREATE TABLE common_promotion
   published          INT          NOT NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE TABLE common_video
 (
@@ -472,7 +472,7 @@ CREATE TABLE common_video
   external_source VARCHAR(25)  NOT NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 ALTER TABLE common_photo_video
   ADD CONSTRAINT common_photo_video_video_id_46e23a856c8da0d2_fk_common_video_id
@@ -493,7 +493,7 @@ CREATE TABLE django_admin_log
   FOREIGN KEY (user_id) REFERENCES common_mokouser (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX djang_content_type_id_697914295151027a_fk_django_content_type_id
   ON django_admin_log (content_type_id);
@@ -511,7 +511,7 @@ CREATE TABLE django_content_type
   UNIQUE (app_label, model)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 ALTER TABLE auth_permission
   ADD CONSTRAINT auth__content_type_id_508cf46651277a81_fk_django_content_type_id
@@ -530,7 +530,7 @@ CREATE TABLE django_migrations
   applied DATETIME     NOT NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE TABLE django_session
 (
@@ -540,7 +540,7 @@ CREATE TABLE django_session
   expire_date  DATETIME    NOT NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX django_session_de54fa62
   ON django_session (expire_date);
@@ -557,7 +557,7 @@ CREATE TABLE social_auth_association
   assoc_type VARCHAR(64)  NOT NULL
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE TABLE social_auth_code
 (
@@ -570,7 +570,7 @@ CREATE TABLE social_auth_code
   UNIQUE (email, code)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX social_auth_code_c1336794
   ON social_auth_code (code);
@@ -586,7 +586,7 @@ CREATE TABLE social_auth_nonce
   UNIQUE (server_url, timestamp, salt)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE TABLE social_auth_usersocialauth
 (
@@ -602,17 +602,21 @@ CREATE TABLE social_auth_usersocialauth
   FOREIGN KEY (user_id) REFERENCES common_mokouser (id)
 )
   ENGINE = InnoDB
-  CHARSET = latin1;
+  CHARSET = utf8;
 
 CREATE INDEX social_auth_users_user_id_193b2d80880502b2_fk_common_mokouser_id
   ON social_auth_usersocialauth (user_id);
 
 CREATE TABLE common_token (
     id  INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
+    user_id INT NOT NULL,
     token VARCHAR(65) NOT NULL,
     refresh VARCHAR(65) NOT NULL,
     expires_at DATETIME NOT NULL,
-    CONSTRAINT token_uniqueness
-    UNIQUE (token, email)
-);
+    CONSTRAINT token_uniqueness UNIQUE (token, user_id),
+    CONSTRAINT token_user_fk FOREIGN KEY (user_id) REFERENCES common_mokouser (id)
+) 
+    ENGINE = InnoDB
+    CHARSET = utf8;
+
+CREATE INDEX token_user_fk ON common_token (user_id);

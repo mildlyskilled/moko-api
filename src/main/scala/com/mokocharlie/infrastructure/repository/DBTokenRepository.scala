@@ -47,21 +47,21 @@ class DBTokenRepository(override val config: Config)
       try {
         sql"""
             $defaultSelect
-            WHERE t.email = ${token.email}
+            WHERE t.user_id = ${token.userId}
             AND t.expires_at > now()
           """
           .map(toToken)
           .single
           .apply()
           .map { existingToken ⇒
-            logger.info(s"Token exists for this user: ${token.email}, returning it")
+            logger.info(s"Token exists for this user: ${token.userId}, returning it")
             Right(existingToken)
           }
           .getOrElse {
             val res =
               sql"""
-              INSERT INTO common_token (token, refresh, email, expires_at)
-              VALUES(${token.value}, ${token.refreshToken}, ${token.email}, ${token.expiresAt})
+              INSERT INTO common_token (token, refresh, user_id, expires_at)
+              VALUES(${token.value}, ${token.refreshToken}, ${token.userId}, ${token.expiresAt})
               """
                 .updateAndReturnGeneratedKey()
                 .apply()
@@ -108,10 +108,10 @@ class DBTokenRepository(override val config: Config)
 
   private val defaultSelect: SQLSyntax =
     sqls"""
-      SELECT token, refresh, email, expires_at FROM common_token AS t
+      SELECT token, refresh, user_id, expires_at FROM common_token AS t
     """.stripMargin
 
   private def toToken(rs: WrappedResultSet): Token =
-    Token(rs.string("token"), rs.string("refresh"), rs.string("email"), rs.timestamp("expires_at"))
+    Token(rs.string("token"), rs.string("refresh"), rs.long("user_id"), rs.timestamp("expires_at"))
 
 }
