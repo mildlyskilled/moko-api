@@ -48,6 +48,7 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-http-testkit" % httpVersion % "test"
   )
 }
+
 enablePlugins(JavaAppPackaging)
 mainClass in assembly := Some("com.mokocharlie.main.MokoCharlieApi")
 
