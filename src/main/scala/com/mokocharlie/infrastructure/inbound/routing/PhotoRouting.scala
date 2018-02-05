@@ -37,7 +37,7 @@ class PhotoRouting(
           extractUser { user ⇒
             val res = for {
               u ← user
-              f ← photoService.list(pageNumber, limit, u.map(_.isSuperuser).toOption)
+              f ← photoService.list(pageNumber, limit, u.map(_.isSuperuser).toOption.filterNot(_ == true))
             } yield f
 
             onSuccess(res) {

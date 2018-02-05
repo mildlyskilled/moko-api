@@ -3,6 +3,8 @@ package com.mokocharlie.infrastructure.inbound.routing
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.StandardRoute
+import akka.stream.TLSClientAuth.None
+import com.mokocharlie.domain.MokoModel.User
 import com.mokocharlie.domain.common.MokoCharlieServiceError
 import com.mokocharlie.domain.common.MokoCharlieServiceError._
 
@@ -24,4 +26,7 @@ trait HttpErrorMapper {
     val httpError = toHttpError(error)
     complete(httpError.code, httpError.msg)
   }
+
+  def translateSuperUserFlag(isSuperUser: Option[User]): Option[User] =
+    isSuperUser.filterNot(_.isSuperuser)
 }
