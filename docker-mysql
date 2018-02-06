@@ -2,7 +2,6 @@ db:
     image: mysql
     restart: always
     environment:
-      MYSQL_DATABASE: mokocharlie
       MYSQL_ROOT_USER: root
       MYSQL_ROOT_PASSWORD: root
     ports:

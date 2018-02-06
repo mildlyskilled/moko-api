@@ -177,8 +177,15 @@ class DBUserRepository(override val config: Config)
         .map(toUser)
         .single
         .apply()
-        .map(u ⇒ Right(u))
-        .getOrElse(Left(EmptyResultSet(s"Could not find user with given token: $token")))
+        .map{u ⇒
+          logger.info(s"User acquired by token: $token")
+          Right(u)
+        }
+        .getOrElse{
+          val msg = s"Could not find user with given token: $token"
+          logger.info(msg)
+          Left(EmptyResultSet(msg))
+        }
     }
 
   private def total(): Option[Int] =

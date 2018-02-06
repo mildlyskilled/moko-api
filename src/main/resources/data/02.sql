@@ -1,3 +1,5 @@
+USE mokocharlietest;
+
 CREATE TABLE admin_honeypot_loginattempt
 (
   id          INT AUTO_INCREMENT
@@ -614,9 +616,10 @@ CREATE TABLE common_token (
     refresh VARCHAR(65) NOT NULL,
     expires_at DATETIME NOT NULL,
     CONSTRAINT token_uniqueness UNIQUE (token, user_id),
-    CONSTRAINT token_user_fk FOREIGN KEY (user_id) REFERENCES common_mokouser (id)
+    CONSTRAINT token_user_fk
+        FOREIGN KEY (user_id) REFERENCES common_mokouser (id)
 ) 
     ENGINE = InnoDB
     CHARSET = utf8;
 
-CREATE INDEX token_user_fk ON common_token (user_id);
+CREATE INDEX token_user_index ON common_token (token);

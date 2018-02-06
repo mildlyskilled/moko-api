@@ -6,13 +6,14 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import com.mokocharlie.domain.common.MokoCharlieServiceError
-import com.mokocharlie.domain.common.MokoCharlieServiceError.OperationDisallowed
+import com.mokocharlie.domain.common.MokoCharlieServiceError.{EmptyResultSet, OperationDisallowed}
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.spartan.HotGate
+import com.mokocharlie.infrastructure.security.HeaderChecking
 import com.mokocharlie.service.{CommentService, PhotoService, UserService}
+import com.typesafe.scalalogging.StrictLogging
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 class PhotoRouting(
     photoService: PhotoService,
@@ -20,24 +21,38 @@ class PhotoRouting(
     override val userService: UserService)(implicit system: ActorSystem)
     extends SprayJsonSupport
     with JsonConversion
-    with HotGate
-    with HttpErrorMapper {
+    with HeaderChecking
+    with HttpErrorMapper
+    with StrictLogging {
 
-  implicit val ec = system.dispatcher
+  implicit val ec: ExecutionContextExecutor = system.dispatcher
 
   var routes: Route = {
-    path("photos" / LongNumber) { id =>
-      onSuccess(photoService.photoById(id)) {
-        case Right(photo) ⇒ complete(photo)
-        case Left(e) ⇒ completeWithError(e)
+    path("photos" / LongNumber) { id ⇒
+      extractUser { user ⇒
+        val res = for {
+          _ ← user
+          photo ← photoService.photoById(id)
+        } yield photo
+
+        onSuccess(res) {
+          case Right(photo) ⇒
+            user.collect{
+              case Right(u) ⇒ logger.info(s"${u.firstName} ${u.lastName} requested photo $id")
+              case Left(EmptyResultSet(_)) ⇒ logger.info(s"Anonymous request for $id")
+            }
+            complete(photo)
+          case Left(e) ⇒ completeWithError(e)
+        }
       }
+
     } ~ path("photos") {
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) { (pageNumber, limit) ⇒
           extractUser { user ⇒
             val res = for {
               u ← user
-              f ← photoService.list(pageNumber, limit, u.map(_.isSuperuser).toOption.filterNot(_ == true))
+              f ← photoService.list(pageNumber, limit, userService.publishedFlag(u))
             } yield f
 
             onSuccess(res) {

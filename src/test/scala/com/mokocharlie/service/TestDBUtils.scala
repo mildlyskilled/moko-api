@@ -61,14 +61,14 @@ trait TestDBUtils extends StrictLogging {
 
   def purgeTables(): Int = {
     foreignKeys(0)
-    //purgeUsers()
+    purgeUsers()
     purgeCollectionAlbums()
     purgeCollection()
     purgePhotoAlbums()
     purgeAlbums()
     purgePhotos()
     purgeComments()
-    //purgeTokens()
+    purgeTokens()
     purgeFavourites()
     foreignKeys(1)
   }

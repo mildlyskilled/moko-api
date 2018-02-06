@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Route, RouteConcatenation}
 import com.mokocharlie.infrastructure.repository._
-import com.mokocharlie.infrastructure.spartan.BearerTokenGenerator
+import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.mokocharlie.service._
 import com.typesafe.config.Config
 

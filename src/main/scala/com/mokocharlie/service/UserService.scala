@@ -9,7 +9,7 @@ import com.mokocharlie.domain.common.MokoCharlieServiceError.{AuthenticationErro
 import com.mokocharlie.domain.{Page, Token}
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.repository.{TokenRepository, UserRepository}
-import com.mokocharlie.infrastructure.spartan.BearerTokenGenerator
+import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import io.github.nremond.SecureHash
 
 class UserService(

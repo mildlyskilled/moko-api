@@ -1,4 +1,4 @@
-package com.mokocharlie.infrastructure.spartan
+package com.mokocharlie.infrastructure.security
 
 import java.security.{MessageDigest, SecureRandom}
 

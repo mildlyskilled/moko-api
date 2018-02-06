@@ -8,7 +8,7 @@ import com.mokocharlie.SettableClock
 import com.mokocharlie.domain.Token
 import com.mokocharlie.domain.common.MokoCharlieServiceError.AuthenticationError
 import com.mokocharlie.infrastructure.repository.{DBTokenRepository, DBUserRepository, FakeTokenRepository}
-import com.mokocharlie.infrastructure.spartan.BearerTokenGenerator
+import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import io.github.nremond.SecureHash
@@ -135,6 +135,15 @@ class UserServiceTest
         user.id shouldBe user1.id
         user.email shouldBe user1.email
       case Left(ex) ⇒ fail(s"A user should have been returned ${ex.msg}")
+    }
+  }
+
+  it should "pass the appropriate flag into the user service publishedOnly field" in {
+    userService.userById(user1.id).map{
+      case Right(user) ⇒
+        userService.publishedFlag(Right(user)) shouldBe None
+        userService.publishedFlag(Right(user.copy(isSuperuser = false))) shouldBe Some(true)
+      case Left(ex) ⇒ fail(s"A user should have been retrieved ${ex.msg}")
     }
   }
 }

@@ -7,7 +7,7 @@ import akka.http.scaladsl.server._
 import com.mokocharlie.domain.common.MokoCharlieServiceError.OperationDisallowed
 import com.mokocharlie.domain.common.RequestEntity.AuthRequest
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.spartan.HotGate
+import com.mokocharlie.infrastructure.security.HeaderChecking
 import com.mokocharlie.service.UserService
 import com.typesafe.scalalogging.StrictLogging
 
@@ -18,7 +18,7 @@ class UserRouting(override val userService: UserService)(implicit system: ActorS
     with SprayJsonSupport
     with HttpErrorMapper
     with StrictLogging
-    with HotGate {
+    with HeaderChecking {
 
   implicit val ec = system.dispatcher
 
