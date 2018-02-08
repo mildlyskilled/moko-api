@@ -14,7 +14,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem) ext
   private val photoRepository = new DBPhotoRepository(config)
   private val commentRepository = new DBCommentRepository(config)
   private val favouriteRepository = new DBFavouriteRepository(config)
-  private val favouriteService = new FavouriteService(favouriteRepository)
+  private val favouriteService = new FavouriteService(favouriteRepository, clock)
   private val albumRepository = new DBAlbumRepository(config, photoRepository)
   private val userRepository = new DBUserRepository(config)
   private val tokenRepository = new DBTokenRepository(config)
@@ -38,7 +38,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem) ext
   } ~ {
     new CommentRouting(commentService).routes
   } ~ {
-    new PhotoRouting(photoService, commentService, userService).routes
+    new PhotoRouting(photoService, commentService, favouriteService, clock, userService).routes
   } ~ {
     new AlbumRouting(albumService).routes
   } ~ {

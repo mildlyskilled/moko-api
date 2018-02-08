@@ -14,7 +14,7 @@ import scalikejdbc._
 trait FavouriteRepository {
   def favouritesByPhotoId(id: Long, page: Int, limit: Int): RepositoryResponse[Page[Favourite]]
 
-  def addFavourite(favourite: Favourite): RepositoryResponse[Long]
+  def addFavourite(userId: Long, photoId: Long, createdAt: Timestamp): RepositoryResponse[Long]
 }
 
 class DBFavouriteRepository(override val config: Config)
@@ -28,8 +28,7 @@ class DBFavouriteRepository(override val config: Config)
         val faves =
           sql"""
               $defaultSelect
-        """
-            .map(toFavourite)
+        """.map(toFavourite)
             .list
             .apply()
         Right(Page(faves, page, limit, total()))
@@ -38,20 +37,30 @@ class DBFavouriteRepository(override val config: Config)
       }
     }
 
-  def addFavourite(favourite: Favourite): RepositoryResponse[Long] =
+  def addFavourite(userId: Long, photoId: Long, createdAt: Timestamp): RepositoryResponse[Long] =
     writeTransaction(3, "Could not add to favourites") { implicit session ⇒
-      try{
-        val id = sql"""INSERT INTO common_favourite (photo_id, user_id, created_at)
-         VALUES(${favourite.photo.id}, ${favourite.user.id}, ${favourite.createdAt})
-       """
-          .updateAndReturnGeneratedKey()
+      try {
+        sql"""$defaultSelect WHERE user_id = $userId AND photo_id = $photoId"""
+          .map(toFavourite)
+          .single
           .apply()
-        Right(id)
+          .map { favourite ⇒
+            Right(favourite.id)
+          }
+          .getOrElse {
+            Right {
+              sql"""INSERT INTO common_favourite (photo_id, user_id, created_at)
+         VALUES($photoId, $userId, $createdAt)
+       """.updateAndReturnGeneratedKey()
+                .apply()
+            }
+          }
+
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
 
-  }
+    }
 
   def findFavouritesByUserAndImage(imageID: Long, userID: Long): RepositoryResponse[Favourite] = ???
 
@@ -59,8 +68,9 @@ class DBFavouriteRepository(override val config: Config)
     sqls"""
           | SELECT
           | f.id,
-          | user_id,
-          | created_at,
+          | f.photo_id,
+          | f.user_id,
+          | f.created_at,
           |	p.id AS photo_id,
           |	p.image_id AS legacy_id,
           |	p.name AS photo_name,
@@ -83,13 +93,14 @@ class DBFavouriteRepository(override val config: Config)
           | u.is_active,
           | u.date_joined
           | FROM common_favourite AS f
-          | LEFT JOIN common_photo AS p
+          | LEFT JOIN common_photo AS p ON p.id = f.photo_id
+          | LEFT JOIN common_mokouser AS u ON f.user_id = u.id
         """.stripMargin
 
   private def total(): Option[Int] =
     readOnlyTransaction { implicit session ⇒
-    sql"SELECT COUNT(id) AS total FROM common_favourite".map(rs ⇒ rs.int("total")).single.apply()
-  }
+      sql"SELECT COUNT(id) AS total FROM common_favourite".map(rs ⇒ rs.int("total")).single.apply()
+    }
 
   private def toFavourite(rs: WrappedResultSet): Favourite = {
     val photo = Photo(

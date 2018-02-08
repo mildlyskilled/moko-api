@@ -13,13 +13,20 @@ class FavouriteServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixtu
   implicit val ec: ExecutionContextExecutor = system.dispatcher
   val config: Config = ConfigFactory.load()
   val favouriteRepo = new DBFavouriteRepository(config)
-  val favouriteService = new FavouriteService(favouriteRepo)
+  val favouriteService = new FavouriteService(favouriteRepo, clock)
   behavior of "FavouriteService"
 
   "FavouriteService" should "create a favourite" in {
-    favouriteService.addFavourite(favourite1).map{
+    favouriteService.addFavourite(favourite1.user.id, favourite1.photo.id).map {
       case Right(id) ⇒ id shouldBe 1
       case Left(ex) ⇒ fail(s"A favourite should be added ${ex.msg}")
+    }
+  }
+
+  it should "not add a favourite if it already exists" in {
+    favouriteService.addFavourite(favourite1.user.id, favourite1.photo.id).map {
+      case Right(id) ⇒ id shouldBe 1
+      case Left(ex) ⇒ fail(s"a favourite should be added ${ex.msg}")
     }
   }
 }

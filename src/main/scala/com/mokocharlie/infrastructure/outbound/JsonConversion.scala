@@ -3,7 +3,7 @@ package com.mokocharlie.infrastructure.outbound
 import java.sql.Timestamp
 
 import com.mokocharlie.domain.MokoModel._
-import com.mokocharlie.domain.common.RequestEntity.AuthRequest
+import com.mokocharlie.domain.common.RequestEntity.{AuthRequest, FavouriteRequest}
 import com.mokocharlie.domain.{Page, Password, Token}
 import spray.json._
 
@@ -30,6 +30,22 @@ trait JsonConversion extends DefaultJsonProtocol {
     }
   }
 
+  implicit object FavouriteFormat extends RootJsonFormat[FavouriteRequest] {
+    def read(value: JsValue): FavouriteRequest = {
+      value.asJsObject.getFields("user_id", "photo_id") match {
+        case Seq(JsString(uid), JsString(pid)) ⇒ FavouriteRequest(uid.toLong, pid.toLong)
+        case _ ⇒ throw DeserializationException(s"malformed favourite payload $value")
+      }
+    }
+
+    def write(obj: FavouriteRequest): JsValue = {
+      JsObject(
+        Map("user_id" → JsNumber(obj.userId),
+          "photo_iud" → JsNumber(obj.photoId)
+      ))
+    }
+  }
+
   // formats for unmarshalling and marshalling
   implicit val photoFormat = jsonFormat11(Photo)
   implicit val albumFormat = jsonFormat9(Album)
@@ -40,6 +56,7 @@ trait JsonConversion extends DefaultJsonProtocol {
   implicit val videoFormat = jsonFormat3(Video)
   implicit val documentaryFormat = jsonFormat5(Documentary)
   implicit val tokenFormat = jsonFormat4(Token)
+
   // Request Serialisers
   implicit val authRequestFormat = jsonFormat2(AuthRequest)
 
