@@ -28,10 +28,11 @@ class DBFavouriteRepository(override val config: Config)
         val faves =
           sql"""
               $defaultSelect
+             WHERE p.id = $id
         """.map(toFavourite)
             .list
             .apply()
-        Right(Page(faves, page, limit, total()))
+        Right(Page(faves, page, limit, Some(faves.size)))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -93,13 +94,13 @@ class DBFavouriteRepository(override val config: Config)
           | u.is_active,
           | u.date_joined
           | FROM common_favourite AS f
-          | LEFT JOIN common_photo AS p ON p.id = f.photo_id
-          | LEFT JOIN common_mokouser AS u ON f.user_id = u.id
+          | INNER JOIN common_photo AS p ON p.id = f.photo_id
+          | INNER JOIN common_mokouser AS u ON f.user_id = u.id
         """.stripMargin
 
-  private def total(): Option[Int] =
+  private def total(wherePredicate: SQLSyntax): Option[Int] =
     readOnlyTransaction { implicit session ⇒
-      sql"SELECT COUNT(id) AS total FROM common_favourite".map(rs ⇒ rs.int("total")).single.apply()
+      sql"SELECT COUNT(id) AS total FROM common_favourite $wherePredicate".map(rs ⇒ rs.int("total")).single.apply()
     }
 
   private def toFavourite(rs: WrappedResultSet): Favourite = {

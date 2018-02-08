@@ -29,4 +29,16 @@ class FavouriteServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixtu
       case Left(ex) ⇒ fail(s"a favourite should be added ${ex.msg}")
     }
   }
+
+  it should "return favourites by photo" in {
+    favouriteService.addFavourite(userId = 1, photoId = 2).flatMap{
+      case Right(_) ⇒
+        favouriteService.imageFavourites(favourite1.photo.id, 1, 10).map {
+          case Right(favouritePage) ⇒ favouritePage.items should have size 1
+          case Left(ex) ⇒ fail(s"Favourites should have been returned ${ex.msg}")
+        }
+      case Left(ex) ⇒ fail(s"A new favourite should be created ${ex.msg}")
+    }
+
+  }
 }

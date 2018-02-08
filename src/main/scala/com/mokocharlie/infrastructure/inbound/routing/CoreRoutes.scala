@@ -38,7 +38,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem) ext
   } ~ {
     new CommentRouting(commentService).routes
   } ~ {
-    new PhotoRouting(photoService, commentService, favouriteService, clock, userService).routes
+    new PhotoRouting(photoService, commentService, clock, userService).routes
   } ~ {
     new AlbumRouting(albumService).routes
   } ~ {

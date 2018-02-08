@@ -4,13 +4,9 @@ import java.time.Clock
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.unmarshalling.Unmarshaller
-import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
-import com.mokocharlie.domain.MokoModel.Favourite
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
-import com.mokocharlie.domain.common.RequestEntity.FavouriteRequest
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.security.HeaderChecking
 import com.mokocharlie.service.{CommentService, FavouriteService, PhotoService, UserService}
@@ -21,7 +17,6 @@ import scala.concurrent.ExecutionContextExecutor
 class PhotoRouting(
     photoService: PhotoService,
     commentService: CommentService,
-    favouriteService: FavouriteService,
     clock: Clock,
     override val userService: UserService)(implicit system: ActorSystem)
     extends SprayJsonSupport
@@ -78,17 +73,6 @@ class PhotoRouting(
               }
             }
           }
-        }
-      }
-    } ~ path("photos" / "favourite" ~ Slash.?) {
-      logger.info("Favouriting")
-      put {
-        entity(as[FavouriteRequest]) { favourite ⇒
-          onSuccess(favouriteService.addFavourite(favourite.userId, favourite.photoId)) {
-            case Right(id) ⇒ complete(StatusCodes.Accepted, s"Favourite created with id: $id")
-            case Left(error) ⇒ completeWithError(error)
-          }
-
         }
       }
     }
