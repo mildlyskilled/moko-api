@@ -6,15 +6,12 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
-import com.mokocharlie.domain.MokoModel
-import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
-import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.security.HeaderChecking
-import com.mokocharlie.service.{CommentService, FavouriteService, PhotoService, UserService}
+import com.mokocharlie.service.{CommentService, PhotoService, UserService}
 import com.typesafe.scalalogging.StrictLogging
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.ExecutionContextExecutor
 
 class PhotoRouting(
     photoService: PhotoService,
@@ -33,7 +30,7 @@ class PhotoRouting(
     path("photos" ~ Slash.?) {
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) { (pageNumber, limit) ⇒
-          optionalHeaderValue(extractUserToken) { user: Option[ServiceResponse[MokoModel.User]] ⇒
+          optionalHeaderValue(extractUserToken) { user ⇒
             user
               .map { userResponse ⇒
                 val res = for {
@@ -57,20 +54,22 @@ class PhotoRouting(
         }
       }
     } ~ path("photos" / LongNumber) { id ⇒
-      headerValue(extractUserToken) { user ⇒
-        val res = for {
-          _ ← user
-          photo ← photoService.photoById(id)
-        } yield photo
-
-        onSuccess(res) {
-          case Right(photo) ⇒
-            user.collect {
-              case Right(u) ⇒ logger.info(s"${u.firstName} ${u.lastName} requested photo $id")
-              case Left(EmptyResultSet(_)) ⇒ logger.info(s"Anonymous request for $id")
-            }
-            complete(photo)
-          case Left(e) ⇒ completeWithError(e)
+      optionalHeaderValue(extractUserToken) { userResponse ⇒
+        userResponse.map{ userFuture ⇒
+          onSuccess(photoService.photoById(id)) {
+            case Right(photo) ⇒
+              userFuture.foreach{
+                case Right(u) ⇒ logger.info(s"${u.firstName} ${u.lastName} requested photo id: $id")
+                case Left(ex) ⇒ logger.info(s"Failed to retrieve user with token ${ex.msg}")
+              }
+              complete(photo)
+            case Left(e) ⇒ completeWithError(e)
+          }
+        }.getOrElse{
+          onSuccess(photoService.photoById(id)) {
+            case Right(photo) ⇒ complete(photo)
+            case Left(error) ⇒ completeWithError(error)
+          }
         }
       }
 

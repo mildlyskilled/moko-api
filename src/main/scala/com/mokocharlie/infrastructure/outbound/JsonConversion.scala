@@ -14,8 +14,8 @@ trait JsonConversion extends DefaultJsonProtocol {
 
     def read(json: JsValue): Timestamp = json match {
       case JsNumber(time) => new Timestamp(time.toLong)
-
-      case _ => throw DeserializationException("Date expected")
+      case JsString(timestamp) ⇒ Timestamp.valueOf(timestamp)
+      case ex => throw DeserializationException(s"Date expected got $ex")
     }
   }
 

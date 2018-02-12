@@ -11,7 +11,7 @@ import com.mokocharlie.infrastructure.security.HeaderChecking
 import com.mokocharlie.service.UserService
 import com.typesafe.scalalogging.StrictLogging
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 class UserRouting(override val userService: UserService)(implicit system: ActorSystem)
     extends JsonConversion
@@ -20,25 +20,24 @@ class UserRouting(override val userService: UserService)(implicit system: ActorS
     with StrictLogging
     with HeaderChecking {
 
-  implicit val ec = system.dispatcher
+  implicit val ec: ExecutionContextExecutor = system.dispatcher
 
   val routes: Route = {
     path("users" / LongNumber) { id =>
-     /* get {
-        extractUser { user ⇒
-          val res = for {
-            u ← user
-            f ← if (u.exists(_.isSuperuser)) userService.userById(id)
-                else Future.successful(Left(OperationDisallowed("You need to be a super user")))
-          } yield f
+     get {
+        headerValue(extractUserToken) { userFuture ⇒
+            val res = for {
+              u ← userFuture
+              f ← if (u.exists(_.isSuperuser)) userService.userById(id)
+              else Future.successful(Left(OperationDisallowed("You need to be a super user")))
+            } yield f
 
-          onSuccess(res) {
-            case Right(foundUser) ⇒ complete(foundUser)
-            case Left(error) ⇒ completeWithError(error)
-          }
+            onSuccess(res) {
+              case Right(foundUser) ⇒ complete(foundUser)
+              case Left(error) ⇒ completeWithError(error)
+            }
         }
-      }*/
-      complete("OK")
+      }
     } ~
       path("auth" ~ Slash.?) {
         post {
