@@ -1,6 +1,7 @@
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest._
 
+@DoNotDiscover
 class PhotoEndpointTest
     extends AsyncFlatSpec
     with HttpScaffold
