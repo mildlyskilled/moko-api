@@ -24,7 +24,7 @@ class UserRouting(override val userService: UserService)(implicit system: ActorS
 
   val routes: Route = {
     path("users" / LongNumber) { id =>
-      get {
+     /* get {
         extractUser { user ⇒
           val res = for {
             u ← user
@@ -37,7 +37,8 @@ class UserRouting(override val userService: UserService)(implicit system: ActorS
             case Left(error) ⇒ completeWithError(error)
           }
         }
-      }
+      }*/
+      complete("OK")
     } ~
       path("auth" ~ Slash.?) {
         post {

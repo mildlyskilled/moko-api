@@ -17,4 +17,7 @@ trait MokoCharlieService {
       case Right(superuser) if superuser ⇒ None
       case _ ⇒ Some(true)
     }
+
+  def publishedFlag(user: User): Option[Boolean] =
+    if (user.isSuperuser) None else Some(true)
 }
