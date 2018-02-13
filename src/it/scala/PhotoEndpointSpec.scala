@@ -20,7 +20,7 @@ import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 
 import spray.json._
 
-class PhotoEndpointTest extends FlatSpec with Matchers with ScalatestRouteTest with JsonConversion {
+class PhotoEndpointSpec extends FlatSpec with Matchers with ScalatestRouteTest with JsonConversion {
 
   implicit val ec = system.dispatcher
   private val config = ConfigFactory.load()
