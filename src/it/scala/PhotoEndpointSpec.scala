@@ -3,28 +3,21 @@ import java.time.LocalDateTime
 import akka.http.scaladsl.model.headers.RawHeader
 import org.scalatest._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.mokocharlie.infrastructure.repository.{
-  DBCommentRepository,
-  DBPhotoRepository,
-  DBTokenRepository,
-  DBUserRepository
-}
+import com.mokocharlie.infrastructure.repository.{DBCommentRepository, DBPhotoRepository, DBTokenRepository, DBUserRepository}
 import com.mokocharlie.service.{CommentService, PhotoService, UserService}
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
-import com.mokocharlie.SettableClock
 import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.Page
 import com.mokocharlie.infrastructure.inbound.routing.PhotoRouting
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
-
 import spray.json._
 
 class PhotoEndpointSpec extends FlatSpec with Matchers with ScalatestRouteTest with JsonConversion {
 
   implicit val ec = system.dispatcher
   private val config = ConfigFactory.load()
-  config.withValue("dbName", ConfigValueFactory.fromAnyRef("mokocharlie"))
+  //config.withValue("dbName", ConfigValueFactory.fromAnyRef("mokocharlie"))
 
   private val photoRepository = new DBPhotoRepository(config)
   private val commentRepo = new DBCommentRepository(config)

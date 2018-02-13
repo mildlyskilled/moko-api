@@ -1,33 +1,32 @@
-import sbt._
+import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
 import sbt.Keys._
+import sbt._
 
-object TheBuild extends Build {
+object  MyBuild extends Build {
+  lazy val httpVersion = "10.0.11"
 
-  // -------------------------------------------------------------------------------------------------------------------
-  // Root Project
-  // -------------------------------------------------------------------------------------------------------------------
+  lazy val commonSettings = Seq(
+    scalaVersion := "2.12.4",
+    organization := "com.mokocharlie",
+    name := "mokocharlie-api",
+    version := "1.0"
+  )
 
-  lazy val root = Project("moko-root", file("."))
-    .aggregate(testkit, core, moko)
-    .configs(Configs.all: _*)
-    .settings(Settings.root: _*)
+  lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.1"
 
-  // -------------------------------------------------------------------------------------------------------------------
-  // Modules
-  // -------------------------------------------------------------------------------------------------------------------
+  lazy val akkaTestKit = "com.typesafe.akka" %% "akka-http-testkit" % httpVersion
 
-  lazy val testkit: Project = Project("moko-testkit", file("moko-testkit"))
-    .settings(unmanagedSourceDirectories in Compile <++= (unmanagedSourceDirectories in (LocalProject("moko-core"), Compile))) // to avoid cyclic reference
-    .configs(Configs.all: _*)
-    .settings(Settings.testkit: _*)
-
-  lazy val core: Project = Project("moko-core", file("moko-core"))
-    .dependsOn(testkit % "test,integration")
-    .configs(Configs.all: _*)
-    .settings(Settings.core: _*)
-
-  lazy val moko = Project("moko", file("moko"))
-    .dependsOn(core, testkit % "test,integration")
-    .configs(Configs.all: _*)
-    .settings(Settings.moko: _*)
+  lazy val root = (project in file("."))
+    .configs(IntegrationTest)
+    .enablePlugins(JavaServerAppPackaging)
+    .settings(
+      commonSettings,
+      Defaults.itSettings,
+      libraryDependencies ++=
+        Seq(
+          scalaTest % "it,test",
+          akkaTestKit % "it,test"
+        )
+      // other settings here
+    )
 }

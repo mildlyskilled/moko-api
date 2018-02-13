@@ -1,20 +1,3 @@
-lazy val commonSettings = Seq(
-  scalaVersion := "2.12.4",
-  organization := "com.mokocharlie",
-  name := "mokocharlie-api",
-  version := "1.0"
-)
-lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.1"
-
-lazy val root = (project in file("."))
-  .configs(IntegrationTest)
-  .enablePlugins(JavaServerAppPackaging)
-  .settings(
-    commonSettings,
-    Defaults.itSettings,
-    libraryDependencies += scalatest % "it,test"
-    // other settings here
-  )
 
 libraryDependencies ++= {
   lazy val akkaVersion = "2.5.8"
@@ -39,9 +22,7 @@ libraryDependencies ++= {
     "ch.qos.logback" % "logback-core" % logbackVersion % "runtime",
     "org.codehaus.janino" % "janino" % "2.7.8",
     //other 3rd party
-    "io.github.nremond" %% "pbkdf2-scala" % "0.6.3",
-    // Test dependencies
-    "com.typesafe.akka" %% "akka-http-testkit" % httpVersion % "test"
+    "io.github.nremond" %% "pbkdf2-scala" % "0.6.3"
   )
 }
 
