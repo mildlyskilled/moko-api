@@ -3,9 +3,14 @@ import java.time.LocalDateTime
 import akka.http.scaladsl.model.headers.RawHeader
 import org.scalatest._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.mokocharlie.infrastructure.repository.{DBCommentRepository, DBPhotoRepository, DBTokenRepository, DBUserRepository}
+import com.mokocharlie.infrastructure.repository.{
+  DBCommentRepository,
+  DBPhotoRepository,
+  DBTokenRepository,
+  DBUserRepository
+}
 import com.mokocharlie.service.{CommentService, PhotoService, UserService}
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import com.typesafe.config.ConfigFactory
 import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.Page
 import com.mokocharlie.infrastructure.inbound.routing.PhotoRouting
@@ -13,12 +18,9 @@ import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import spray.json._
 
-class PhotoEndpointSpec extends FlatSpec with Matchers with ScalatestRouteTest with JsonConversion {
+class PhotoEndpointTest extends FlatSpec with Matchers with ScalatestRouteTest with JsonConversion {
 
-  implicit val ec = system.dispatcher
   private val config = ConfigFactory.load()
-  //config.withValue("dbName", ConfigValueFactory.fromAnyRef("mokocharlie"))
-
   private val photoRepository = new DBPhotoRepository(config)
   private val commentRepo = new DBCommentRepository(config)
   private val commentService = new CommentService(commentRepo)
@@ -34,10 +36,10 @@ class PhotoEndpointSpec extends FlatSpec with Matchers with ScalatestRouteTest w
   val tokenHeaders = RawHeader("X-MOKO-USER", "sometoken thatgoesnowhere")
 
   "Photo Route" should "Return a list of images" in {
-      Get("/photos") ~> photoRoute ~> check {
-        val page = responseAs[String].parseJson.convertTo[Page[Photo]]
-        page.items should have size 10
-      }
+    Get("/photos") ~> photoRoute ~> check {
+      val page = responseAs[String].parseJson.convertTo[Page[Photo]]
+      page.items should have size 10
+    }
   }
 
   it should "return a photo with id: 234" in {
