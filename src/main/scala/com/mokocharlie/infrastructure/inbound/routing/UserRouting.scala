@@ -16,7 +16,7 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
 class UserRouting(override val userService: UserService)(implicit system: ActorSystem)
     extends JsonConversion
     with SprayJsonSupport
-    with HttpErrorMapper
+    with HttpUtils
     with StrictLogging
     with HeaderChecking {
 

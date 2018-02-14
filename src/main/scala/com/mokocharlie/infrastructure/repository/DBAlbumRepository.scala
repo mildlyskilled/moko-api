@@ -53,8 +53,8 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       limit: Int,
       exclude: Seq[Long] = Seq.empty,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
-    readOnlyTransaction { implicit session ⇒
-      try {
+    try {
+      readOnlyTransaction { implicit session ⇒
         val albums =
           sql"""
             ${defaultSelect}
@@ -68,10 +68,11 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
 
         if (albums.nonEmpty) Right(Page(albums, page, limit, total()))
         else Left(EmptyResultSet("Did not find any albums"))
-
-      } catch {
-        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
+    } catch {
+      case ex: Exception ⇒
+        logger.error(s"We got a database service error ${ex}")
+        Left(DatabaseServiceError(ex.getMessage))
     }
 
   def collectionAlbums(

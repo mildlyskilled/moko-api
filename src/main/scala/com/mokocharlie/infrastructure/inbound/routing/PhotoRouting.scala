@@ -21,7 +21,7 @@ class PhotoRouting(
     extends SprayJsonSupport
     with JsonConversion
     with HeaderChecking
-    with HttpErrorMapper
+    with HttpUtils
     with StrictLogging {
 
   implicit val ec: ExecutionContextExecutor = system.dispatcher

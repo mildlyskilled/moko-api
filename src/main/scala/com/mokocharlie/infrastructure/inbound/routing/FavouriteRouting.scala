@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 class FavouriteRouting(service: FavouriteService)
     extends SprayJsonSupport
-    with HttpErrorMapper
+    with HttpUtils
     with JsonConversion
     with StrictLogging {
   val routes: Route = {

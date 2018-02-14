@@ -3,6 +3,8 @@ package com.mokocharlie.infrastructure.outbound
 import java.sql.Timestamp
 
 import com.mokocharlie.domain.MokoModel._
+import com.mokocharlie.domain.common.MokoCharlieServiceError
+import com.mokocharlie.domain.common.MokoCharlieServiceError.APIError
 import com.mokocharlie.domain.common.RequestEntity.{AuthRequest, FavouriteRequest}
 import com.mokocharlie.domain.{Page, Password, Token}
 import spray.json._
@@ -39,11 +41,20 @@ trait JsonConversion extends DefaultJsonProtocol {
     }
 
     def write(obj: FavouriteRequest): JsValue = {
-      JsObject(
-        Map("user_id" → JsNumber(obj.userId),
-          "photo_iud" → JsNumber(obj.photoId)
-      ))
+      JsObject(Map("user_id" → JsNumber(obj.userId), "photo_iud" → JsNumber(obj.photoId)))
     }
+  }
+
+  implicit object APIErrorFormat extends RootJsonFormat[APIError] {
+    override def write(obj: APIError): JsValue =
+      JsObject(
+        Map(
+          "error" → obj.msg.toJson
+        )
+      )
+
+    override def read(json: JsValue): APIError =
+      deserializationError(s"Deserialisation not supported, $json")
   }
 
   // formats for unmarshalling and marshalling

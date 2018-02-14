@@ -15,7 +15,7 @@ import scala.concurrent.Future
 class CollectionRouting(service: CollectionService, albumService: AlbumService)
     extends SprayJsonSupport
     with JsonConversion
-    with HttpErrorMapper {
+    with HttpUtils {
 
   val routes: Route = {
     path("collections") {

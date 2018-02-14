@@ -3,10 +3,10 @@ package com.mokocharlie.infrastructure.security
 import akka.http.scaladsl.model.HttpHeader
 import com.mokocharlie.domain.MokoModel.User
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
-import com.mokocharlie.infrastructure.inbound.routing.HttpErrorMapper
+import com.mokocharlie.infrastructure.inbound.routing.HttpUtils
 import com.mokocharlie.service.UserService
 
-trait HeaderChecking extends HttpErrorMapper{
+trait HeaderChecking extends HttpUtils{
 
   val userService: UserService
 

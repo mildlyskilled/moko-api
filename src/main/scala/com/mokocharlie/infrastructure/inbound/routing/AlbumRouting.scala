@@ -10,6 +10,7 @@ import scala.collection.immutable.Seq
 
 class AlbumRouting(albumService: AlbumService)
   extends SprayJsonSupport
+    with HttpUtils
     with JsonConversion {
 
   val routes: Route = {
@@ -19,14 +20,14 @@ class AlbumRouting(albumService: AlbumService)
           (pageNumber, limit) ⇒
             onSuccess(albumService.list(pageNumber, limit, Seq.empty)){
               case Right(page) ⇒ complete(page)
-              case Left(error) ⇒ complete(StatusCodes.InternalServerError, error.msg)
+              case Left(error) ⇒ completeWithError(error)
             }
         }
       }
     } ~ path("albums" / LongNumber) { id =>
       onSuccess(albumService.albumById(id)) {
         case Right(album) => complete(album)
-        case Left(error) => complete(StatusCodes.NotFound, error.msg)
+        case Left(error) => completeWithError(error)
       }
     } ~ path("albums" / "featured") {
       get {
@@ -34,7 +35,7 @@ class AlbumRouting(albumService: AlbumService)
           (pageNumber, limit) ⇒ {
             onSuccess(albumService.featuredAlbums(pageNumber, limit)){
               case Right(page) ⇒ complete(page)
-              case Left(error) ⇒ complete(StatusCodes.InternalServerError, error.msg)
+              case Left(error) ⇒ completeWithError(error)
             }
           }
         }

@@ -10,7 +10,7 @@ import com.mokocharlie.service.CommentService
 class CommentRouting(commentService: CommentService)
     extends SprayJsonSupport
     with JsonConversion
-    with HttpErrorMapper {
+    with HttpUtils {
 
   var routes: Route = {
     path("comments") {

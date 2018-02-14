@@ -1,14 +1,15 @@
 package com.mokocharlie.infrastructure.inbound.routing
 
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.StandardRoute
-import akka.stream.TLSClientAuth.None
 import com.mokocharlie.domain.MokoModel.User
 import com.mokocharlie.domain.common.MokoCharlieServiceError
 import com.mokocharlie.domain.common.MokoCharlieServiceError._
+import com.mokocharlie.infrastructure.outbound.JsonConversion
+import spray.json._
 
-trait HttpErrorMapper {
+trait HttpUtils extends JsonConversion {
 
   private def toHttpError(serviceError: MokoCharlieServiceError): APIError = serviceError match {
     case EmptyResultSet(x) ⇒ APIError(StatusCodes.NotFound, x)
@@ -22,9 +23,9 @@ trait HttpErrorMapper {
     case ex ⇒ APIError(StatusCodes.InternalServerError, ex.msg)
   }
 
-  def completeWithError(error: MokoCharlieServiceError): StandardRoute = {
+  def completeWithError(error: MokoCharlieServiceError): StandardRoute ={
     val httpError = toHttpError(error)
-    complete(httpError.code, httpError.msg)
+    complete(HttpResponse(httpError.code, entity = httpError.toJson.toString))
   }
 
   def translateSuperUserFlag(isSuperUser: Option[User]): Option[User] =
