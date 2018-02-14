@@ -70,9 +70,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
         else Left(EmptyResultSet("Did not find any albums"))
       }
     } catch {
-      case ex: Exception ⇒
-        logger.error(s"We got a database service error ${ex}")
-        Left(DatabaseServiceError(ex.getMessage))
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
   def collectionAlbums(

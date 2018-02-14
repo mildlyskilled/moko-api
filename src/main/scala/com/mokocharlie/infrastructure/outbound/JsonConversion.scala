@@ -49,7 +49,8 @@ trait JsonConversion extends DefaultJsonProtocol {
     override def write(obj: APIError): JsValue =
       JsObject(
         Map(
-          "error" → obj.msg.toJson
+          "error" → obj.code.value.toJson,
+          "message" → obj.msg.toJson
         )
       )
 
