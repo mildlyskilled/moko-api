@@ -55,19 +55,23 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
     try {
       readOnlyTransaction { implicit session ⇒
-        val albums =
-          sql"""
+        try {
+          val albums =
+            sql"""
             ${defaultSelect}
             ${selectPublished(publishedOnly, "WHERE")}
             $defaultOrdering
             LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
-           """
-            .map(toAlbum)
-            .list
-            .apply()
+           """.map(toAlbum)
+              .list
+              .apply()
 
-        if (albums.nonEmpty) Right(Page(albums, page, limit, total()))
-        else Left(EmptyResultSet("Did not find any albums"))
+          if (albums.nonEmpty) Right(Page(albums, page, limit, total()))
+          else Left(EmptyResultSet("Did not find any albums"))
+
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
       }
     } catch {
       case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
@@ -78,10 +82,11 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       page: Int = 1,
       limit: Int = 10,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
-    readOnlyTransaction { implicit session ⇒
-      try {
-        val albums =
-          sql"""
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          val albums =
+            sql"""
             ${defaultSelect}
             LEFT JOIN common_collection_albums AS cab
             ON cab.album_id = a.id
@@ -90,59 +95,72 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
             $defaultOrdering
             LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
            """.map(toAlbum).list.apply()
-        if (albums.nonEmpty) {
-          Right(Page(albums, page, limit, total()))
+          if (albums.nonEmpty) {
+            Right(Page(albums, page, limit, total()))
+          }
+          else
+            Left(
+              EmptyResultSet(s"Did not find any albums with the given collectionID $collectionID"))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
         }
-        else
-          Left(EmptyResultSet(s"Did not find any albums with the given collectionID $collectionID"))
-      } catch {
-        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
   def albumById(albumID: Long): RepositoryResponse[Album] =
-    readOnlyTransaction { implicit session ⇒
-      try {
-        sql"""
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          sql"""
             ${defaultSelect}
            WHERE a.id = $albumID
            """
-          .map(toAlbum)
-          .single
-          .apply()
-          .map(a ⇒ Right(a))
-          .getOrElse(Left(EmptyResultSet(s"Could not find album with given id: $albumID")))
-      } catch {
-        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+            .map(toAlbum)
+            .single
+            .apply()
+            .map(a ⇒ Right(a))
+            .getOrElse(Left(EmptyResultSet(s"Could not find album with given id: $albumID")))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
       }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
   def featuredAlbums(
       page: Int = 1,
       limit: Int = 10,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
-    readOnlyTransaction { implicit session ⇒
-      try {
-        val albums =
-          sql"""
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          val albums =
+            sql"""
             ${defaultSelect}
             WHERE featured = 1
            LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
            """.map(toAlbum).list.apply()
 
-        if (albums.nonEmpty) {
-          Right(Page(albums, page, limit, total()))
+          if (albums.nonEmpty) {
+            Right(Page(albums, page, limit, total()))
+          }
+          else Left(EmptyResultSet(s"Did not find any featured albums"))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
         }
-        else Left(EmptyResultSet(s"Did not find any featured albums"))
-      } catch {
-        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
   override def create(album: Album): RepositoryResponse[Long] =
-    writeTransaction(3, "Failed to save this album") { implicit session ⇒
-      try {
-        val id = sql"""
+    try {
+      writeTransaction(3, "Failed to save this album") { implicit session ⇒
+        try {
+          val id = sql"""
           INSERT INTO common_album (label, album_id, description, created_at, updated_at, published, featured, cover_id)
           VALUES (
           ${album.label},
@@ -153,17 +171,21 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
           ${album.published},
           ${album.featured},
           ${album.cover.map(_.id)})""".updateAndReturnGeneratedKey
-          .apply()
-        Right(id)
-      } catch {
-        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+            .apply()
+          Right(id)
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
       }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
   def update(album: Album): RepositoryResponse[Long] =
-    writeTransaction(3, s"Could not update album ${album.id}") { implicit session ⇒
-      try {
-        val update = sql"""
+    try {
+      writeTransaction(3, s"Could not update album ${album.id}") { implicit session ⇒
+        try {
+          val update = sql"""
          UPDATE common_album 
           SET album_id = ${album.albumId},
           label = ${album.label},
@@ -175,11 +197,14 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
            cover_id = ${album.cover.map(_.id)}
            WHERE id = ${album.id}
         """.update.apply()
-        if (update > 0) Right(album.id)
-        else Left(DatabaseServiceError(s"Could not update album: ${album.id}"))
-      } catch {
-        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+          if (update > 0) Right(album.id)
+          else Left(DatabaseServiceError(s"Could not update album: ${album.id}"))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
       }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
   def savePhotosToAlbum(albumId: Long, photoIds: Seq[Long]): RepositoryResponse[Seq[Int]] =
@@ -199,23 +224,31 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
     }
 
   def removePhotosFromAlbum(albumId: Long, photoIds: Seq[Long]): RepositoryResponse[Seq[Int]] =
-    writeTransaction(3, s"Could not remove photos from album $albumId") { implicit session ⇒
-      try {
-        val deletes = photoIds.map(id ⇒ Seq(albumId, id))
-        val res = sql"""
+    try {
+      writeTransaction(3, s"Could not remove photos from album $albumId") { implicit session ⇒
+        try {
+          val deletes = photoIds.map(id ⇒ Seq(albumId, id))
+          val res = sql"""
           DELETE FROM common_photo_albums
           WHERE photo_id = ? AND album_id = ? """
-          .batch(deletes: _*)
-          .apply()
-        Right(res)
-      } catch {
-        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+            .batch(deletes: _*)
+            .apply()
+          Right(res)
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
       }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
   def total(): Option[Int] =
-    readOnlyTransaction { implicit session ⇒
-      sql"SELECT COUNT(id) AS total FROM common_album".map(rs ⇒ rs.int("total")).single.apply()
+    try {
+      readOnlyTransaction { implicit session ⇒
+        sql"SELECT COUNT(id) AS total FROM common_album".map(rs ⇒ rs.int("total")).single.apply()
+      }
+    } catch {
+      case ex: Exception ⇒ None
     }
 
   private val defaultSelect = {
