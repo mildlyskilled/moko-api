@@ -51,7 +51,7 @@ class AlbumRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers wi
   it should "return only featured albums" in {
     Get("/albums/featured") ~> albumRoute ~> check {
       val featuredAlbumPage = responseAs[String].parseJson.convertTo[Page[Album]]
-      featuredAlbumPage.items should have size 10
+      featuredAlbumPage.items should have size 6
       featuredAlbumPage.items.forall(_.featured) shouldBe true
     }
   }
