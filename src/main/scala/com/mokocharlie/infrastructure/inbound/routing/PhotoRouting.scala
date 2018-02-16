@@ -19,10 +19,11 @@ class PhotoRouting(
     clock: Clock,
     override val userService: UserService)(implicit system: ActorSystem)
     extends SprayJsonSupport
-    with JsonConversion
     with HeaderChecking
     with HttpUtils
     with StrictLogging {
+
+  import JsonConversion._
 
   implicit val ec: ExecutionContextExecutor = system.dispatcher
 

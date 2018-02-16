@@ -82,3 +82,5 @@ trait JsonConversion extends DefaultJsonProtocol {
   implicit val documentaryPageFormat =
     jsonFormat(Page[Documentary], "items", "page", "offset", "total")
 }
+
+object JsonConversion extends JsonConversion {}

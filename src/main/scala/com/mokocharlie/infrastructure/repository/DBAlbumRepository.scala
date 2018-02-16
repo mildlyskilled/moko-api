@@ -61,7 +61,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
             ${defaultSelect}
             ${selectPublished(publishedOnly, "WHERE")}
             $defaultOrdering
-            LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+            LIMIT ${offset(page, limit)}, $limit
            """.map(toAlbum)
               .list
               .apply()
@@ -93,7 +93,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
             WHERE cab.collection_id = $collectionID
             ${selectPublished(publishedOnly, "AND")}
             $defaultOrdering
-            LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+            LIMIT ${offset(page, limit)}, $limit
            """.map(toAlbum).list.apply()
           if (albums.nonEmpty) {
             Right(Page(albums, page, limit, total()))
@@ -141,7 +141,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
             sql"""
             ${defaultSelect}
             WHERE featured = 1
-           LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+           LIMIT ${offset(page, limit)}, $limit
            """.map(toAlbum).list.apply()
 
           if (albums.nonEmpty) {
@@ -248,7 +248,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
         sql"SELECT COUNT(id) AS total FROM common_album".map(rs ⇒ rs.int("total")).single.apply()
       }
     } catch {
-      case ex: Exception ⇒ None
+      case _: Exception ⇒ None
     }
 
   private val defaultSelect = {

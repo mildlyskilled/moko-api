@@ -7,10 +7,9 @@ import akka.http.scaladsl.server.Route
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.service.CommentService
 
-class CommentRouting(commentService: CommentService)
-    extends SprayJsonSupport
-    with JsonConversion
-    with HttpUtils {
+class CommentRouting(commentService: CommentService) extends SprayJsonSupport with HttpUtils {
+
+  import JsonConversion._
 
   var routes: Route = {
     path("comments") {

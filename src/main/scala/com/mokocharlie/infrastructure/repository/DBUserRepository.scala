@@ -72,7 +72,7 @@ class DBUserRepository(override val config: Config)
         val users =
           sql"""
           $defaultSelect
-          LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+          LIMIT ${dbPage(page)}, ${offset(page, limit)}
         """.map(toUser)
             .list
             .apply()

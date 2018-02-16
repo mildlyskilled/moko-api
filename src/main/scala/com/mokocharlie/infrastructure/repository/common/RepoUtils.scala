@@ -1,6 +1,5 @@
 package com.mokocharlie.infrastructure.repository.common
 
 trait RepoUtils {
-  def rowCount(page: Int, limit: Int): Int = (page * limit) + 1
-  def dbPage(page: Int): Int = if (page > 0) page - 1 else page
+  def offset(page: Int, limit: Int): Int = if (page <= 1) 0 else ((page - 1) * limit) + 1
 }

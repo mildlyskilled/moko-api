@@ -59,7 +59,7 @@ class DBCommentRepository(override val config: Config)
            $defaultSelect
             ${selectApproved(approvedOnly)}
            $defaultOrder
-           LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+           LIMIT ${dbPage(page)}, ${offset(page, limit)}
         """.map(toComment).list.apply()
         Right(Page(res, page, dbPage(page), Some(limit)))
       } catch {
@@ -79,7 +79,7 @@ class DBCommentRepository(override val config: Config)
           $defaultSelect
           WHERE p.id = $photoId
           ${selectApproved(approvedOnly, "AND")}
-          LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+          LIMIT ${dbPage(page)}, ${offset(page, limit)}
           """
           .map(toComment)
           .list
@@ -103,7 +103,7 @@ class DBCommentRepository(override val config: Config)
              LEFT JOIN common_photo_albums AS cpa ON cpa.photo_id = p.id
              WHERE cpa.album_id = $albumId
              ${selectApproved(approvedOnly, "AND")}
-             LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+             LIMIT ${dbPage(page)}, ${offset(page, limit)}
           """
             .map(toComment)
             .list

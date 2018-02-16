@@ -14,12 +14,12 @@ import com.typesafe.scalalogging.StrictLogging
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 class UserRouting(override val userService: UserService)(implicit system: ActorSystem)
-    extends JsonConversion
-    with SprayJsonSupport
+    extends SprayJsonSupport
     with HttpUtils
     with StrictLogging
     with HeaderChecking {
 
+  import JsonConversion._
   implicit val ec: ExecutionContextExecutor = system.dispatcher
 
   val routes: Route = {

@@ -64,63 +64,81 @@ class DBPhotoRepository(override val config: Config)
       limit: Int,
       exclude: Seq[Long] = Seq.empty,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Photo]] =
-    readOnlyTransaction { implicit session ⇒
-      try {
-        val photos =
-          sql"""
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          val photos =
+            sql"""
               $defaultSelect
               ${selectPublished(publishedOnly)}
               $defaultOrdering
-              LIMIT ${rowCount(page, limit)}, $limit
+              LIMIT ${offset(page, limit)}, $limit
 
         """.map(toPhoto)
-            .list()
-            .apply()
+              .list()
+              .apply()
 
-        Right(Page(photos, page, limit, total()))
-      } catch {
-        case e: Exception ⇒
-          logger.error(s"Error whilst retrieving photos", e)
-          Left(DatabaseServiceError(e.getMessage))
+          Right(Page(photos, page, limit, total()))
+        } catch {
+          case e: Exception ⇒
+            logger.error(s"Error whilst retrieving photos", e)
+            Left(DatabaseServiceError(e.getMessage))
+        }
       }
+    } catch {
+      case e: Exception ⇒
+        logger.error(s"Error whilst retrieving photos", e)
+        Left(DatabaseServiceError(e.getMessage))
     }
 
   def photoById(imageID: String): RepositoryResponse[Photo] =
-    readOnlyTransaction { implicit session ⇒
-      try {
-        sql"""
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          sql"""
                $defaultSelect
               WHERE image_id = $imageID
              """
-          .map(toPhoto)
-          .single
-          .apply()
-          .map(p ⇒ Right(p))
-          .getOrElse(Left(EmptyResultSet(s"Could not find photo with IMAGE_ID $imageID")))
-      } catch {
-        case e: Exception ⇒
-          logger.error("Unable to get photo")
-          Left(DatabaseServiceError(e.getMessage))
+            .map(toPhoto)
+            .single
+            .apply()
+            .map(p ⇒ Right(p))
+            .getOrElse(Left(EmptyResultSet(s"Could not find photo with IMAGE_ID $imageID")))
+        } catch {
+          case e: Exception ⇒
+            logger.error("Unable to get photo")
+            Left(DatabaseServiceError(e.getMessage))
+        }
       }
+    } catch {
+      case e: Exception ⇒
+        logger.error(s"Error whilst retrieving photos", e)
+        Left(DatabaseServiceError(e.getMessage))
     }
 
   def photoById(id: Long): RepositoryResponse[Photo] =
-    readOnlyTransaction { implicit session ⇒
-      try {
-        sql"""
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          sql"""
                $defaultSelect
               WHERE p.id = $id
              """
-          .map(toPhoto)
-          .single
-          .apply()
-          .map(p ⇒ Right(p))
-          .getOrElse(Left(EmptyResultSet(s"Could not find photo with id: $id")))
-      } catch {
-        case e: Exception ⇒
-          logger.error("Unable to get photo")
-          Left(DatabaseServiceError(e.getMessage))
+            .map(toPhoto)
+            .single
+            .apply()
+            .map(p ⇒ Right(p))
+            .getOrElse(Left(EmptyResultSet(s"Could not find photo with id: $id")))
+        } catch {
+          case e: Exception ⇒
+            logger.error("Unable to get photo")
+            Left(DatabaseServiceError(e.getMessage))
+        }
       }
+    } catch {
+      case e: Exception ⇒
+        logger.error(s"Error whilst retrieving photos", e)
+        Left(DatabaseServiceError(e.getMessage))
     }
 
   def photosByUserId(
@@ -128,21 +146,27 @@ class DBPhotoRepository(override val config: Config)
       page: Int,
       limit: Int,
       publishedOnly: Option[Boolean] = None): RepositoryResponse[Page[Photo]] =
-    readOnlyTransaction { implicit session ⇒
-      try {
-        val photos = sql"""
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          val photos = sql"""
                $defaultSelect
                ${selectPublished(publishedOnly)}
               AND owner = $userId
                $defaultOrdering
               LIMIT , $limit
              """.map(toPhoto).list.apply()
-        Right(Page(photos, page, limit, total()))
-      } catch {
-        case e: Exception ⇒
-          logger.error("Unable to get photos")
-          Left(DatabaseServiceError(e.getMessage))
+          Right(Page(photos, page, limit, total()))
+        } catch {
+          case e: Exception ⇒
+            logger.error("Unable to get photos")
+            Left(DatabaseServiceError(e.getMessage))
+        }
       }
+    } catch {
+      case e: Exception ⇒
+        logger.error(s"Error whilst retrieving photos", e)
+        Left(DatabaseServiceError(e.getMessage))
     }
 
   def photosByAlbumId(
@@ -150,28 +174,40 @@ class DBPhotoRepository(override val config: Config)
       page: Int = 1,
       limit: Int = 10,
       publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Photo]] =
-    readOnlyTransaction { implicit session ⇒
-      try {
-        val photos =
-          sql"""
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          val photos =
+            sql"""
             $defaultSelect
             LEFT JOIN common_photo_albums AS cab
             ON p.id = cab.photo_id
             WHERE cab.album_id = $albumID
             ${selectPublished(publishedOnly, "AND")}
-            LIMIT ${dbPage(page)}, ${rowCount(page, limit)}
+            LIMIT ${dbPage(page)}, ${offset(page, limit)}
                """.map(toPhoto).list.apply()
-        Right(Page(photos, page, limit, total()))
-      } catch {
-        case e: Exception ⇒
-          logger.error("Unable to get photo")
-          Left(DatabaseServiceError(e.getMessage))
+          Right(Page(photos, page, limit, total()))
+        } catch {
+          case e: Exception ⇒
+            logger.error("Unable to get photo")
+            Left(DatabaseServiceError(e.getMessage))
+        }
       }
+    } catch {
+      case e: Exception ⇒
+        logger.error(s"Error whilst retrieving photos", e)
+        Left(DatabaseServiceError(e.getMessage))
     }
 
   def total(): Option[Int] =
-    readOnlyTransaction { implicit session ⇒
-      sql"SELECT COUNT(id) as total FROM common_photo".map(rs ⇒ rs.int("total")).single.apply()
+    try {
+      readOnlyTransaction { implicit session ⇒
+        sql"SELECT COUNT(id) as total FROM common_photo".map(rs ⇒ rs.int("total")).single.apply()
+      }
+    } catch {
+      case e: Exception ⇒
+        logger.error(s"Error whilst retrieving photos", e)
+        None
     }
 
   def create(
@@ -185,9 +221,10 @@ class DBPhotoRepository(override val config: Config)
       published: Boolean,
       cloudImage: Option[String],
       owner: Long): RepositoryResponse[Long] =
-    writeTransaction(3, "Could not save new photo") { implicit session ⇒
-      try {
-        val id = sql"""INSERT INTO common_photo(
+    try {
+      writeTransaction(3, "Could not save new photo") { implicit session ⇒
+        try {
+          val id = sql"""INSERT INTO common_photo(
                image_id,
                `name`, 
                path, 
@@ -211,16 +248,21 @@ class DBPhotoRepository(override val config: Config)
             $owner
             )""".updateAndReturnGeneratedKey.apply()
 
-        Right(id)
-      } catch {
-        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+          Right(id)
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
       }
+    } catch {
+      case e: Exception ⇒ Left(DatabaseServiceError(e.getMessage))
     }
 
   def update(photo: Photo): RepositoryResponse[Long] =
-    writeTransaction(3, "Could not update photo") { implicit session ⇒
-      try {
-        val update = sql"""
+    try {
+      writeTransaction(3, "Could not update photo") { implicit session ⇒
+        try {
+          val update =
+            sql"""
            UPDATE common_photo 
            SET `name` = ${photo.name},
            path = ${photo.path},
@@ -233,11 +275,14 @@ class DBPhotoRepository(override val config: Config)
            owner = ${photo.ownerId}
            WHERE id = ${photo.id}
          """.update.apply()
-        if (update > 0) Right(photo.id)
-        else Left(DatabaseServiceError(s"Could not update photo with id ${photo.id}"))
-      } catch {
-        case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+          if (update > 0) Right(photo.id)
+          else Left(DatabaseServiceError(s"Could not update photo with id ${photo.id}"))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
       }
+    } catch {
+      case e: Exception ⇒ Left(DatabaseServiceError(e.getMessage))
     }
 
   private val defaultSelect = {
