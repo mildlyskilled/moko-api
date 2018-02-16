@@ -14,6 +14,10 @@ class ServiceTests
     with BeforeAndAfterAll
     with TestDBUtils {
   override def beforeAll(): Unit = {
+    logger.info(s"""Running test on
+     | ${config.getString("mokocharlie.db.host")} with ${config.getString("mokocharlie.db.dbName")}
+     | user: ${config.getString("mokocharlie.db.user")} and
+     | password: ${config.getString("mokocharlie.db.password")}""".stripMargin)
     acquire()
     purgeTables()
   }

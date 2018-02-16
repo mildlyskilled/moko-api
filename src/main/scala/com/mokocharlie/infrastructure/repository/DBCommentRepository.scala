@@ -59,9 +59,9 @@ class DBCommentRepository(override val config: Config)
            $defaultSelect
             ${selectApproved(approvedOnly)}
            $defaultOrder
-           LIMIT ${dbPage(page)}, ${offset(page, limit)}
+           LIMIT ${offset(page, limit)}, $limit
         """.map(toComment).list.apply()
-        Right(Page(res, page, dbPage(page), Some(limit)))
+        Right(Page(res, page, limit, total()))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -79,12 +79,12 @@ class DBCommentRepository(override val config: Config)
           $defaultSelect
           WHERE p.id = $photoId
           ${selectApproved(approvedOnly, "AND")}
-          LIMIT ${dbPage(page)}, ${offset(page, limit)}
+          LIMIT ${offset(page, limit)}, $limit
           """
           .map(toComment)
           .list
           .apply()
-        Right(Page(comments, page, dbPage(page), Some(limit)))
+        Right(Page(comments, page, limit, total(photoId = Some(photoId))))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -103,12 +103,12 @@ class DBCommentRepository(override val config: Config)
              LEFT JOIN common_photo_albums AS cpa ON cpa.photo_id = p.id
              WHERE cpa.album_id = $albumId
              ${selectApproved(approvedOnly, "AND")}
-             LIMIT ${dbPage(page)}, ${offset(page, limit)}
+             LIMIT ${offset(page, limit)}, $limit
           """
             .map(toComment)
             .list
             .apply()
-        Right(Page(comments, page, dbPage(page), Some(limit)))
+        Right(Page(comments, page, limit, total(albumId = Some(albumId))))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -120,7 +120,7 @@ class DBCommentRepository(override val config: Config)
         val comment = sql"$defaultSelect WHERE c.comment_id = $id".map(toComment).single.apply()
         comment
           .map(c ⇒ Right(c))
-          .getOrElse(Left(EmptyResultSet(s"Could not find comment with id: ${id}")))
+          .getOrElse(Left(EmptyResultSet(s"Could not find comment with id: $id")))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -214,6 +214,37 @@ class DBCommentRepository(override val config: Config)
         rs.stringOpt("cloud_image")
       )
     )
+
+  private def total(
+      photoId: Option[Long] = None,
+      albumId: Option[Long] = None,
+      approvedOnly: Option[Boolean] = Some(true)): Option[Int] =
+    try {
+      val album = albumId
+        .map { id ⇒
+          sqls"LEFT JOIN common_photo_albums AS cpa ON cpa.photo_id = p.id WHERE cpa.album_id = $id"
+        }
+        .getOrElse(sqls"")
+      val photo = photoId
+        .map { id ⇒
+          val joiner = if (album.isEmpty) "WHERE" else "AND"
+          sqls"$joiner p.id = $id"
+        }
+        .getOrElse(sqls"")
+      val selectWhere = if (album.isEmpty && photo.isEmpty) "WHERE" else "AND"
+
+      readOnlyTransaction { implicit session ⇒
+        sql"""SELECT COUNT(comment_id) as total
+              $album
+              $photo
+             ${selectApproved(approvedOnly, selectWhere)}"""
+          .map(rs ⇒ rs.int("total"))
+          .single
+          .apply()
+      }
+    } catch {
+      case _: Exception ⇒ None
+    }
 
   private def selectApproved(approvedOnly: Option[Boolean], joiner: String = "WHERE") =
     approvedOnly

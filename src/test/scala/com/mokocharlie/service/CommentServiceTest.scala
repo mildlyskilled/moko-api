@@ -8,11 +8,10 @@ import org.scalatest.{AsyncFlatSpec, DoNotDiscover, Matchers}
 import scala.concurrent.ExecutionContextExecutor
 
 @DoNotDiscover
-class CommentServiceTest extends AsyncFlatSpec with Matchers with TestFixtures {
+class CommentServiceTest extends AsyncFlatSpec with Matchers with TestFixtures with TestDBUtils {
 
   implicit val system: ActorSystem = ActorSystem("PhotoTestSystem")
   implicit val ec: ExecutionContextExecutor = system.dispatcher
-  val config: Config = ConfigFactory.load()
   val photoRepo = new DBPhotoRepository(config)
   val commentRepo = new DBCommentRepository(config)
   val commentService = new CommentService(commentRepo)

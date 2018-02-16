@@ -1,15 +1,14 @@
 package com.mokocharlie.infrastructure.repository
 import java.sql.Timestamp
-import java.time.Instant
+import java.time.{Clock, Instant}
 
-import com.mokocharlie.SettableClock
 import com.mokocharlie.domain.Token
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.infrastructure.repository.common.JdbcRepository
 import com.mokocharlie.service.TestFixtures
 import com.typesafe.config.Config
 
-class FakeTokenRepository(override val config: Config, override val clock: SettableClock)
+class FakeTokenRepository(override val config: Config, override val clock: Clock)
     extends TokenRepository
     with JdbcRepository
     with TestFixtures {

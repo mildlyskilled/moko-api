@@ -2,11 +2,15 @@ package com.mokocharlie.service
 
 import java.util.concurrent.Semaphore
 
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import com.typesafe.scalalogging.StrictLogging
 import scalikejdbc._
 
 trait TestDBUtils extends StrictLogging {
   val semaphore = new Semaphore(1, true)
+
+  val config:Config =  ConfigFactory.load()
+  config.withValue("dbName", ConfigValueFactory.fromAnyRef("mokocharlietest"))
 
   def acquire(): Unit = {
     logger.info("Waiting for database lock")

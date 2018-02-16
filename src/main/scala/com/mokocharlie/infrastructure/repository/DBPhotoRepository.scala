@@ -184,7 +184,7 @@ class DBPhotoRepository(override val config: Config)
             ON p.id = cab.photo_id
             WHERE cab.album_id = $albumID
             ${selectPublished(publishedOnly, "AND")}
-            LIMIT ${dbPage(page)}, ${offset(page, limit)}
+            LIMIT ${offset(page, limit)}, $limit
                """.map(toPhoto).list.apply()
           Right(Page(photos, page, limit, total()))
         } catch {

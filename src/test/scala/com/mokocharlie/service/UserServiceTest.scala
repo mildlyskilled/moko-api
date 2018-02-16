@@ -1,7 +1,6 @@
 package com.mokocharlie.service
 
-import java.sql.Timestamp
-import java.time.{Instant, LocalDateTime}
+import java.time.LocalDateTime
 
 import akka.actor.ActorSystem
 import com.mokocharlie.SettableClock
@@ -9,7 +8,6 @@ import com.mokocharlie.domain.Token
 import com.mokocharlie.domain.common.MokoCharlieServiceError.AuthenticationError
 import com.mokocharlie.infrastructure.repository.{DBTokenRepository, DBUserRepository, FakeTokenRepository}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
-import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import io.github.nremond.SecureHash
 import org.scalatest.{AsyncFlatSpec, DoNotDiscover, Matchers}
@@ -25,7 +23,6 @@ class UserServiceTest
     with StrictLogging {
   implicit val system: ActorSystem = ActorSystem("test-system")
   implicit val ec: ExecutionContext = system.dispatcher
-  val config: Config = ConfigFactory.load()
   val userRepo = new DBUserRepository(config)
   val tokenClock: SettableClock =  new SettableClock(LocalDateTime.of(2018, 1, 26, 12, 24, 0))
   val fakeTokenRepo = new FakeTokenRepository(config, tokenClock)

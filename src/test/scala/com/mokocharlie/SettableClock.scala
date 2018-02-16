@@ -1,5 +1,3 @@
-package com.mokocharlie
-
 import java.time._
 
 class SettableClock(var dateTime: LocalDateTime) extends Clock {

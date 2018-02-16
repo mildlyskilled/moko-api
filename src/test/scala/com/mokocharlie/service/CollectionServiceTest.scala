@@ -12,7 +12,6 @@ import scala.collection.immutable.Seq
 class CollectionServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixtures with Matchers {
   implicit val system: ActorSystem = ActorSystem("PhotoTestSystem")
   implicit val ec: ExecutionContextExecutor = system.dispatcher
-  val config: Config = ConfigFactory.load()
   val collectionRepo = new DBCollectionRepository(config)
   val photoRepo = new DBPhotoRepository(config)
   val commentRepo = new DBCommentRepository(config)

@@ -23,7 +23,7 @@ class CollectionRouting(service: CollectionService, albumService: AlbumService)
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) { (page, limit) =>
           {
-            onSuccess(service.featuredCollection(page, limit)) {
+            onSuccess(service.list(page, limit)) {
               case Right(collectionPage) ⇒ complete(collectionPage)
               case Left(error) ⇒ completeWithError(error)
             }

@@ -1,14 +1,14 @@
 package com.mokocharlie.service
 
 import java.sql.Timestamp
-import java.time.{Instant, LocalDateTime}
+import java.time.{Clock, Instant, LocalDateTime}
 
 import com.mokocharlie.SettableClock
 import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.Password
 
 trait TestFixtures {
-  val clock: SettableClock = new SettableClock(LocalDateTime.of(2018, 1, 25, 12, 24, 0))
+  val clock: Clock = new SettableClock(LocalDateTime.of(2018, 1, 25, 12, 24, 0))
   val photo1 = Photo(
     id = 1,
     imageId = Some("legacy_1"),

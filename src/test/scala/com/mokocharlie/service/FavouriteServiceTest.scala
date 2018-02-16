@@ -11,7 +11,6 @@ import scala.concurrent.ExecutionContextExecutor
 class FavouriteServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixtures with Matchers {
   implicit val system: ActorSystem = ActorSystem("FavouriteTestSystem")
   implicit val ec: ExecutionContextExecutor = system.dispatcher
-  val config: Config = ConfigFactory.load()
   val favouriteRepo = new DBFavouriteRepository(config)
   val favouriteService = new FavouriteService(favouriteRepo, clock)
   behavior of "FavouriteService"

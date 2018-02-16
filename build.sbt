@@ -28,6 +28,9 @@ libraryDependencies ++= {
 
 scalacOptions += "-Ypartial-unification"
 
+javaOptions in IntegrationTest += s"-Dconfig.file=${sourceDirectory.value}/it/resources/application.conf"
+javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
+
 enablePlugins(JavaAppPackaging)
 mainClass in assembly := Some("com.mokocharlie.main.MokoCharlieApi")
 

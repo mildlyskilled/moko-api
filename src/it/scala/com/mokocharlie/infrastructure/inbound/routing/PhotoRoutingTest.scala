@@ -1,24 +1,21 @@
+package com.mokocharlie.infrastructure.inbound.routing
+
 import java.time.LocalDateTime
 
 import akka.http.scaladsl.model.headers.RawHeader
-import org.scalatest._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.mokocharlie.infrastructure.repository.{
-  DBCommentRepository,
-  DBPhotoRepository,
-  DBTokenRepository,
-  DBUserRepository
-}
-import com.mokocharlie.service.{CommentService, PhotoService, UserService}
-import com.typesafe.config.ConfigFactory
+import com.mokocharlie.SettableClock
 import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.Page
-import com.mokocharlie.infrastructure.inbound.routing.PhotoRouting
 import com.mokocharlie.infrastructure.outbound.JsonConversion
+import com.mokocharlie.infrastructure.repository.{DBCommentRepository, DBPhotoRepository, DBTokenRepository, DBUserRepository}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
+import com.mokocharlie.service.{CommentService, PhotoService, UserService}
+import com.typesafe.config.ConfigFactory
+import org.scalatest._
 import spray.json._
 
-class PhotoEndpointTest extends FlatSpec with Matchers with ScalatestRouteTest with JsonConversion {
+class PhotoRoutingTest extends FlatSpec with Matchers with ScalatestRouteTest with JsonConversion {
 
   private val config = ConfigFactory.load()
   private val photoRepository = new DBPhotoRepository(config)

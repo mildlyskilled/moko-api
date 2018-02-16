@@ -1,15 +1,12 @@
+package com.mokocharlie.infrastructure.inbound.routing
+
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.testkit.TestDuration
 import com.mokocharlie.domain.MokoModel.Album
 import com.mokocharlie.domain.Page
-import com.mokocharlie.infrastructure.inbound.routing.AlbumRouting
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.{
-  DBAlbumRepository,
-  DBCommentRepository,
-  DBPhotoRepository
-}
+import com.mokocharlie.infrastructure.repository.{DBAlbumRepository, DBCommentRepository, DBPhotoRepository}
 import com.mokocharlie.service.{AlbumService, PhotoService}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{FlatSpec, Matchers}
@@ -17,7 +14,7 @@ import spray.json._
 
 import scala.concurrent.duration._
 
-class AlbumEndpointTest extends FlatSpec with ScalatestRouteTest with Matchers with JsonConversion {
+class AlbumRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers with JsonConversion {
 
   implicit val timeout: RouteTestTimeout = RouteTestTimeout(5.seconds dilated)
 

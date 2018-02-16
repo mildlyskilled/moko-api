@@ -44,14 +44,14 @@ class DBCollectionRepository(override val config: Config)
         val list = sql"""
           $defaultSelect
           ${selectPublished(publishedOnly)}
-          LIMIT ${dbPage(page)}, ${offset(page, limit)}
+          LIMIT ${offset(page, limit)}, $limit
         """
           .map(toCollection)
           .list()
           .apply()
 
         if (list.isEmpty) Left(EmptyResultSet("Could not find any collections"))
-        Right(Page(list, page, offset(page, limit), Some(limit)))
+        Right(Page(list, page, limit, total()))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -80,7 +80,7 @@ class DBCollectionRepository(override val config: Config)
         val collections = sql"""
             $defaultSelect
             WHERE c.featured = 1
-            LIMT ${offset(page, limit)}, $limit
+            LIMIT ${offset(page, limit)}, $limit
         """
           .map(toCollection)
           .list

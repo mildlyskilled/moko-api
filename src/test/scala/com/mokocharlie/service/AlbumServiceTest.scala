@@ -12,10 +12,14 @@ import scala.concurrent.ExecutionContext
 import scala.collection.immutable.Seq
 
 @DoNotDiscover
-class AlbumServiceTest extends AsyncFlatSpec with Matchers with StrictLogging with TestFixtures {
+class AlbumServiceTest
+    extends AsyncFlatSpec
+    with Matchers
+    with StrictLogging
+    with TestDBUtils
+    with TestFixtures {
   implicit val system: ActorSystem = ActorSystem("test-system")
   implicit val ec: ExecutionContext = system.dispatcher
-  val config: Config = ConfigFactory.load()
   val photoRepository = new DBPhotoRepository(config)
   val albumRepository = new DBAlbumRepository(config, photoRepository)
   val commentRepository = new DBCommentRepository(config)
@@ -23,11 +27,6 @@ class AlbumServiceTest extends AsyncFlatSpec with Matchers with StrictLogging wi
   val albumService = new AlbumService(albumRepository, photoService)
 
   behavior of "AlbumService"
-
-  logger.info(s"""Running test on
-       |${config.getString("mokocharlie.db.host")} with
-       |user: ${config.getString("mokocharlie.db.user")} and
-       |password: ${config.getString("mokocharlie.db.password")}""".stripMargin)
 
   "AlbumService" should "create new album with a cover" in {
     albumService
