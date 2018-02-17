@@ -1,4 +1,4 @@
-package com.mokocharlie
+package com.mokocharlie.domain.common
 
 import java.time._
 

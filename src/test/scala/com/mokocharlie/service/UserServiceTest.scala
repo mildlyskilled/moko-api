@@ -3,9 +3,9 @@ package com.mokocharlie.service
 import java.time.LocalDateTime
 
 import akka.actor.ActorSystem
-import com.mokocharlie.SettableClock
 import com.mokocharlie.domain.Token
 import com.mokocharlie.domain.common.MokoCharlieServiceError.AuthenticationError
+import com.mokocharlie.domain.common.SettableClock
 import com.mokocharlie.infrastructure.repository.{DBTokenRepository, DBUserRepository, FakeTokenRepository}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.typesafe.scalalogging.StrictLogging

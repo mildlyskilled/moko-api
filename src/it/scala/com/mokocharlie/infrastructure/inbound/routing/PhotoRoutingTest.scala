@@ -4,9 +4,9 @@ import java.time.LocalDateTime
 
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.mokocharlie.SettableClock
 import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.Page
+import com.mokocharlie.domain.common.SettableClock
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.repository.{DBCommentRepository, DBPhotoRepository, DBTokenRepository, DBUserRepository}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
