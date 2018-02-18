@@ -27,7 +27,6 @@ trait CollectionRepository {
 
   def removeAlbumFromCollection(collectionId: Long, albums: Seq[Long]): RepositoryResponse[Seq[Int]]
 
-  def total(): Option[Int]
 }
 
 class DBCollectionRepository(override val config: Config)
@@ -51,7 +50,7 @@ class DBCollectionRepository(override val config: Config)
           .apply()
 
         if (list.isEmpty) Left(EmptyResultSet("Could not find any collections"))
-        Right(Page(list, page, limit, total()))
+        Right(Page(list, page, limit, total().toOption))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -85,7 +84,7 @@ class DBCollectionRepository(override val config: Config)
           .map(toCollection)
           .list
           .apply()
-        Right(Page(collections, page, limit, total()))
+        Right(Page(collections, page, limit, total().toOption))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -178,10 +177,18 @@ class DBCollectionRepository(override val config: Config)
     }
 
 
-  def total(): Option[Int] = readOnlyTransaction { implicit session ⇒
-    sql"SELECT COUNT(id) as total FROM common_collection".map(rs ⇒ rs.int("total")).single.apply()
-  }
-
+  private def total(): RepositoryResponse[Int] =
+    try {
+      readOnlyTransaction { implicit session ⇒
+        sql"SELECT COUNT(id) as total FROM common_collection"
+          .map(rs ⇒ Right(rs.int("total")))
+          .single
+          .apply()
+          .getOrElse(Left(EmptyResultSet("Could not get any collections")))
+      }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+    }
 
   private val defaultSelect: SQLSyntax =
     sqls"""

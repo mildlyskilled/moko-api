@@ -26,6 +26,8 @@ class AlbumRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers wi
   val albumService = new AlbumService(albumRepository, photoService)
   val albumRoute: Route = new AlbumRouting(albumService).routes
 
+
+
   "Album route" should "return a list of albums" in {
     Get("/albums") ~> albumRoute ~> check {
       val albumPage = responseAs[String].parseJson.convertTo[Page[Album]]

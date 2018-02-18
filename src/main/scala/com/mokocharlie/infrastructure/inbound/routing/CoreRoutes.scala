@@ -38,7 +38,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   } ~ {
     new FavouriteRouting(favouriteService).routes
   } ~ {
-    new CommentRouting(commentService).routes
+    new CommentRouting(commentService, userService).routes
   } ~ {
     new PhotoRouting(photoService, commentService, clock, userService).routes
   } ~ {

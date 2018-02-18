@@ -38,8 +38,6 @@ trait AlbumRepository {
   def savePhotosToAlbum(albumId: Long, photoIds: Seq[Long]): RepositoryResponse[Seq[Int]]
 
   def removePhotosFromAlbum(albumId: Long, photoIds: Seq[Long]): RepositoryResponse[Seq[Int]]
-
-  def total(): Option[Int]
 }
 
 class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRepository)
@@ -66,7 +64,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
               .list
               .apply()
 
-          if (albums.nonEmpty) Right(Page(albums, page, limit, total()))
+          if (albums.nonEmpty) Right(Page(albums, page, limit, total().toOption))
           else Left(EmptyResultSet("Did not find any albums"))
 
         } catch {
@@ -96,7 +94,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
             LIMIT ${offset(page, limit)}, $limit
            """.map(toAlbum).list.apply()
           if (albums.nonEmpty) {
-            Right(Page(albums, page, limit, total()))
+            Right(Page(albums, page, limit, total().toOption))
           }
           else
             Left(
@@ -145,7 +143,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
            """.map(toAlbum).list.apply()
 
           if (albums.nonEmpty) {
-            Right(Page(albums, page, limit, total()))
+            Right(Page(albums, page, limit, total().toOption))
           }
           else Left(EmptyResultSet(s"Did not find any featured albums"))
         } catch {
@@ -242,13 +240,17 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
-  def total(): Option[Int] =
+  private def total(): RepositoryResponse[Int] =
     try {
       readOnlyTransaction { implicit session ⇒
-        sql"SELECT COUNT(id) AS total FROM common_album".map(rs ⇒ rs.int("total")).single.apply()
+        sql"SELECT COUNT(id) AS total FROM common_album"
+          .map(rs ⇒ Right(rs.int("total")))
+          .single
+          .apply()
+          .getOrElse(Left(EmptyResultSet("Could not get any albums")))
       }
     } catch {
-      case _: Exception ⇒ None
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
   private val defaultSelect = {

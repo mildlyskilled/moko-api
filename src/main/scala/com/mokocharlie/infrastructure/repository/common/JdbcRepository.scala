@@ -98,8 +98,7 @@ trait JdbcRepository extends StrictLogging {
   //todo - eliminate this. The default should be good for most uses
   def parameters: JdbcParameters = JdbcParameters.fromConfig(config)
 
-  // todo - this should be returning RepoResponse too
-  def readOnlyTransaction[T](f: (DBSession) ⇒ T): T =
+  def readOnlyTransaction[T](f: (DBSession) ⇒ RepositoryResponse[T]): RepositoryResponse[T] =
     using(DB(ConnectionPool.get(ConnectionPool.DEFAULT_NAME).borrow())) {
       _.readOnly { implicit session ⇒
         f(session)

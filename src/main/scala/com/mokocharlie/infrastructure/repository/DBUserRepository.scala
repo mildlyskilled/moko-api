@@ -24,7 +24,10 @@ trait UserRepository {
 
   def list(page: Int, limit: Int): RepositoryResponse[Page[User]]
 
-  def changePassword(id: Long, currentPassword: String, newPassword: String): RepositoryResponse[Long]
+  def changePassword(
+      id: Long,
+      currentPassword: String,
+      newPassword: String): RepositoryResponse[Long]
 
 }
 
@@ -50,7 +53,7 @@ class DBUserRepository(override val config: Config)
     }
   }
 
-  def user(email: String): RepositoryResponse[User] = readOnlyTransaction{ implicit session ⇒
+  def user(email: String): RepositoryResponse[User] = readOnlyTransaction { implicit session ⇒
     try {
       sql"""
            $defaultSelect
@@ -76,22 +79,27 @@ class DBUserRepository(override val config: Config)
         """.map(toUser)
             .list
             .apply()
-        Right(Page(users, page, limit, total()))
+        Right(Page(users, page, limit, total().toOption))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
   }
 
-  def changePassword(id: Long, currentPassword: String, newPassword: String): RepositoryResponse[Long] =
+  def changePassword(
+      id: Long,
+      currentPassword: String,
+      newPassword: String): RepositoryResponse[Long] =
     writeTransaction(3, "Could not update password") { implicit session ⇒
-      try{
-        sql"SELECT password FROM common_mokouser WHERE id = $id".map(rs ⇒ rs.string("password"))
+      try {
+        sql"SELECT password FROM common_mokouser WHERE id = $id"
+          .map(rs ⇒ rs.string("password"))
           .single
           .apply()
           .map { pass ⇒
             logger.info(s"${SecureHash.validatePassword(currentPassword, pass)}")
             SecureHash.validatePassword(currentPassword, pass)
-          }.map { verified ⇒
+          }
+          .map { verified ⇒
             if (verified) {
               val res =
                 sql"""UPDATE common_mokouser
@@ -103,7 +111,8 @@ class DBUserRepository(override val config: Config)
             else {
               Left(EmptyResultSet("Current password mismatch"))
             }
-          }.getOrElse(Left(EmptyResultSet(s"Did not find a user with id $id")))
+          }
+          .getOrElse(Left(EmptyResultSet(s"Did not find a user with id $id")))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -168,7 +177,7 @@ class DBUserRepository(override val config: Config)
     }
 
   def userByToken(token: String): RepositoryResponse[User] =
-    readOnlyTransaction{ implicit session ⇒
+    readOnlyTransaction { implicit session ⇒
       sql"""
          $defaultSelect
           LEFT JOIN common_token AS t ON t.user_id = u.id
@@ -177,25 +186,29 @@ class DBUserRepository(override val config: Config)
         .map(toUser)
         .single
         .apply()
-        .map{u ⇒
+        .map { u ⇒
           logger.info(s"User acquired by token: $token")
           Right(u)
         }
-        .getOrElse{
+        .getOrElse {
           val msg = s"Could not find user with given token: $token"
           logger.info(msg)
           Left(EmptyResultSet(msg))
         }
     }
 
-  private def total(): Option[Int] =
-    readOnlyTransaction { implicit session ⇒
-      sql"SELECT COUNT(id) AS total FROM common_mokouser"
-        .map(rs ⇒ rs.int("total"))
-        .single
-        .apply()
+  private def total(): RepositoryResponse[Int] =
+    try {
+      readOnlyTransaction { implicit session ⇒
+        sql"SELECT COUNT(id) AS total FROM common_mokouser"
+          .map(rs ⇒ Right(rs.int("total")))
+          .single
+          .apply
+          .getOrElse(Left(EmptyResultSet("Could not get users")))
+      }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
-
   private val defaultSelect: SQLSyntax =
     sqls"""
       SELECT u.id,

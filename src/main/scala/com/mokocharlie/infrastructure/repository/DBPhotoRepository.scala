@@ -49,8 +49,6 @@ trait PhotoRepository {
 
   def update(photo: Photo): RepositoryResponse[Long]
 
-  def total(): Option[Int]
-
 }
 
 class DBPhotoRepository(override val config: Config)
@@ -78,7 +76,7 @@ class DBPhotoRepository(override val config: Config)
               .list()
               .apply()
 
-          Right(Page(photos, page, limit, total()))
+          Right(Page(photos, page, limit, total().toOption))
         } catch {
           case e: Exception ⇒
             logger.error(s"Error whilst retrieving photos", e)
@@ -156,7 +154,7 @@ class DBPhotoRepository(override val config: Config)
                $defaultOrdering
               LIMIT , $limit
              """.map(toPhoto).list.apply()
-          Right(Page(photos, page, limit, total()))
+          Right(Page(photos, page, limit, total().toOption))
         } catch {
           case e: Exception ⇒
             logger.error("Unable to get photos")
@@ -186,7 +184,7 @@ class DBPhotoRepository(override val config: Config)
             ${selectPublished(publishedOnly, "AND")}
             LIMIT ${offset(page, limit)}, $limit
                """.map(toPhoto).list.apply()
-          Right(Page(photos, page, limit, total()))
+          Right(Page(photos, page, limit, total().toOption))
         } catch {
           case e: Exception ⇒
             logger.error("Unable to get photo")
@@ -199,15 +197,21 @@ class DBPhotoRepository(override val config: Config)
         Left(DatabaseServiceError(e.getMessage))
     }
 
-  def total(): Option[Int] =
+  private def total(): RepositoryResponse[Int] =
     try {
       readOnlyTransaction { implicit session ⇒
-        sql"SELECT COUNT(id) as total FROM common_photo".map(rs ⇒ rs.int("total")).single.apply()
+        try {
+          sql"SELECT COUNT(id) as total FROM common_photo"
+            .map(rs ⇒ Right(rs.int("total")))
+            .single
+            .apply
+            .getOrElse(Left(EmptyResultSet("Could not get photos")))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
       }
     } catch {
-      case e: Exception ⇒
-        logger.error(s"Error whilst retrieving photos", e)
-        None
+      case e: Exception ⇒ Left(DatabaseServiceError(e.getMessage))
     }
 
   def create(

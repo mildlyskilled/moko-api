@@ -18,6 +18,28 @@ object MokoModel {
       featured: Boolean)
       extends MokoModel
 
+  final case class Hospitality(
+      id: Long,
+      name: String,
+      featured: Boolean,
+      hospitalityType: String,
+      description: String,
+      address: String,
+      website: String,
+      dateAdded: Timestamp,
+      published: Boolean,
+      contact: Contact
+  ) extends MokoModel
+
+  final case class Contact(
+      id: Long,
+      firstName: String,
+      lastName: String,
+      email: String,
+      telephone: String,
+      owner: Long
+  ) extends MokoModel
+
   final case class Photo(
       id: Long = 0L,
       imageId: Option[String],

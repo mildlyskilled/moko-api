@@ -3,20 +3,29 @@ package com.mokocharlie.infrastructure.inbound.routing
 import java.time.LocalDateTime
 
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.testkit.ScalatestRouteTest
+import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.SettableClock
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.{DBCommentRepository, DBPhotoRepository, DBTokenRepository, DBUserRepository}
+import com.mokocharlie.infrastructure.repository.{
+  DBCommentRepository,
+  DBPhotoRepository,
+  DBTokenRepository,
+  DBUserRepository
+}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.mokocharlie.service.{CommentService, PhotoService, UserService}
 import com.typesafe.config.ConfigFactory
 import org.scalatest._
 import spray.json._
+import akka.testkit.TestDuration
+
+import scala.concurrent.duration._
 
 class PhotoRoutingTest extends FlatSpec with Matchers with ScalatestRouteTest with JsonConversion {
 
+  implicit val timeout: RouteTestTimeout = RouteTestTimeout(5.seconds dilated)
   private val config = ConfigFactory.load()
   private val photoRepository = new DBPhotoRepository(config)
   private val commentRepo = new DBCommentRepository(config)
@@ -36,6 +45,7 @@ class PhotoRoutingTest extends FlatSpec with Matchers with ScalatestRouteTest wi
     Get("/photos") ~> photoRoute ~> check {
       val page = responseAs[String].parseJson.convertTo[Page[Photo]]
       page.items should have size 10
+      page.total shouldBe 3295
     }
   }
 

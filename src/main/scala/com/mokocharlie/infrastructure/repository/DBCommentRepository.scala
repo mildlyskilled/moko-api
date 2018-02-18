@@ -52,7 +52,7 @@ class DBCommentRepository(override val config: Config)
   def getMostRecent(
       page: Int = 1,
       limit: Int = 6,
-      approvedOnly: Option[Boolean] = None): RepositoryResponse[Page[Comment]] =
+      approvedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Comment]] =
     readOnlyTransaction { implicit session ⇒
       try {
         val res = sql"""
@@ -61,7 +61,7 @@ class DBCommentRepository(override val config: Config)
            $defaultOrder
            LIMIT ${offset(page, limit)}, $limit
         """.map(toComment).list.apply()
-        Right(Page(res, page, limit, total()))
+        Right(Page(res, page, limit, total().toOption))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -84,7 +84,7 @@ class DBCommentRepository(override val config: Config)
           .map(toComment)
           .list
           .apply()
-        Right(Page(comments, page, limit, total(photoId = Some(photoId))))
+        Right(Page(comments, page, limit, total(photoId = Some(photoId)).toOption))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -108,7 +108,7 @@ class DBCommentRepository(override val config: Config)
             .map(toComment)
             .list
             .apply()
-        Right(Page(comments, page, limit, total(albumId = Some(albumId))))
+        Right(Page(comments, page, limit, total(albumId = Some(albumId)).toOption))
       } catch {
         case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
       }
@@ -218,32 +218,36 @@ class DBCommentRepository(override val config: Config)
   private def total(
       photoId: Option[Long] = None,
       albumId: Option[Long] = None,
-      approvedOnly: Option[Boolean] = Some(true)): Option[Int] =
+      approvedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Int] =
     try {
       val album = albumId
         .map { id ⇒
-          sqls"LEFT JOIN common_photo_albums AS cpa ON cpa.photo_id = p.id WHERE cpa.album_id = $id"
+          sqls"""
+                 LEFT JOIN common_photo AS p ON p.id = c.image_id
+                 LEFT JOIN common_photo_albums AS cpa ON cpa.photo_id = p.id
+                 WHERE cpa.album_id = $id """
         }
         .getOrElse(sqls"")
       val photo = photoId
         .map { id ⇒
-          val joiner = if (album.isEmpty) "WHERE" else "AND"
-          sqls"$joiner p.id = $id"
+          val joiner = if (album.isEmpty) sqls"WHERE" else sqls"AND"
+          sqls"LEFT JOIN common_photo AS p ON p.id = c.image_id $joiner p.id = $id"
         }
         .getOrElse(sqls"")
-      val selectWhere = if (album.isEmpty && photo.isEmpty) "WHERE" else "AND"
+      val selectWhere = if (album.isEmpty && photo.isEmpty) sqls"WHERE" else sqls"AND"
 
       readOnlyTransaction { implicit session ⇒
-        sql"""SELECT COUNT(comment_id) as total
+        sql"""SELECT COUNT(comment_id) AS total FROM common_comment AS c
               $album
               $photo
              ${selectApproved(approvedOnly, selectWhere)}"""
-          .map(rs ⇒ rs.int("total"))
+          .map(rs ⇒ Right(rs.int("total")))
           .single
-          .apply()
+          .apply
+          .getOrElse(Left(EmptyResultSet("Could not get any comments")))
       }
     } catch {
-      case _: Exception ⇒ None
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
   private def selectApproved(approvedOnly: Option[Boolean], joiner: String = "WHERE") =

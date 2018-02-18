@@ -3,7 +3,7 @@ package com.mokocharlie.infrastructure.repository
 import java.sql.Timestamp
 
 import com.mokocharlie.domain.MokoModel.{Favourite, Photo, User}
-import com.mokocharlie.domain.common.MokoCharlieServiceError.DatabaseServiceError
+import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.{Page, Password}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.infrastructure.repository.common.JdbcRepository
@@ -98,9 +98,17 @@ class DBFavouriteRepository(override val config: Config)
           | INNER JOIN common_mokouser AS u ON f.user_id = u.id
         """.stripMargin
 
-  private def total(wherePredicate: SQLSyntax): Option[Int] =
-    readOnlyTransaction { implicit session ⇒
-      sql"SELECT COUNT(id) AS total FROM common_favourite $wherePredicate".map(rs ⇒ rs.int("total")).single.apply()
+  private def total(wherePredicate: SQLSyntax): RepositoryResponse[Int] =
+    try {
+      readOnlyTransaction { implicit session ⇒
+        sql"SELECT COUNT(id) AS total FROM common_favourite $wherePredicate"
+          .map(rs ⇒ Right(rs.int("total")))
+          .single
+          .apply
+          .getOrElse(Left(EmptyResultSet("Could not get favourites")))
+      }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
   private def toFavourite(rs: WrappedResultSet): Favourite = {
