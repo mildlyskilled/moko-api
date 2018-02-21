@@ -9,7 +9,7 @@ import scalikejdbc._
 trait TestDBUtils extends StrictLogging {
   val semaphore = new Semaphore(1, true)
 
-  val config: Config =  ConfigFactory.load()
+  val config: Config = ConfigFactory.load()
   config.withValue("dbName", ConfigValueFactory.fromAnyRef("mokocharlietest"))
 
   def acquire(): Unit = {
@@ -63,6 +63,14 @@ trait TestDBUtils extends StrictLogging {
     sql"TRUNCATE TABLE common_favourite".executeUpdate().apply()
   }
 
+  def purgeHospitality(): Int = DB.localTx { implicit session ⇒
+    sql"TRUNCATE TABLE common_hospitality".executeUpdate().apply()
+  }
+
+  def purgeContacts(): Int = DB.localTx { implicit session ⇒
+    sql"TRUNCATE TABLE common_contact".executeUpdate().apply()
+  }
+
   def purgeTables(): Int = {
     foreignKeys(0)
     purgeUsers()
@@ -74,6 +82,8 @@ trait TestDBUtils extends StrictLogging {
     purgeComments()
     purgeTokens()
     purgeFavourites()
+    purgeHospitality()
+    purgeContacts()
     foreignKeys(1)
   }
 

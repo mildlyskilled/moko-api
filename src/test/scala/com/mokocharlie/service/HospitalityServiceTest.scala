@@ -1,7 +1,7 @@
 package com.mokocharlie.service
 
 import akka.actor.ActorSystem
-import com.mokocharlie.infrastructure.repository.db.DBHospitalityRepository
+import com.mokocharlie.infrastructure.repository.db.{DBContactRepository, DBHospitalityRepository}
 import org.scalatest.{AsyncFlatSpec, DoNotDiscover, Matchers}
 
 @DoNotDiscover
@@ -13,7 +13,10 @@ class HospitalityServiceTest
 
   implicit val system: ActorSystem = ActorSystem("hospital-system")
   val repo = new DBHospitalityRepository(config)
-  val hospitalityService = new HospitalityService(repo)
+  val contactRepo = new DBContactRepository(config)
+  val contactService = new ContactService(contactRepo)
+  val hospitalityService = new HospitalityService(repo, contactService)
+
 
   behavior of "HospitalityService"
 
@@ -25,9 +28,9 @@ class HospitalityServiceTest
   }
 
 
-  it should "retrive a list of hospitality items" in {
+  it should "retrieve a list of hospitality items" in {
     hospitalityService.list(1, 20, Some(true)).map{
-      case Right(page) ⇒ page.items should have size 14
+      case Right(page) ⇒ page.items should have size 1
       case Left(ex) ⇒ fail(s"Hospitality venues should be returned ${ex.msg}")
     }
   }

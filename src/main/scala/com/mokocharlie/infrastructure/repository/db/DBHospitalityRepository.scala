@@ -88,9 +88,8 @@ class DBHospitalityRepository(override val config: Config)
             Right(id)
           } catch {
             case ex: Exception ⇒
-              Left(
-                DatabaseServiceError(
-                  s"Could not create ${hospitality.hospitalityType.value}: ${ex.getMessage}"))
+              Left(DatabaseServiceError(
+                s"Could not create ${hospitality.hospitalityType.value} (${hospitality.name}): ${ex.getMessage}"))
           }
       }
     } catch {
@@ -157,6 +156,26 @@ class DBHospitalityRepository(override val config: Config)
           | LEFT JOIN common_contact AS c ON c.id = h.contact_id
       """.stripMargin
   }
+
+  override def hospitalityByType(
+      hType: HospitalityType,
+      page: Int,
+      limit: Int): RepositoryResponse[Page[Hospitality]] =
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          val hospitality = sql"$defaultSelect WHERE h.hospitality_type = $hType"
+            .map(r ⇒ toHospitality(r))
+            .list
+            .apply()
+          Right(Page(hospitality, page, offset(page, limit), total().toOption))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
+      }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+    }
 
   private def total(): RepositoryResponse[Int] =
     try {

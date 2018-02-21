@@ -38,7 +38,9 @@ object MokoModel {
       email: String,
       telephone: String,
       owner: Long
-  ) extends MokoModel
+  ) extends MokoModel {
+    override val toString = s"$firstName $lastName ($email)"
+  }
 
   final case class Photo(
       id: Long = 0L,
@@ -122,6 +124,9 @@ object HospitalityType {
     case "HOTEL" ⇒ Hotel
     case _ ⇒ Resort
   }
+
+  def apply(hType: Option[String]): HospitalityType = hType.map(apply).getOrElse(Hotel)
+
   case object Resort extends HospitalityType {
     override def value: String = "RESORT"
   }

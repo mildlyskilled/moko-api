@@ -1,7 +1,7 @@
 package com.mokocharlie.infrastructure.repository
 
 import com.mokocharlie.domain.MokoModel.Hospitality
-import com.mokocharlie.domain.Page
+import com.mokocharlie.domain.{HospitalityType, Page}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 
 trait HospitalityRepository {
@@ -15,4 +15,6 @@ trait HospitalityRepository {
   def update(hospitality: Hospitality): RepositoryResponse[Long]
 
   def create(hospitality: Hospitality): RepositoryResponse[Long]
+
+  def hospitalityByType(hType: HospitalityType, page: Int, limit: Int): RepositoryResponse[Page[Hospitality]]
 }

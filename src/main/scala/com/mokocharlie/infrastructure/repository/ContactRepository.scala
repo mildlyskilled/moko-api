@@ -10,6 +10,8 @@ trait ContactRepository {
   def create(contact: Contact): RepositoryResponse[Long]
 
   def update(contact: Contact): RepositoryResponse[Long]
+
+  def contactById(id: Long): RepositoryResponse[Contact]
 }
 
 

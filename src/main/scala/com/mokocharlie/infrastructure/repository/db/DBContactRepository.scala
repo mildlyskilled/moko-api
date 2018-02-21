@@ -1,7 +1,7 @@
 package com.mokocharlie.infrastructure.repository.db
 
 import com.mokocharlie.domain.MokoModel.Contact
-import com.mokocharlie.domain.common.MokoCharlieServiceError.DatabaseServiceError
+import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.{MokoModel, Page}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.infrastructure.repository.ContactRepository
@@ -47,6 +47,7 @@ class DBContactRepository(override val config: Config)
             ${contact.email},
             ${contact.telephone},
             ${contact.owner}
+          )
           """
             .updateAndReturnGeneratedKey()
             .apply()
@@ -60,37 +61,64 @@ class DBContactRepository(override val config: Config)
       case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
-  override def update(contact: MokoModel.Contact): RepositoryResponse[Long] =
-    try{
+  override def update(contact: Contact): RepositoryResponse[Long] =
+    try {
       writeTransaction(3, s"Could not update $contact") { implicit session ⇒
-        try{
+        try {
           sql"""
-
+              $defaultSelect
+             WHERE c.id = ${contact.id}
             """
             .map(toContact)
             .single
             .apply
-            .map{c ⇒
-              sql"""
-                    """
+            .map { _ ⇒
+              val res = sql"""
+                    UPDATE common_contact SET
+                    first_name = ${contact.firstName},
+                    last_name = ${contact.lastName},
+                    email = ${contact.email},
+                    telephone = ${contact.telephone},
+                    owner_id = ${contact.owner}
+                """.update.apply()
+              if (res > 0) Right(contact.id)
+              else Left(DatabaseServiceError(s"Could not update contact with id: {$contact.id}"))
             }
+            .getOrElse(Left(EmptyResultSet(s"Did not find $contact")))
         } catch {
-          case ex: Exception ⇒ Left(DatabaseServiceError(s"Could not update $contact"))
+          case ex: Exception ⇒ Left(DatabaseServiceError(s"Could not update $contact ${ex.getMessage}"))
         }
       }
-    }catch {
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+    }
+
+  override def contactById(id: Long): RepositoryResponse[Contact] =
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          sql"$defaultSelect WHERE c.id = $id"
+            .map(r ⇒ Right(toContact(r)))
+            .single
+            .apply()
+            .getOrElse(Left(EmptyResultSet(s"Could not find contact with id $id")))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
+      }
+    } catch {
       case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
   private val defaultSelect: SQLSyntax =
     sqls"""SELECT
-          id,
-          first_name,
-          last_name,
-          email,
-          telephone,
-          owner_id
-          FROM common_contact
+          c.id,
+          c.first_name,
+          c.last_name,
+          c.email,
+          c.telephone,
+          c.owner_id
+          FROM common_contact AS c
         """
 
   private def total(): RepositoryResponse[Int] =
