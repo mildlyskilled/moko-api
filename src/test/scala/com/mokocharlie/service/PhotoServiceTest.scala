@@ -1,7 +1,8 @@
 package com.mokocharlie.service
 
 import akka.actor.ActorSystem
-import com.mokocharlie.infrastructure.repository.{CommentRepository, DBCommentRepository, DBPhotoRepository}
+import com.mokocharlie.infrastructure.repository.db.{DBCommentRepository, DBPhotoRepository}
+import com.mokocharlie.infrastructure.repository.CommentRepository
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatest.{AsyncFlatSpec, DoNotDiscover, Matchers}

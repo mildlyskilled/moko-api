@@ -9,7 +9,8 @@ class ServiceTests
       new AlbumServiceTest,
       new CollectionServiceTest,
       new CommentServiceTest,
-      new FavouriteServiceTest
+      new FavouriteServiceTest,
+      new HospitalityServiceTest
     )
     with BeforeAndAfterAll
     with TestDBUtils {

@@ -1,4 +1,4 @@
-package com.mokocharlie.infrastructure.repository
+package com.mokocharlie.infrastructure.repository.db
 
 import java.sql.Timestamp
 
@@ -6,42 +6,12 @@ import com.mokocharlie.domain.MokoModel.{Comment, Photo}
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
+import com.mokocharlie.infrastructure.repository.CommentRepository
 import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
-import scalikejdbc.interpolation.SQLSyntax
 import scalikejdbc._
-
-trait CommentRepository {
-
-  def getMostRecent(
-      page: Int = 0,
-      limit: Int = 6,
-      approvedOnly: Option[Boolean]): RepositoryResponse[Page[Comment]]
-
-  def commentsByImage(
-      imageID: Long,
-      page: Int,
-      limit: Int,
-      approvedOnly: Option[Boolean]): RepositoryResponse[Page[Comment]]
-
-  def commentsByAlbum(
-      albumId: Long,
-      page: Int,
-      limit: Int,
-      approvedOnly: Option[Boolean]): RepositoryResponse[Page[Comment]]
-
-  def commentById(id: Long): RepositoryResponse[Comment]
-
-  def create(
-      imageId: Long,
-      comment: String,
-      author: String,
-      postedAt: Timestamp,
-      approved: Boolean = false): RepositoryResponse[Long]
-
-  def update(comment: Comment): RepositoryResponse[Long]
-}
+import scalikejdbc.interpolation.SQLSyntax
 
 class DBCommentRepository(override val config: Config)
     extends CommentRepository

@@ -19,10 +19,10 @@ object MokoModel {
       extends MokoModel
 
   final case class Hospitality(
-      id: Long,
+      id: Long = 0L,
       name: String,
       featured: Boolean,
-      hospitalityType: String,
+      hospitalityType: HospitalityType,
       description: String,
       address: String,
       website: String,
@@ -112,3 +112,22 @@ final case class Password(value: String) {
 }
 
 final case class Token(value: String, refreshToken: String, userId: Long, expiresAt: Timestamp)
+
+sealed trait HospitalityType {
+  def value: String
+}
+
+object HospitalityType {
+  def apply(hType: String): HospitalityType = hType.toUpperCase match {
+    case "HOTEL" ⇒ Hotel
+    case _ ⇒ Resort
+  }
+  case object Resort extends HospitalityType {
+    override def value: String = "RESORT"
+  }
+  case object Hotel extends HospitalityType {
+    override def value: String = "HOTEL"
+  }
+}
+
+

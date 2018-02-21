@@ -1,9 +1,9 @@
-package com.mokocharlie.infrastructure.repository
+package com.mokocharlie.infrastructure.repository.db
 
 import com.mokocharlie.domain.MokoModel.User
-import com.mokocharlie.domain.{Page, Password}
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
+import com.mokocharlie.domain.{Page, Password}
 import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging

@@ -9,7 +9,7 @@ import scalikejdbc._
 trait TestDBUtils extends StrictLogging {
   val semaphore = new Semaphore(1, true)
 
-  val config:Config =  ConfigFactory.load()
+  val config: Config =  ConfigFactory.load()
   config.withValue("dbName", ConfigValueFactory.fromAnyRef("mokocharlietest"))
 
   def acquire(): Unit = {

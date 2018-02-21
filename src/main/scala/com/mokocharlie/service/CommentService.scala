@@ -1,7 +1,5 @@
 package com.mokocharlie.service
 
-import java.sql.Timestamp
-
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.Comment
 import com.mokocharlie.domain.Page

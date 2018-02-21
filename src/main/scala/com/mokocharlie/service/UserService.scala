@@ -6,9 +6,10 @@ import java.time.{Clock, Instant}
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.User
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{AuthenticationError, EmptyResultSet}
-import com.mokocharlie.domain.{Page, Token}
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
-import com.mokocharlie.infrastructure.repository.{TokenRepository, UserRepository}
+import com.mokocharlie.domain.{Page, Token}
+import com.mokocharlie.infrastructure.repository.TokenRepository
+import com.mokocharlie.infrastructure.repository.db.UserRepository
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import io.github.nremond.SecureHash
 

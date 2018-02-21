@@ -1,15 +1,15 @@
 package com.mokocharlie.service
 
 import akka.actor.ActorSystem
-import com.mokocharlie.domain.MokoModel.{Album, Photo}
+import com.mokocharlie.domain.MokoModel.Album
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
-import com.mokocharlie.infrastructure.repository.DBAlbumRepository
+import com.mokocharlie.infrastructure.repository.AlbumRepository
 
 import scala.collection.immutable.Seq
 import scala.concurrent.ExecutionContextExecutor
 
-class AlbumService(albumRepo: DBAlbumRepository, photoService: PhotoService)(
+class AlbumService(albumRepo: AlbumRepository, photoService: PhotoService)(
     implicit override val system: ActorSystem)
     extends MokoCharlieService {
 

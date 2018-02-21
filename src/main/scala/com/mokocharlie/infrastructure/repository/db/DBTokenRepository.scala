@@ -1,24 +1,15 @@
-package com.mokocharlie.infrastructure.repository
+package com.mokocharlie.infrastructure.repository.db
 
 import java.sql.Timestamp
-import java.time.LocalDateTime
 
 import com.mokocharlie.domain.Token
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
+import com.mokocharlie.infrastructure.repository.TokenRepository
 import com.mokocharlie.infrastructure.repository.common.JdbcRepository
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
 import scalikejdbc._
-
-trait TokenRepository {
-  def check(token: String): RepositoryResponse[Token]
-
-  def store(token: Token): RepositoryResponse[Token]
-
-  def refresh(refresh: String, threshold: Timestamp): RepositoryResponse[Token]
-
-}
 
 class DBTokenRepository(override val config: Config)
     extends TokenRepository

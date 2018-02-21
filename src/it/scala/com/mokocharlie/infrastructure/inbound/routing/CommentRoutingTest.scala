@@ -8,11 +8,7 @@ import com.mokocharlie.domain.MokoModel.Comment
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.SettableClock
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.{
-  DBCommentRepository,
-  DBTokenRepository,
-  DBUserRepository
-}
+import com.mokocharlie.infrastructure.repository.db.{DBCommentRepository, DBTokenRepository, DBUserRepository}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.mokocharlie.service.{CommentService, UserService}
 import com.typesafe.config.{Config, ConfigFactory}

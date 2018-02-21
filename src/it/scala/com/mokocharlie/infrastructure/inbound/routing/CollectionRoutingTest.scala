@@ -7,6 +7,7 @@ import com.mokocharlie.domain.MokoModel.Collection
 import com.mokocharlie.domain.Page
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.repository._
+import com.mokocharlie.infrastructure.repository.db.{DBAlbumRepository, DBCollectionRepository, DBCommentRepository, DBPhotoRepository}
 import com.mokocharlie.service.{AlbumService, CollectionService, PhotoService}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{FlatSpec, Matchers}

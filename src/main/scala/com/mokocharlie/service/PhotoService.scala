@@ -5,8 +5,10 @@ import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
-import com.mokocharlie.infrastructure.repository.{CommentRepository, DBPhotoRepository}
+import com.mokocharlie.infrastructure.repository.CommentRepository
+import com.mokocharlie.infrastructure.repository.db.DBPhotoRepository
 import com.typesafe.scalalogging.StrictLogging
+
 import scala.collection.immutable.Seq
 
 class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)(

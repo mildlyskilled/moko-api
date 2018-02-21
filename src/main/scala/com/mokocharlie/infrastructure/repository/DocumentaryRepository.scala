@@ -8,11 +8,8 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Future
 
-class DocumentaryRepository(override val config: Config)
-  extends JdbcRepository
-  with StrictLogging {
-
-    def list(page: Int, limit: Int): Future[Page[Documentary]] = ???
-    def findDocumentaryByID(id: Long): Future[Option[Documentary]] = ???
+trait DocumentaryRepository {
+  def list(page: Int, limit: Int): Future[Page[Documentary]] = ???
+  def findDocumentaryByID(id: Long): Future[Option[Documentary]] = ???
 
 }

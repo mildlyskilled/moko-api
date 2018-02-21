@@ -6,7 +6,7 @@ import akka.testkit.TestDuration
 import com.mokocharlie.domain.MokoModel.Album
 import com.mokocharlie.domain.Page
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.{DBAlbumRepository, DBCommentRepository, DBPhotoRepository}
+import com.mokocharlie.infrastructure.repository.db.{DBAlbumRepository, DBCommentRepository, DBPhotoRepository}
 import com.mokocharlie.service.{AlbumService, PhotoService}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{FlatSpec, Matchers}

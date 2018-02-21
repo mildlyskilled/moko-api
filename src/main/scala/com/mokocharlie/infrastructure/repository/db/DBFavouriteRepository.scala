@@ -1,21 +1,16 @@
-package com.mokocharlie.infrastructure.repository
+package com.mokocharlie.infrastructure.repository.db
 
 import java.sql.Timestamp
 
 import com.mokocharlie.domain.MokoModel.{Favourite, Photo, User}
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
-import com.mokocharlie.domain.{Page, Password}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
+import com.mokocharlie.domain.{Page, Password}
+import com.mokocharlie.infrastructure.repository.FavouriteRepository
 import com.mokocharlie.infrastructure.repository.common.JdbcRepository
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
 import scalikejdbc._
-
-trait FavouriteRepository {
-  def favouritesByPhotoId(id: Long, page: Int, limit: Int): RepositoryResponse[Page[Favourite]]
-
-  def addFavourite(userId: Long, photoId: Long, createdAt: Timestamp): RepositoryResponse[Long]
-}
 
 class DBFavouriteRepository(override val config: Config)
     extends FavouriteRepository

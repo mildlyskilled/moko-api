@@ -1,15 +1,13 @@
 package com.mokocharlie.service
 
 import akka.actor.ActorSystem
-import com.mokocharlie.domain.MokoModel.Photo
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
-import com.mokocharlie.infrastructure.repository._
-import com.typesafe.config.{Config, ConfigFactory}
+import com.mokocharlie.infrastructure.repository.db.{DBAlbumRepository, DBCommentRepository, DBPhotoRepository}
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatest.{AsyncFlatSpec, DoNotDiscover, Matchers}
 
-import scala.concurrent.ExecutionContext
 import scala.collection.immutable.Seq
+import scala.concurrent.ExecutionContext
 
 @DoNotDiscover
 class AlbumServiceTest

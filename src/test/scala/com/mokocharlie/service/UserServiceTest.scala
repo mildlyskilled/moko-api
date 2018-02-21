@@ -6,7 +6,8 @@ import akka.actor.ActorSystem
 import com.mokocharlie.domain.Token
 import com.mokocharlie.domain.common.MokoCharlieServiceError.AuthenticationError
 import com.mokocharlie.domain.common.SettableClock
-import com.mokocharlie.infrastructure.repository.{DBTokenRepository, DBUserRepository, FakeTokenRepository}
+import com.mokocharlie.infrastructure.repository.db.{DBTokenRepository, DBUserRepository}
+import com.mokocharlie.infrastructure.repository.FakeTokenRepository
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.typesafe.scalalogging.StrictLogging
 import io.github.nremond.SecureHash

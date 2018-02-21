@@ -3,6 +3,7 @@ package com.mokocharlie.service
 import java.sql.Timestamp
 import java.time.{Clock, Instant, LocalDateTime}
 
+import com.mokocharlie.domain.HospitalityType.Resort
 import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.Password
 import com.mokocharlie.domain.common.SettableClock
@@ -74,4 +75,25 @@ trait TestFixtures {
   )
 
   val favourite1 = Favourite(photo = photo1, user = user1, createdAt = Timestamp.from(Instant.now(clock)))
+
+  val contact1 = Contact(
+    id = 1L,
+    firstName = "Kwabena",
+    lastName = "Aning",
+    email = "kwabena.aning@gmail.com",
+    telephone = "12304985004",
+    owner = 1L)
+
+  val resort1 = Hospitality(
+    id = 1L,
+    name = "Some resort",
+    featured = false,
+    published = true,
+    hospitalityType = Resort,
+    description = "A new resort of testing purposes",
+    address = "Middle of nowhere",
+    website = "http://mokocharlie.com",
+    dateAdded = Timestamp.from(Instant.now(clock)),
+    contact = contact1
+  )
 }

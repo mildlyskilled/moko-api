@@ -1,43 +1,25 @@
-package com.mokocharlie.infrastructure.repository
+package com.mokocharlie.infrastructure.repository.db
 
+import com.mokocharlie.domain.MokoModel.{Album, Collection, Photo}
 import com.mokocharlie.domain.Page
-import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
+import com.mokocharlie.infrastructure.repository.CollectionRepository
 import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
 import scalikejdbc._
+
 import scala.collection.immutable.Seq
 
-trait CollectionRepository {
-  def list(
-      page: Int,
-      limit: Int,
-      publishedOnly: Option[Boolean]): RepositoryResponse[Page[Collection]]
-
-  def collectionById(id: Long): RepositoryResponse[Collection]
-
-  def featuredCollections(page: Int = 1, limit: Int = 10): RepositoryResponse[Page[Collection]]
-
-  def create(collection: Collection): RepositoryResponse[Long]
-
-  def update(collection: Collection): RepositoryResponse[Long]
-
-  def saveAlbumToCollection(collectionId: Long, albums: Seq[Long]): RepositoryResponse[Seq[Int]]
-
-  def removeAlbumFromCollection(collectionId: Long, albums: Seq[Long]): RepositoryResponse[Seq[Int]]
-
-}
-
 class DBCollectionRepository(override val config: Config)
-    extends CollectionRepository
+  extends CollectionRepository
     with JdbcRepository
     with RepoUtils {
 
   def list(
-      page: Int,
-      limit: Int,
-      publishedOnly: Option[Boolean] = None): RepositoryResponse[Page[Collection]] =
+            page: Int,
+            limit: Int,
+            publishedOnly: Option[Boolean] = None): RepositoryResponse[Page[Collection]] =
     readOnlyTransaction { implicit session ⇒
       try {
         val list = sql"""
@@ -102,7 +84,7 @@ class DBCollectionRepository(override val config: Config)
            created_at,
            updated_at,
            description,
-           cover_album_id 
+           cover_album_id
            )
            VALUES (
            ${collection.name},
@@ -112,7 +94,7 @@ class DBCollectionRepository(override val config: Config)
            ${collection.updatedAt},
            ${collection.description},
            ${collection.coverAlbum.map(_.id)}
-           
+
            )
          """.updateAndReturnGeneratedKey()
             .apply()

@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Route, RouteConcatenation}
 import com.mokocharlie.infrastructure.repository._
+import com.mokocharlie.infrastructure.repository.db._
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.mokocharlie.service._
 import com.typesafe.config.Config
@@ -22,8 +23,8 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   private val userService =
     new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
   private val collectionRepository = new DBCollectionRepository(config)
-  private val videoRepository = new VideoRepository(config)
-  private val documentaryRepository = new DocumentaryRepository(config)
+  private val videoRepository = new VideoRepository{} // todo
+  private val documentaryRepository = new DocumentaryRepository{} //todo
   private val photoService = new PhotoService(photoRepository, commentRepository)
   private val albumService = new AlbumService(albumRepository, photoService)
   private val collectionService = new CollectionService(collectionRepository)

@@ -1,7 +1,7 @@
 package com.mokocharlie.service
 
 import akka.actor.ActorSystem
-import com.mokocharlie.infrastructure.repository.DBFavouriteRepository
+import com.mokocharlie.infrastructure.repository.db.DBFavouriteRepository
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{AsyncFlatSpec, DoNotDiscover, Matchers}
 

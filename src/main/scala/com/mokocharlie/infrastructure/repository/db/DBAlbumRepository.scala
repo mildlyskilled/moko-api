@@ -1,56 +1,28 @@
-package com.mokocharlie.infrastructure.repository
+package com.mokocharlie.infrastructure.repository.db
 
-import com.mokocharlie.domain.MokoModel._
+import com.mokocharlie.domain.MokoModel.{Album, Photo}
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
+import com.mokocharlie.infrastructure.repository.{AlbumRepository, PhotoRepository}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
-
-import scala.collection.immutable.Seq
 import scalikejdbc._
 
-trait AlbumRepository {
-  def list(
-      page: Int,
-      limit: Int,
-      exclude: Seq[Long] = Seq.empty,
-      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]]
+import scala.collection.immutable.Seq
 
-  def collectionAlbums(
-      collectionID: Long,
-      page: Int = 1,
-      limit: Int = 10,
-      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]]
-
-  def albumById(albumID: Long): RepositoryResponse[Album]
-
-  def featuredAlbums(
-      page: Int = 1,
-      limit: Int = 10,
-      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]]
-
-  def create(album: Album): RepositoryResponse[Long]
-
-  def update(album: Album): RepositoryResponse[Long]
-
-  def savePhotosToAlbum(albumId: Long, photoIds: Seq[Long]): RepositoryResponse[Seq[Int]]
-
-  def removePhotosFromAlbum(albumId: Long, photoIds: Seq[Long]): RepositoryResponse[Seq[Int]]
-}
-
-class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRepository)
-    extends AlbumRepository
+class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepository)
+  extends AlbumRepository
     with JdbcRepository
     with RepoUtils
     with StrictLogging {
 
   def list(
-      page: Int,
-      limit: Int,
-      exclude: Seq[Long] = Seq.empty,
-      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
+            page: Int,
+            limit: Int,
+            exclude: Seq[Long] = Seq.empty,
+            publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
     try {
       readOnlyTransaction { implicit session ⇒
         try {
@@ -76,10 +48,10 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
     }
 
   def collectionAlbums(
-      collectionID: Long,
-      page: Int = 1,
-      limit: Int = 10,
-      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
+                        collectionID: Long,
+                        page: Int = 1,
+                        limit: Int = 10,
+                        publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
     try {
       readOnlyTransaction { implicit session ⇒
         try {
@@ -129,9 +101,9 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
     }
 
   def featuredAlbums(
-      page: Int = 1,
-      limit: Int = 10,
-      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
+                      page: Int = 1,
+                      limit: Int = 10,
+                      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
     try {
       readOnlyTransaction { implicit session ⇒
         try {
@@ -184,7 +156,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: DBPhotoRep
       writeTransaction(3, s"Could not update album ${album.id}") { implicit session ⇒
         try {
           val update = sql"""
-         UPDATE common_album 
+         UPDATE common_album
           SET album_id = ${album.albumId},
           label = ${album.label},
            description = ${album.description},
