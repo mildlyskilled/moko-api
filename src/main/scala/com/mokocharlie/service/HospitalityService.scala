@@ -2,9 +2,9 @@ package com.mokocharlie.service
 
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.Hospitality
-import com.mokocharlie.domain.{HospitalityType, Page}
 import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
-import com.mokocharlie.domain.common.ServiceResponse.{RepositoryResponse, ServiceResponse}
+import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
+import com.mokocharlie.domain.{HospitalityType, Page}
 import com.mokocharlie.infrastructure.repository.HospitalityRepository
 import com.typesafe.scalalogging.StrictLogging
 

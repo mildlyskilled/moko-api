@@ -23,52 +23,56 @@ trait TestDBUtils extends StrictLogging {
     logger.info("Released database lock")
   }
 
-  def foreignKeys(check: Int): Int = DB.localTx { implicit session ⇒
+  private def foreignKeys(check: Int): Int = DB.localTx { implicit session ⇒
     sql"SET FOREIGN_KEY_CHECKS = $check".executeUpdate().apply()
   }
 
-  def purgeUsers(): Int = DB.localTx { implicit session ⇒
+  private def purgeUsers(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_mokouser".executeUpdate().apply()
   }
 
-  def purgePhotos(): Int = DB.localTx { implicit session ⇒
+  private def purgePhotos(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_photo".executeUpdate().apply()
   }
 
-  def purgePhotoAlbums(): Int = DB.localTx { implicit session ⇒
+  private def purgePhotoAlbums(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_photo_albums".executeUpdate().apply()
   }
 
-  def purgeAlbums(): Int = DB.localTx { implicit session ⇒
+  private def purgeAlbums(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_album".executeUpdate().apply()
   }
 
-  def purgeCollectionAlbums(): Int = DB.localTx { implicit session ⇒
+  private def purgeCollectionAlbums(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_collection_albums".executeUpdate().apply()
   }
 
-  def purgeCollection(): Int = DB.localTx { implicit session ⇒
+  private def purgeCollection(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_collection".executeUpdate().apply()
   }
 
-  def purgeComments(): Int = DB.localTx { implicit session ⇒
+  private def purgeComments(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_comment".executeUpdate().apply()
   }
 
-  def purgeTokens(): Int = DB.localTx { implicit session ⇒
+  private def purgeTokens(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_token".executeUpdate().apply()
   }
 
-  def purgeFavourites(): Int = DB.localTx { implicit session ⇒
+  private def purgeFavourites(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_favourite".executeUpdate().apply()
   }
 
-  def purgeHospitality(): Int = DB.localTx { implicit session ⇒
+  private def purgeHospitality(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_hospitality".executeUpdate().apply()
   }
 
-  def purgeContacts(): Int = DB.localTx { implicit session ⇒
+  private def purgeContacts(): Int = DB.localTx { implicit session ⇒
     sql"TRUNCATE TABLE common_contact".executeUpdate().apply()
+  }
+
+  private def purgeStories(): Int = DB.localTx{ implicit session ⇒
+    sql"TRUNCATE TABLE common_photostory".executeUpdate().apply()
   }
 
   def purgeTables(): Int = {
@@ -84,6 +88,7 @@ trait TestDBUtils extends StrictLogging {
     purgeFavourites()
     purgeHospitality()
     purgeContacts()
+    purgeStories()
     foreignKeys(1)
   }
 
