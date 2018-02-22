@@ -16,5 +16,14 @@ trait HospitalityRepository {
 
   def create(hospitality: Hospitality): RepositoryResponse[Long]
 
-  def hospitalityByType(hType: HospitalityType, page: Int, limit: Int): RepositoryResponse[Page[Hospitality]]
+  def hospitalityByType(
+      hType: HospitalityType,
+      page: Int,
+      limit: Int,
+      publishedOnly: Option[Boolean]): RepositoryResponse[Page[Hospitality]]
+
+  def featured(
+      page: Int,
+      limit: Int,
+      publishedOnly: Option[Boolean]): RepositoryResponse[Page[Hospitality]]
 }

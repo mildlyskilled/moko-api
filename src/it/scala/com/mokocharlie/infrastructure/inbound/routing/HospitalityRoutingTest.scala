@@ -1,33 +1,67 @@
 package com.mokocharlie.infrastructure.inbound.routing
 
+import java.time.LocalDateTime
+
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
-import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.db.{DBContactRepository, DBHospitalityRepository}
-import com.mokocharlie.service.{ContactService, HospitalityService}
-import com.typesafe.config.ConfigFactory
-import org.scalatest.{FlatSpec, Matchers}
-import spray.json._
 import akka.testkit.TestDuration
 import com.mokocharlie.domain.MokoModel.Hospitality
 import com.mokocharlie.domain.Page
+import com.mokocharlie.domain.common.SettableClock
+import com.mokocharlie.infrastructure.outbound.JsonConversion
+import com.mokocharlie.infrastructure.repository.db._
+import com.mokocharlie.infrastructure.security.BearerTokenGenerator
+import com.mokocharlie.service.{ContactService, HospitalityService, UserService}
+import com.typesafe.config.ConfigFactory
+import org.scalatest.{FlatSpec, Matchers}
+import spray.json._
 
 import scala.concurrent.duration._
 
-class HospitalityRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers with JsonConversion {
+class HospitalityRoutingTest
+    extends FlatSpec
+    with ScalatestRouteTest
+    with Matchers
+    with JsonConversion {
 
   implicit val timeout: RouteTestTimeout = RouteTestTimeout(5.seconds dilated)
-  val config = ConfigFactory.load()
-  val hospitalityRepo = new DBHospitalityRepository(config)
-  val contactRepo = new DBContactRepository(config)
-  val contactService = new ContactService(contactRepo)
+  private val config = ConfigFactory.load()
+  private val hospitalityRepo = new DBHospitalityRepository(config)
+  private val contactRepo = new DBContactRepository(config)
+  private val contactService = new ContactService(contactRepo)
+  private val userRepository = new DBUserRepository(config)
+  private val tokenRepository = new DBTokenRepository(config)
+  private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
+  implicit val userService: UserService =
+    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
   val hospitalityService = new HospitalityService(hospitalityRepo, contactService)
 
-  val hospitalityRoute = new HospitalityRouting(hospitalityService).routes
+  val hospitalityRoute = new HospitalityRouting(hospitalityService, userService).routes
 
   "Hospitality route " should "retrieve all hospitality entries" in {
-    Get("/hospitality") ~> hospitalityRoute ~> check {
+    Get("/hospitality/?page=1&limit=20") ~> hospitalityRoute ~> check {
       val page = responseAs[String].parseJson.convertTo[Page[Hospitality]]
-      page.items shouldBe 14
+      page should have size 14
     }
   }
+
+  it should "retrieve only resorts" in {
+    Get("/hospitality/resort") ~> hospitalityRoute ~> check {
+      val page = responseAs[String].parseJson.convertTo[Page[Hospitality]]
+      page should have size 3
+    }
+  }
+
+  it should "retrieve only hotels" in {
+    Get("/hospitality/hotel?page1&limit20") ~> hospitalityRoute ~> check {
+      val page = responseAs[String].parseJson.convertTo[Page[Hospitality]]
+      page should have size 11
+    }
+  }
+  it should "retrieve featured resorts" in {
+    Get("/hospitality/featured") ~> hospitalityRoute ~> check {
+      val page = responseAs[String].parseJson.convertTo[Page[Hospitality]]
+      page.items.forall(_.featured) shouldBe true
+    }
+  }
+
 }

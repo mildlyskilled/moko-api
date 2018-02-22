@@ -43,8 +43,11 @@ class HospitalityService(repo: HospitalityRepository, contactService: ContactSer
 
 
   def hospitalityByType(hType: HospitalityType, page: Int, limit: Int, publishedOnly : Option[Boolean]): ServiceResponse[Page[Hospitality]] =
-    dbExecute{repo.hospitalityByType(hType, page, limit)}
+    dbExecute{repo.hospitalityByType(hType, page, limit, publishedOnly)}
 
   def hospitalityById(id: Long): ServiceResponse[Hospitality] =
     dbExecute(repo.hospitalityById(id))
+
+  def featured(page: Int, limit: Int, publishedOnly: Option[Boolean]): ServiceResponse[Page[Hospitality]] =
+    dbExecute(repo.featured(page, limit, publishedOnly))
 }

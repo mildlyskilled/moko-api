@@ -6,7 +6,7 @@ import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.common.MokoCharlieServiceError
 import com.mokocharlie.domain.common.MokoCharlieServiceError.APIError
 import com.mokocharlie.domain.common.RequestEntity.{AuthRequest, FavouriteRequest}
-import com.mokocharlie.domain.{Page, Password, Token}
+import com.mokocharlie.domain.{HospitalityType, Page, Password, Token}
 import spray.json._
 
 trait JsonConversion extends DefaultJsonProtocol {
@@ -45,6 +45,12 @@ trait JsonConversion extends DefaultJsonProtocol {
     }
   }
 
+  implicit object HospitalityTypeFormat extends RootJsonFormat[HospitalityType] {
+    override def read(json: JsValue): HospitalityType = HospitalityType.apply(json.toString)
+
+    override def write(obj: HospitalityType): JsValue = JsString(obj.value)
+  }
+
   implicit object APIErrorFormat extends RootJsonFormat[APIError] {
     override def write(obj: APIError): JsValue =
       JsObject(
@@ -68,6 +74,9 @@ trait JsonConversion extends DefaultJsonProtocol {
   implicit val videoFormat = jsonFormat3(Video)
   implicit val documentaryFormat = jsonFormat5(Documentary)
   implicit val tokenFormat = jsonFormat4(Token)
+  implicit val contactFormat = jsonFormat6(Contact)
+  implicit val hospitalityFormat = jsonFormat10(Hospitality)
+  implicit val storyFormat = jsonFormat6(Story)
 
   // Request Serialisers
   implicit val authRequestFormat = jsonFormat2(AuthRequest)
@@ -81,6 +90,8 @@ trait JsonConversion extends DefaultJsonProtocol {
   implicit val videoPageFormat = jsonFormat(Page[Video], "items", "page", "offset", "total")
   implicit val documentaryPageFormat =
     jsonFormat(Page[Documentary], "items", "page", "offset", "total")
+  implicit val hospitalityPageFormat = jsonFormat(Page[Hospitality], "items", "page", "offset", "total")
+  implicit val storyPageFormat = jsonFormat(Page[Story], "items", "page", "offset", "total")
 }
 
 object JsonConversion extends JsonConversion {}

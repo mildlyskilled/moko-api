@@ -31,7 +31,7 @@ class DBContactRepository(override val config: Config)
       case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
-  override def create(contact: MokoModel.Contact): RepositoryResponse[Long] =
+  override def create(contact: Contact): RepositoryResponse[Long] =
     try {
       writeTransaction(3, s"Could not create contact $contact") { implicit session ⇒
         try {
@@ -145,6 +145,6 @@ class DBContactRepository(override val config: Config)
       lastName = rs.string("last_name"),
       email = rs.string("email"),
       telephone = rs.string("telephone"),
-      owner = rs.long("ownner_id")
+      owner = rs.long("owner_id")
     )
 }

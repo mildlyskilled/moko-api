@@ -23,8 +23,9 @@ class DBHospitalityRepository(override val config: Config)
         try {
           val hospitality =
             sql"""
-                $defaultSelect
-             LIMIT ${offset(page, limit)}, $limit
+              $defaultSelect
+              ${selectPublished(publishedOnly)}
+              LIMIT ${offset(page, limit)}, $limit
             """
               .map(toHospitality)
               .list
@@ -160,15 +161,22 @@ class DBHospitalityRepository(override val config: Config)
   override def hospitalityByType(
       hType: HospitalityType,
       page: Int,
-      limit: Int): RepositoryResponse[Page[Hospitality]] =
+      limit: Int,
+      publishedOnly: Option[Boolean]): RepositoryResponse[Page[Hospitality]] =
     try {
       readOnlyTransaction { implicit session ⇒
         try {
-          val hospitality = sql"$defaultSelect WHERE h.hospitality_type = $hType"
-            .map(r ⇒ toHospitality(r))
-            .list
-            .apply()
-          Right(Page(hospitality, page, offset(page, limit), total().toOption))
+          val hospitality =
+            sql"$defaultSelect WHERE h.hospitality_type = ${hType.value} ${selectPublished(publishedOnly, "AND")}"
+              .map(r ⇒ toHospitality(r))
+              .list
+              .apply()
+          Right(
+            Page(
+              hospitality,
+              page,
+              offset(page, limit),
+              total(sqls"WHERE h.hospitality_type = ${hType.value}").toOption))
         } catch {
           case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
         }
@@ -177,11 +185,31 @@ class DBHospitalityRepository(override val config: Config)
       case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
-  private def total(): RepositoryResponse[Int] =
+  def featured(page: Int, limit: Int, publishedOnly: Option[Boolean]): RepositoryResponse[Page[Hospitality]] =
+    try{
+      readOnlyTransaction{ implicit session ⇒
+        try{
+          val res = sql"""
+              $defaultSelect
+              WHERE h.featured = 1
+              ${selectPublished(publishedOnly, "AND")}
+            """
+            .map(toHospitality)
+            .list
+            .apply()
+          Right(Page(res, page, offset(page, limit), total().toOption))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
+      }
+    }catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+    }
+  private def total(wherePredicate: SQLSyntax = sqls""): RepositoryResponse[Int] =
     try {
       readOnlyTransaction { implicit session ⇒
         try {
-          sql"""SELECT COUNT(id) AS count FROM common_hospitality"""
+          sql"""SELECT COUNT(id) AS count FROM common_hospitality AS h $wherePredicate"""
             .map(rs ⇒ Right(rs.int("count")))
             .single
             .apply()
@@ -215,4 +243,15 @@ class DBHospitalityRepository(override val config: Config)
       )
     )
   }
+
+  private def selectPublished(publishedOnly: Option[Boolean], joiner: String = "WHERE") =
+    publishedOnly
+      .map { p ⇒
+        val j = joiner match {
+          case "AND" ⇒ sqls"AND"
+          case _ ⇒ sqls"WHERE"
+        }
+        sqls" $j h.published = $p"
+      }
+      .getOrElse(sqls"")
 }

@@ -38,9 +38,7 @@ object MokoModel {
       email: String,
       telephone: String,
       owner: Long
-  ) extends MokoModel {
-    override val toString = s"$firstName $lastName ($email)"
-  }
+  ) extends MokoModel
 
   final case class Photo(
       id: Long = 0L,
@@ -108,7 +106,17 @@ object MokoModel {
 
   final case class DocumentaryVideo(id: Long, documentaryID: Long, videoID: Long) extends MokoModel
 
+  final case class Story(
+      id: Long,
+      name: String,
+      description: String,
+      createdAt: Timestamp,
+      published: Boolean,
+      album: Album)
+      extends MokoModel
+
 }
+
 final case class Password(value: String) {
   override def toString: String = "<redacted>"
 }
@@ -130,9 +138,9 @@ object HospitalityType {
   case object Resort extends HospitalityType {
     override def value: String = "RESORT"
   }
+
   case object Hotel extends HospitalityType {
     override def value: String = "HOTEL"
   }
+
 }
-
-
