@@ -9,4 +9,8 @@ trait StoryRepository {
 
   def storyById(id: Long): RepositoryResponse[Story]
 
+  def create(story: Story): RepositoryResponse[Long]
+
+  def update(story: Story): RepositoryResponse[Long]
+
 }

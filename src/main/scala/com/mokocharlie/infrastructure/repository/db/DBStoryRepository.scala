@@ -55,6 +55,55 @@ class DBStoryRepository(override val config: Config)
       case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
+  def create(story: Story): RepositoryResponse[Long] =
+    try{
+      writeTransaction(3, s"Could not create story ${story.name}"){ implicit session ⇒
+        val id = sql"""
+          INSERT INTO common_photostory(`name`, `description`, `created_at`, published, album_id)
+          VALUES (
+            ${story.name},
+            ${story.description},
+            ${story.createdAt},
+            ${story.published},
+            ${story.album.id}
+          )
+        """
+          .updateAndReturnGeneratedKey()
+          .apply()
+
+        if (id > 0) Right(id) else Left(DatabaseServiceError("Could not create new story"))
+      }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+    }
+
+  override def update(story: Story): RepositoryResponse[Long] = try{
+    writeTransaction(3, s"Could not update story ${story.name}"){ implicit session ⇒
+      sql"""
+            $defaultSelect WHERE s.id = ${story.id}
+        """
+        .map{ _ ⇒
+          val res = sql"""
+             UPDATE common_photostory SET
+             `name` = ${story.name},
+             `description` = ${story.description},
+             created_at = ${story.createdAt},
+             published = ${story.published},
+             album_id = ${story.album.id}
+             WHERE id = ${story.id}
+            """
+            .update.apply()
+
+          if (res > 0) Right(story.id) else Left(DatabaseServiceError(s"could not update story ${story.name}"))
+        }
+        .single
+        .apply
+        .getOrElse(Left(EmptyResultSet(s"Story: ${story.name} was not found update failed")))
+    }
+  }catch {
+    case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+  }
+
   private val defaultSelect: SQLSyntax =
     sqls""" SELECT
           | s.id,

@@ -17,9 +17,17 @@ class StoryServiceTest extends AsyncFlatSpec with Matchers with TestDBUtils with
 
   behavior of "Story Service"
 
-  "Story Service " should "retrieve all stories" in {
+
+  "Story Service " should "create new story" in {
+    storyService.createOrUpdate(story1).map{
+      case Right(id) ⇒ id shouldBe 1
+      case Left(error) ⇒ fail(s"A photo story should have been created ${error.msg}")
+    }
+  }
+
+  it should "retrieve all stories" in {
     storyService.list(1, 10, Some(true)).map{
-      case Right(stories) ⇒ stories should have size 3
+      case Right(stories) ⇒ stories should have size 1
       case Left(ex) ⇒ fail(s"It should retrieve stories ${ex.msg}")
     }
   }

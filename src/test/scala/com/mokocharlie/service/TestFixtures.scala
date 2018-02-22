@@ -96,4 +96,13 @@ trait TestFixtures {
     dateAdded = Timestamp.from(Instant.now(clock)),
     contact = contact1
   )
+
+  val story1 = Story(
+    id = 1L,
+    name = "Some photo story",
+    description = "A description of a photo story",
+    createdAt = Timestamp.from(Instant.now(clock)),
+    published = true,
+    album = album1
+  )
 }

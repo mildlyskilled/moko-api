@@ -10,7 +10,8 @@ class ServiceTests
       new CollectionServiceTest,
       new CommentServiceTest,
       new FavouriteServiceTest,
-      new HospitalityServiceTest
+      new HospitalityServiceTest,
+      new StoryServiceTest
     )
     with BeforeAndAfterAll
     with TestDBUtils {

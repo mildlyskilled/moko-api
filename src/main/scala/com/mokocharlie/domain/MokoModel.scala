@@ -107,7 +107,7 @@ object MokoModel {
   final case class DocumentaryVideo(id: Long, documentaryID: Long, videoID: Long) extends MokoModel
 
   final case class Story(
-      id: Long,
+      id: Long = 0L,
       name: String,
       description: String,
       createdAt: Timestamp,
