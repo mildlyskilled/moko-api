@@ -29,6 +29,8 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   private val albumService = new AlbumService(albumRepository, photoService)
   private val collectionService = new CollectionService(collectionRepository)
   private val commentService = new CommentService(commentRepository)
+  private val storyRepository = new DBStoryRepository(config)
+  private val storyService = new StoryService(storyRepository)
 
   val routes: Route = {
     path("") {
@@ -52,5 +54,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
     new VideoRouting(videoRepository).routes
   } ~ {
     new DocumentaryRouting(documentaryRepository).routes
+  } ~ {
+    new StoryRouting(storyService, userService).routes
   }
 }

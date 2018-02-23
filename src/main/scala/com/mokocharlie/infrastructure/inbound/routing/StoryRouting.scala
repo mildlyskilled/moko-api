@@ -19,7 +19,7 @@ class StoryRouting(storyService: StoryService, override val userService: UserSer
   implicit val ec: ExecutionContext = system.dispatcher
 
   val routes: Route = {
-    path("story" ~ Slash.?) {
+    path("stories" ~ Slash.?) {
       parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) { (page, limit) ⇒
         optionalHeaderValue(extractUserToken){ user ⇒
           user.map{ userResponse ⇒
@@ -41,7 +41,7 @@ class StoryRouting(storyService: StoryService, override val userService: UserSer
         }
       }
 
-    } ~ path("story" / LongNumber ~ Slash.?) { id ⇒
+    } ~ path("stories" / LongNumber ~ Slash.?) { id ⇒
       onSuccess(storyService.storyById(id)) {
         case Right(story) ⇒ complete(story)
         case Left(error) ⇒ completeWithError(error)

@@ -37,14 +37,14 @@ class PhotoStoryRoutingTest
   val storyRoute: Route = new StoryRouting(storyService, userService).routes
 
   "Story route" should "Return a list of stories" in {
-    Get("/story") ~> storyRoute ~> check {
+    Get("/stories") ~> storyRoute ~> check {
       val stories = responseAs[String].parseJson.convertTo[Page[Story]]
       stories should have size 6
     }
   }
 
   it should "Retrieve a story with ID 16" in {
-    Get("/story/16") ~> storyRoute ~> check {
+    Get("/stories/16") ~> storyRoute ~> check {
       val story = responseAs[String].parseJson.convertTo[Story]
       story.id shouldBe 16
     }
