@@ -14,7 +14,12 @@ import com.typesafe.config.ConfigFactory
 import org.scalatest._
 import spray.json._
 import akka.testkit.TestDuration
-import com.mokocharlie.infrastructure.repository.db.{DBCommentRepository, DBPhotoRepository, DBTokenRepository, DBUserRepository}
+import com.mokocharlie.infrastructure.repository.db.{
+  DBCommentRepository,
+  DBPhotoRepository,
+  DBTokenRepository,
+  DBUserRepository
+}
 
 import scala.concurrent.duration._
 

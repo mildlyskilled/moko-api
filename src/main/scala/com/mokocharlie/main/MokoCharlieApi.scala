@@ -3,7 +3,6 @@ package com.mokocharlie.main
 import java.time.Clock
 
 import akka.http.scaladsl.Http
-import com.mokocharlie.incoming.CoreServices
 import com.mokocharlie.infrastructure.inbound.routing.CoreRoutes
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
