@@ -3,6 +3,12 @@ package com.mokocharlie.infrastructure.inbound.routing
 import java.time.Clock
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.model.headers.{
+  `Access-Control-Allow-Headers`,
+  `Access-Control-Allow-Methods`,
+  `Access-Control-Allow-Origin`
+}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Route, RouteConcatenation}
 import com.mokocharlie.infrastructure.repository._
@@ -10,6 +16,7 @@ import com.mokocharlie.infrastructure.repository.db._
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.mokocharlie.service._
 import com.typesafe.config.Config
+import scala.collection.immutable.Seq
 
 class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
     extends RouteConcatenation {
@@ -23,8 +30,8 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   private val userService =
     new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
   private val collectionRepository = new DBCollectionRepository(config)
-  private val videoRepository = new VideoRepository{} // todo
-  private val documentaryRepository = new DocumentaryRepository{} //todo
+  private val videoRepository = new VideoRepository {} // todo
+  private val documentaryRepository = new DocumentaryRepository {} //todo
   private val photoService = new PhotoService(photoRepository, commentRepository)
   private val albumService = new AlbumService(albumRepository, photoService)
   private val collectionService = new CollectionService(collectionRepository)
@@ -32,7 +39,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   private val storyRepository = new DBStoryRepository(config)
   private val storyService = new StoryService(storyRepository)
 
-  val routes: Route = {
+  val applicationRoutes: Route = {
     path("") {
       get {
         complete("Moko Charlie API")
@@ -56,5 +63,15 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
     new DocumentaryRouting(documentaryRepository).routes
   } ~ {
     new StoryRouting(storyService, userService).routes
+  }
+
+  val routes: Route = {
+    val corsHeaders = Seq(
+      `Access-Control-Allow-Origin`.*,
+      `Access-Control-Allow-Methods`(GET, POST, PUT, PATCH, OPTIONS, DELETE),
+      `Access-Control-Allow-Headers`("Accept", "Authorization", "Content-Type")
+    )
+
+    respondWithHeaders(corsHeaders) (applicationRoutes)
   }
 }
