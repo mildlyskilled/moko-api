@@ -2,6 +2,3 @@
 target
 .DS_Store
 logs
-.terraform
-*.tfstate
-*.tfstate.backup
