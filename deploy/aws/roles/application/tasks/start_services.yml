@@ -1,0 +1,14 @@
+---
+- name: AWS S3 Copy
+  shell: "aws s3 cp --region {{aws_region}} s3://repo.thefaculty.io/releases/{{service_type}}/{{service_name}}-{{commit_id}}.jar ."
+
+- name: Compose JVM stuff
+  set_fact:
+    jvm_parameters: '-Dmokocharlie.db.host={{db_host}}
+    -Dmokocharlie.db.user={{db_user}}
+    -Dmokocharlie.db.password={{db_password}}
+    -Dmokocharlie.db.dbName={{db_name}}
+    -jar ~/mokocharlie-api-{{commit_id}}.jar'
+
+- name: Start application server
+  script: "../scripts_bash/mokocharlie-api.sh {{commit_id}} '{{jvm_parameters}}'"
