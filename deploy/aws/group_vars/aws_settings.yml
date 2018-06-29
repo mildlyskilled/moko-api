@@ -5,5 +5,5 @@ aws_secret_key: "nuhl8S2DwLXDnvv5BXF3Gl+3Wip2ozKvHEIk3LqU"
 vpc_id: vpc-9ae301e0
 vpc_subnet_id: subnet-5b6bcf75
 external_security_group: sg-0293b032889951140
-aws_key_pair: "thefaculty"
+aws_key_pair: "deploy"
 api_load_balancer: "moko-api-lb"
