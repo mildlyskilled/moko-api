@@ -6,5 +6,5 @@ APPLICATION=$3
 SERVICECOUNT=${4:-1}
 
 ansible-playbook aws/launch-application.yml \
-    --private-key ~/.ssh/thefaculty.pem  \
+    --private-key aws/shared/deploy.pem  \
     --extra-vars "env=$ENV commit_id=$COMMIT_ID application_name=$APPLICATION service_count=$SERVICECOUNT"
