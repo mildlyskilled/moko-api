@@ -5,7 +5,7 @@
     state: present
 
 - name: Get application FAT JAR from S3
-  s3:
+  aws_s3:
     aws_access_key: "{{aws_access_key}}"
     aws_secret_key: "{{aws_secret_key}}"
     bucket: repo.thefaculty.io
