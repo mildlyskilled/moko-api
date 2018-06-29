@@ -1,0 +1,29 @@
+---
+  - hosts: localhost
+    remote_user: root
+    roles:
+      - application
+    vars_files:
+      - "group_vars/aws_settings.yml"
+      - "roles/application/tasks/vars/{{ env }}/service_settings.yml"
+    vars:
+      service_ami_id: "{{internal_ami_id}}"
+      service_instance_type: "t2.micro"
+      service_security_group_ids: "{{external_security_group}}"
+      service_instance_name: "{{application_name}}"
+      detailed_monitoring: yes
+      service_count: 1
+      disk_space_size: 4
+
+    tasks:
+      - name: Provision Application instances
+        import_tasks: "roles/application/tasks/launch_instances.yml"
+
+  - hosts: launched
+    remote_user: ubuntu
+    vars_files:
+      - "group_vars/aws_settings.yml"
+      - "roles/application/tasks/vars/{{ env }}/service_settings.yml"
+    tasks:
+      - name: Launch Application Server
+        import_tasks: "roles/application/tasks/start_services.yml"
