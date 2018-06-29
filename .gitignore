@@ -5,3 +5,5 @@ logs
 .terraform
 *.tfstate
 *.tfstate.backup
+*.retry
+

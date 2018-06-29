@@ -1,14 +1,33 @@
 ---
-- name: AWS S3 Copy
-  shell: "aws s3 cp --region {{aws_region}} s3://repo.thefaculty.io/releases/{{service_type}}/{{service_name}}-{{commit_id}}.jar ."
+- name: Install helper PIP libraries
+  pip:
+    name: boto3
+    state: present
+
+- name: Get application FAT JAR from S3
+  s3:
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    bucket: repo.thefaculty.io
+    object: /releases/{{service_type}}/{{service_name}}-{{commit_id}}.jar
+    dest: ~/{{service_name}}-{{commit_id}}.jar
+    mode: get
 
 - name: Compose JVM stuff
-  set_fact:
-    jvm_parameters: '-Dmokocharlie.db.host={{db_host}}
-    -Dmokocharlie.db.user={{db_user}}
-    -Dmokocharlie.db.password={{db_password}}
-    -Dmokocharlie.db.dbName={{db_name}}
-    -jar ~/mokocharlie-api-{{commit_id}}.jar'
+  set_fact: jvm_parameters='
+      -Dmokocharlie.db.user={{db_user}}
+      -Dmokocharlie.db.password={{db_password}}
+      -Dmokocharlie.db.dbName={{db_name}}'
 
 - name: Start application server
   script: "../scripts_bash/mokocharlie-api.sh {{commit_id}} '{{jvm_parameters}}'"
+
+- name: Wait for instances to listen on port 8080
+  wait_for: port=8080 delay=5 timeout=60 state=started
+
+- name: Health Check
+  uri:
+    url: http://localhost:8080/
+    return_content: yes
+  register: this
+  failed_when: "'Moko Charlie API' not in this.content"
