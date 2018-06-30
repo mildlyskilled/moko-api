@@ -4,6 +4,7 @@ libraryDependencies ++= {
   lazy val httpVersion = "10.0.11"
   lazy val logbackVersion = "1.1.3"
   lazy val scalikeVersion = "2.5.0"
+  lazy val slf4jVersion = "1.7.12"
 
   Seq(
     // typesafe
@@ -20,6 +21,8 @@ libraryDependencies ++= {
     // logging
     "ch.qos.logback" % "logback-classic" % logbackVersion % "runtime",
     "ch.qos.logback" % "logback-core" % logbackVersion % "runtime",
+    "org.slf4j" % "slf4j-api" % slf4jVersion,
+    "org.slf4j" % "log4j-over-slf4j" % slf4jVersion,
     "org.codehaus.janino" % "janino" % "2.7.8",
     //other 3rd party
     "io.github.nremond" %% "pbkdf2-scala" % "0.6.3"
