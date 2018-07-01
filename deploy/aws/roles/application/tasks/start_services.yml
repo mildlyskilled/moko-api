@@ -15,6 +15,7 @@
 
 - name: Compose JVM stuff
   set_fact: jvm_parameters='
+      -Dmokocharlie.db.host={{db_host}}
       -Dmokocharlie.db.user={{db_user}}
       -Dmokocharlie.db.password={{db_password}}
       -Dmokocharlie.db.dbName={{db_name}}'
