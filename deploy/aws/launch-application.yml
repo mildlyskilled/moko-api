@@ -4,8 +4,10 @@
     roles:
       - application
     vars_files:
-      - "group_vars/aws_settings.yml"
-      - "roles/application/tasks/vars/{{ env }}/service_settings.yml"
+      - "group_vars/aws/vault.yml"
+      - "group_vars/aws/settings.yml"
+      - "roles/application/tasks/vars/{{ env }}/vault.yml"
+      - "roles/application/tasks/vars/{{ env }}/settings.yml"
     vars:
       service_ami_id: "{{internal_ami_id}}"
       service_instance_type: "t2.micro"
@@ -22,8 +24,10 @@
   - hosts: launched
     remote_user: ubuntu
     vars_files:
-      - "group_vars/aws_settings.yml"
-      - "roles/application/tasks/vars/{{ env }}/service_settings.yml"
+      - "group_vars/aws/vault.yml"
+      - "group_vars/aws/settings.yml"
+      - "roles/application/tasks/vars/{{ env }}/vault.yml"
+      - "roles/application/tasks/vars/{{ env }}/settings.yml"
     tasks:
       - name: Launch Application Server
         import_tasks: "roles/application/tasks/start_services.yml"
