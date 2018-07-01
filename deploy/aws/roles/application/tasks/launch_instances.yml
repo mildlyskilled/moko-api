@@ -1,4 +1,19 @@
 ---
+- name: Create shared folder if it doesn't exist
+  file:
+    path: ./shared
+    state: directory
+    mode: 0755
+
+- name: Decrypt key pair file
+  copy:
+    content: "{{deploy_key}}"
+    dest: "./shared/deploy.pem"
+
+- name: Set key permissions
+  file:
+    path: "./shared/deploy.pem"
+    mode: 0400
 
 - name: Launch EC2 Instance
   ec2:
