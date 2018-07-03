@@ -28,13 +28,3 @@
   register: this
   failed_when: "'Moko Charlie API' not in this.content"
 
-- name: Add instance to target group
-  elb_target:
-    aws_access_key: "{{aws_access_key}}"
-    aws_secret_key: "{{aws_secret_key}}"
-    region: "{{aws_region}}"
-    target_group_name: "{{alb_target_group}}"
-    target_id: "{{ item }}"
-    target_port: 8080
-    state: present
-  with_items: "{{ groups['launched'] }}"

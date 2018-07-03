@@ -54,8 +54,20 @@
   wait_for: host={{ item.public_dns_name }} port=22 delay=10 timeout=320 state=started
   with_items: '{{ec2_info.tagged_instances}}'
 
+- name: Add instance to target group
+  elb_target:
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    region: "{{aws_region}}"
+    target_group_name: "{{alb_target_group}}"
+    target_id: "{{ item.id }}"
+    target_port: 8080
+    state: present
+  with_items: '{{ec2_info.tagged_instances}}'
+
 - name: Add EC2 instances as known hosts
   known_hosts:
     name: "{{ item.public_ip }}"
     key: "{{ lookup('pipe', 'ssh-keyscan -t rsa ' + item.public_ip) }}"
   with_items: "{{ ec2_info.tagged_instances }}"
+
