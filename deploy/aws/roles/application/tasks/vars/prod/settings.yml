@@ -7,4 +7,5 @@ service_type: "photo-api"
 service_name: "mokocharlie-api"
 alb_target_group: "photo-service"
 service_release_path: "releases"
+service_port: 8080
 

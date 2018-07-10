@@ -61,7 +61,7 @@
     region: "{{aws_region}}"
     target_group_name: "{{alb_target_group}}"
     target_id: "{{ item.id }}"
-    target_port: 8080
+    target_port: "{{service_port}}"
     state: present
   with_items: '{{ec2_info.tagged_instances}}'
 

@@ -40,7 +40,7 @@ case class JdbcParameters(
     password: String,
     socketTimeout: Int = 0) {
 
-  val url = s"$protocol://$host:$port/$dbName?reconnect=true"
+  val url = s"$protocol://$host:$port/$dbName?autoReconnect=true"
 }
 
 object JdbcRepository {
