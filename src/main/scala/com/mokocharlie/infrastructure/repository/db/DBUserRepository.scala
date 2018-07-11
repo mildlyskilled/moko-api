@@ -4,32 +4,12 @@ import com.mokocharlie.domain.MokoModel.User
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.domain.{Page, Password}
+import com.mokocharlie.infrastructure.repository.UserRepository
 import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
 import io.github.nremond.SecureHash
 import scalikejdbc._
-
-trait UserRepository {
-
-  def user(id: Long): RepositoryResponse[User]
-
-  def user(email: String): RepositoryResponse[User]
-
-  def userByToken(token: String): RepositoryResponse[User]
-
-  def update(user: User): RepositoryResponse[Long]
-
-  def create(user: User): RepositoryResponse[Long]
-
-  def list(page: Int, limit: Int): RepositoryResponse[Page[User]]
-
-  def changePassword(
-      id: Long,
-      currentPassword: String,
-      newPassword: String): RepositoryResponse[Long]
-
-}
 
 class DBUserRepository(override val config: Config)
     extends UserRepository

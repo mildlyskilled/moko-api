@@ -39,12 +39,16 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   private val storyRepository = new DBStoryRepository(config)
   private val storyService = new StoryService(storyRepository)
 
+  private val healthCheckService = new HealthCheckService(new DBHealthCheck(config))
+
   val applicationRoutes: Route = {
     path("") {
       get {
         complete("Moko Charlie API")
       }
     }
+  } ~ {
+    new HealthCheckRouting(healthCheckService).routes
   } ~ {
     new FavouriteRouting(favouriteService).routes
   } ~ {
@@ -72,6 +76,6 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
       `Access-Control-Allow-Headers`("Accept", "Authorization", "Content-Type")
     )
 
-    respondWithHeaders(corsHeaders) (applicationRoutes)
+    respondWithHeaders(corsHeaders)(applicationRoutes)
   }
 }
