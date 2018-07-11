@@ -6,7 +6,7 @@ import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.common.MokoCharlieServiceError
 import com.mokocharlie.domain.common.MokoCharlieServiceError.APIError
 import com.mokocharlie.domain.common.RequestEntity.{AuthRequest, FavouriteRequest}
-import com.mokocharlie.domain.{HospitalityType, Page, Password, Token}
+import com.mokocharlie.domain._
 import spray.json._
 
 trait JsonConversion extends DefaultJsonProtocol {
@@ -64,6 +64,35 @@ trait JsonConversion extends DefaultJsonProtocol {
       deserializationError(s"Deserialisation not supported, $json")
   }
 
+  implicit object HealthCheckFormat extends RootJsonFormat[HealthCheck] {
+    override def read(json: JsValue): HealthCheck = {
+      val components = json.asJsObject.getFields("components")
+        .map(x ⇒ x.asJsObject.fields)
+        .headOption
+        .map{ components ⇒
+          components.keys.zip(components.values.map(_.convertTo[String])).toMap
+        }.getOrElse(Map.empty)
+      HealthCheck(components)
+    }
+
+
+    override def write(obj: HealthCheck): JsValue = {
+      val status = obj.components.values.count(_ == "OK") match {
+        case c if c == obj.components.size ⇒ "Fully Operational"
+        case c if c < obj.components.size && c > 0 ⇒ "Partially Operational"
+        case c if c == 0 ⇒ "Complete failure"
+        case _ ⇒ "Nominal"
+      }
+
+      JsObject(
+        Map(
+          "status" → status.toJson,
+          "components" → obj.components.toJson
+        )
+      )
+    }
+
+  }
   // formats for unmarshalling and marshalling
   implicit val photoFormat = jsonFormat11(Photo)
   implicit val albumFormat = jsonFormat9(Album)

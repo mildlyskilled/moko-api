@@ -8,6 +8,8 @@ import com.mokocharlie.service.HealthCheckService
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{FlatSpec, Matchers}
 import akka.testkit.TestDuration
+import com.mokocharlie.domain.HealthCheck
+import spray.json._
 
 import scala.concurrent.duration._
 
@@ -20,7 +22,8 @@ class HealthCheckRoutingTest extends FlatSpec with ScalatestRouteTest with Match
 
   "Health check" should "return health response" in {
     Get("/healthcheck") ~> healthCheckRoute ~> check {
-      responseAs[String] shouldBe "Database Healthy"
+      val healthCheck = responseAs[String].parseJson.convertTo[HealthCheck]
+      healthCheck.components.get("database") shouldBe Some("OK")
     }
   }
 }

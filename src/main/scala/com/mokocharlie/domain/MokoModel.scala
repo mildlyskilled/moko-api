@@ -144,3 +144,9 @@ object HospitalityType {
   }
 
 }
+
+case class HealthCheck(components: Map[String, String])
+
+object HealthCheck {
+  def apply(components: Map[String, String]): HealthCheck = new HealthCheck(components)
+}
