@@ -7,9 +7,10 @@ import com.mokocharlie.domain.MokoModel.User
 import com.mokocharlie.domain.common.MokoCharlieServiceError
 import com.mokocharlie.domain.common.MokoCharlieServiceError._
 import com.mokocharlie.infrastructure.outbound.JsonConversion
+import com.typesafe.scalalogging.StrictLogging
 import spray.json._
 
-trait HttpUtils extends JsonConversion {
+trait HttpUtils extends JsonConversion with StrictLogging {
 
   private def toHttpError(serviceError: MokoCharlieServiceError): APIError = serviceError match {
     case EmptyResultSet(x) ⇒ APIError(StatusCodes.NotFound, x)
@@ -25,6 +26,7 @@ trait HttpUtils extends JsonConversion {
 
   def completeWithError(error: MokoCharlieServiceError): StandardRoute ={
     val httpError = toHttpError(error)
+    logger.error(httpError.toJson.toString)
     complete(HttpResponse(httpError.code, entity = httpError.toJson.toString))
   }
 
