@@ -130,7 +130,8 @@ class DBStoryRepository(override val config: Config)
           |	p.path AS photo_path,
           |	p.`updated_at` AS photo_updated_at,
           |	p.cloud_image,
-          |	p.published AS photo_published
+          |	p.published AS photo_published,
+          | (SELECT COUNT(photo_id) FROM common_photo_albums AS cap WHERE cap.album_id = a.id) AS photo_count
           | FROM common_photostory AS s
           | LEFT JOIN common_album AS a ON a.id = s.album_id
           | LEFT JOIN common_photo AS p ON p.id = a.cover_id
@@ -162,7 +163,8 @@ class DBStoryRepository(override val config: Config)
       featured = rs.boolean("album_featured"),
       createdAt = rs.timestamp("album_created_at"),
       updatedAt = rs.timestampOpt("album_updated_at"),
-      cover = cover
+      cover = cover,
+      photoCount = rs.int("photo_count")
     )
 
     Story(

@@ -15,7 +15,8 @@ object MokoModel {
       createdAt: Timestamp,
       updatedAt: Option[Timestamp],
       published: Boolean,
-      featured: Boolean)
+      featured: Boolean,
+      photoCount: Int)
       extends MokoModel
 
   final case class Hospitality(

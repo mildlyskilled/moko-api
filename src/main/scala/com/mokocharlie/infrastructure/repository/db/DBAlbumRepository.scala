@@ -247,7 +247,8 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
           |	p.path AS photo_path,
           |	p.`updated_at` AS photo_updated_at,
           |	p.cloud_image,
-          |	p.published AS photo_published
+          |	p.published AS photo_published,
+          | (SELECT COUNT(photo_id) FROM common_photo_albums AS cap WHERE cap.album_id = a.id) AS photo_count
           |FROM common_album AS a
           |LEFT JOIN common_photo p ON a.cover_id = p.id
        """.stripMargin
@@ -281,7 +282,8 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
       rs.timestamp("created_at"),
       rs.timestampOpt("updated_at"),
       rs.boolean("published"),
-      rs.boolean("featured")
+      rs.boolean("featured"),
+      rs.int("photo_count")
     )
   }
 

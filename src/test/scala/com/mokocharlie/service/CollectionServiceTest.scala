@@ -58,7 +58,7 @@ class CollectionServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixt
                     case Right(_) ⇒
                       albumService.collectionAlbums(collection1.id, 1, 5).map {
                         case Right(albumPage) ⇒
-                          albumPage.items should contain allOf(album1, album2)
+                          albumPage.items should contain allOf(album1.copy(photoCount = 1), album2)
                         case Left(ex) ⇒ fail(s"Could not retrieve collection albums ${ex.msg}")
                       }
                     case Left(ex) ⇒ fail(s"Should retrieve albums in collection ${ex.msg}")

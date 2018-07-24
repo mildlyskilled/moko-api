@@ -35,7 +35,8 @@ trait TestFixtures {
     createdAt = Timestamp.from(Instant.now(clock)),
     updatedAt = Some(Timestamp.from(Instant.now(clock))),
     published = true,
-    featured = false
+    featured = false,
+    photoCount = 0
   )
   val album2: Album = album1.copy(id = 2, cover = None)
 
@@ -47,7 +48,7 @@ trait TestFixtures {
     description = "This is a test collection",
     createdAt = Timestamp.from(Instant.now(clock)),
     updatedAt = Timestamp.from(Instant.now(clock)),
-    coverAlbum = Some(album1)
+    coverAlbum = Some(album1.copy(photoCount = 1))
   )
 
   val comment1 = Comment(
