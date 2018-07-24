@@ -88,7 +88,7 @@ class DBFavouriteRepository(override val config: Config)
           | u.is_staff,
           | u.is_active,
           | u.date_joined,
-          | (SELECT COUNT(c.comment_id) FROM common_comment AS c WHERE c.image_id = p.id) AS comment_count,
+          | (SELECT COUNT(c.comment_id) FROM common_comment AS c WHERE c.image_id = p.id AND c.comment_approved) AS comment_count,
           | (SELECT COUNT(f.id) FROM common_favourite AS f WHERE f.photo_id = p.id) AS favourite_count
           | FROM common_favourite AS f
           | INNER JOIN common_photo AS p ON p.id = f.photo_id

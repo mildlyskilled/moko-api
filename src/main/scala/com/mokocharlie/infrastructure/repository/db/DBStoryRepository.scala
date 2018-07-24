@@ -132,7 +132,7 @@ class DBStoryRepository(override val config: Config)
           |	p.cloud_image,
           |	p.published AS photo_published,
           | (SELECT COUNT(photo_id) FROM common_photo_albums AS cap WHERE cap.album_id = a.id) AS photo_count,
-          | (SELECT COUNT(c.comment_id) FROM common_comment AS c WHERE c.image_id = p.id) AS comment_count,
+          | (SELECT COUNT(c.comment_id) FROM common_comment AS c WHERE c.image_id = p.id AND c.comment_approved) AS comment_count,
           | (SELECT COUNT(f.id) FROM common_favourite AS f WHERE f.photo_id = p.id) AS favourite_count
           | FROM common_photostory AS s
           | LEFT JOIN common_album AS a ON a.id = s.album_id
