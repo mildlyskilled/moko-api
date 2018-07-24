@@ -87,7 +87,9 @@ class DBFavouriteRepository(override val config: Config)
           | u.last_name,
           | u.is_staff,
           | u.is_active,
-          | u.date_joined
+          | u.date_joined,
+          | (SELECT COUNT(c.comment_id) FROM common_comment AS c WHERE c.image_id = p.id) AS comment_count,
+          | (SELECT COUNT(f.id) FROM common_favourite AS f WHERE f.photo_id = p.id) AS favourite_count
           | FROM common_favourite AS f
           | INNER JOIN common_photo AS p ON p.id = f.photo_id
           | INNER JOIN common_mokouser AS u ON f.user_id = u.id
@@ -118,7 +120,9 @@ class DBFavouriteRepository(override val config: Config)
       rs.int("photo_owner"),
       rs.boolean("photo_published"),
       rs.timestampOpt("photo_deleted_at"),
-      rs.stringOpt("cloud_image")
+      rs.stringOpt("cloud_image"),
+      rs.int("comment_count"),
+      rs.int("favourite_count")
     )
 
     val user = User(

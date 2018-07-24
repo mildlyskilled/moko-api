@@ -52,7 +52,9 @@ object MokoModel {
       ownerId: Long,
       published: Boolean,
       deletedAt: Option[Timestamp],
-      cloudImage: Option[String])
+      cloudImage: Option[String],
+      commentCount: Int,
+      favouriteCount: Int)
       extends MokoModel
 
   final case class PhotoAlbum(id: Long, photo: Long, album: Long) extends MokoModel

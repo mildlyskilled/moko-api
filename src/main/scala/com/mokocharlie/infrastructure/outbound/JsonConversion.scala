@@ -94,7 +94,7 @@ trait JsonConversion extends DefaultJsonProtocol {
 
   }
   // formats for unmarshalling and marshalling
-  implicit val photoFormat = jsonFormat11(Photo)
+  implicit val photoFormat = jsonFormat13(Photo)
   implicit val albumFormat = jsonFormat10(Album)
   implicit val commentFormat = jsonFormat6(Comment)
   implicit val userFormat = jsonFormat10(User)

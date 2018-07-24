@@ -76,7 +76,9 @@ class AlbumServiceTest
           albumService.savePhotosToAlbum(album1.id, Seq(photo1.id, newImageId)).flatMap {
             case Right(_) ⇒
               photoService.photosByAlbum(album1.id, 1, 3).map {
-                case Right(photos) ⇒ photos.items should contain allOf (photo1, photo2)
+                case Right(photos) ⇒ photos.items should contain allOf (
+                  photo1.copy(commentCount = 0, favouriteCount = 0),
+                  photo2.copy(commentCount = 0, favouriteCount = 0))
                 case Left(ex) ⇒ fail(s"A photo should be returned ${ex.msg}")
               }
             case Left(ex) ⇒ fail(s"Photos were not saved ${ex.msg}")

@@ -248,7 +248,9 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
           |	p.`updated_at` AS photo_updated_at,
           |	p.cloud_image,
           |	p.published AS photo_published,
-          | (SELECT COUNT(photo_id) FROM common_photo_albums AS cap WHERE cap.album_id = a.id) AS photo_count
+          | (SELECT COUNT(photo_id) FROM common_photo_albums AS cap WHERE cap.album_id = a.id) AS photo_count,
+          | (SELECT COUNT(c.comment_id) FROM common_comment AS c WHERE c.image_id = p.id) AS comment_count,
+          | (SELECT COUNT(f.id) FROM common_favourite AS f WHERE f.photo_id = p.id) AS favourite_count
           |FROM common_album AS a
           |LEFT JOIN common_photo p ON a.cover_id = p.id
        """.stripMargin
@@ -269,7 +271,9 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
         rs.int("photo_owner"),
         rs.boolean("photo_published"),
         rs.timestampOpt("photo_deleted_at"),
-        rs.stringOpt("cloud_image")
+        rs.stringOpt("cloud_image"),
+        rs.int("comment_count"),
+        rs.int("favourite_count")
       )
     }
 

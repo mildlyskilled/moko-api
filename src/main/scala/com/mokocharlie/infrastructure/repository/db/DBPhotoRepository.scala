@@ -265,7 +265,9 @@ class DBPhotoRepository(override val config: Config)
         p.deleted_at,
         p.published,
         p.cloud_image,
-        p.owner
+        p.owner,
+        (SELECT COUNT(c.comment_id) FROM common_comment AS c WHERE c.image_id = p.id) AS comment_count,
+        (SELECT COUNT(f.id) FROM common_favourite AS f WHERE f.photo_id = p.id) AS favourite_count
       FROM common_photo AS p
       """
   }
@@ -295,6 +297,8 @@ class DBPhotoRepository(override val config: Config)
       res.int("owner"),
       res.boolean("published"),
       res.timestampOpt("deleted_at"),
-      res.stringOpt("cloud_image")
+      res.stringOpt("cloud_image"),
+      res.int("comment_count"),
+      res.int("favourite_count")
     )
 }

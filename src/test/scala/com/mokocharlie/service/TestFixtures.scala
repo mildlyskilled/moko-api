@@ -21,7 +21,9 @@ trait TestFixtures {
     ownerId = 1,
     deletedAt = None,
     published = true,
-    cloudImage = None
+    cloudImage = None,
+    commentCount = 0,
+    favouriteCount = 0
   )
 
   val photo2 = photo1.copy(id = 2, imageId = Some("legacy_2"), name = "Photo number two")
