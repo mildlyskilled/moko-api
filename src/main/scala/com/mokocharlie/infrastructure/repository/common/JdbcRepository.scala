@@ -98,7 +98,7 @@ trait JdbcRepository extends StrictLogging {
   //todo - eliminate this. The default should be good for most uses
   def parameters: JdbcParameters = JdbcParameters.fromConfig(config)
 
-  def readOnlyTransaction[T](f: (DBSession) ⇒ RepositoryResponse[T]): RepositoryResponse[T] =
+  def readOnlyTransaction[T](f: DBSession ⇒ RepositoryResponse[T]): RepositoryResponse[T] =
     using(DB(ConnectionPool.get(ConnectionPool.DEFAULT_NAME).borrow())) {
       _.readOnly { implicit session ⇒
         f(session)
@@ -109,7 +109,7 @@ trait JdbcRepository extends StrictLogging {
     writeTransaction[T](1, "No retries allowed. This should't be ever logged")(f)
 
   def writeTransaction[T](maxAttempts: Int, logMessage: String)(
-      f: (DBSession) ⇒ RepositoryResponse[T]): RepositoryResponse[T] = {
+      f: DBSession ⇒ RepositoryResponse[T]): RepositoryResponse[T] = {
     executeAndRetryOnFail(maxAttempts, logMessage, {
       using(DB(ConnectionPool.get(writePool).borrow())) {
         _.localTx { implicit session ⇒

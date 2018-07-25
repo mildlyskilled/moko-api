@@ -21,6 +21,7 @@ object MokoCharlieApi extends App with CoreServices with StrictLogging {
   }
 
   println(s"Server online at http://$host:$port/\nType 'shutdown' to stop...")
+  logger.info(s"Server online at http://$host:$port")
   Iterator.continually(StdIn.readLine).takeWhile(_ != "shutdown").foreach{ command ⇒
       if ( command != null) println(s"$command not recognised")
   }
