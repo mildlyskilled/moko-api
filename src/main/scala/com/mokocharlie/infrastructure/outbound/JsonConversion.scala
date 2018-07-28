@@ -104,7 +104,7 @@ trait JsonConversion extends DefaultJsonProtocol {
   implicit val documentaryFormat = jsonFormat5(Documentary)
   implicit val tokenFormat = jsonFormat4(Token)
   implicit val contactFormat = jsonFormat6(Contact)
-  implicit val hospitalityFormat = jsonFormat10(Hospitality)
+  implicit val hospitalityFormat = jsonFormat11(Hospitality)
   implicit val storyFormat = jsonFormat6(Story)
 
   // Request Serialisers

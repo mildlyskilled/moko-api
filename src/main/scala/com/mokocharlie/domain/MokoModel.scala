@@ -29,7 +29,8 @@ object MokoModel {
       website: String,
       dateAdded: Timestamp,
       published: Boolean,
-      contact: Contact
+      contact: Contact,
+      album: Album
   ) extends MokoModel
 
   final case class Contact(

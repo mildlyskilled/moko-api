@@ -97,7 +97,8 @@ trait TestFixtures {
     address = "Middle of nowhere",
     website = "http://mokocharlie.com",
     dateAdded = Timestamp.from(Instant.now(clock)),
-    contact = contact1
+    contact = contact1,
+    album = album1
   )
 
   val story1 = Story(

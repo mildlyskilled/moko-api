@@ -1,6 +1,6 @@
 package com.mokocharlie.infrastructure.repository.db
 
-import com.mokocharlie.domain.MokoModel.{Contact, Hospitality}
+import com.mokocharlie.domain.MokoModel.{Album, Contact, Hospitality, Photo}
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.domain.{HospitalityType, Page}
@@ -152,9 +152,36 @@ class DBHospitalityRepository(override val config: Config)
           | c.last_name,
           | c.email,
           | c.telephone,
-          | c.owner_id
+          | c.owner_id,
+          |	a.id,
+          |	a.album_id,
+          |	a.label,
+          |	a.description,
+          |	a.created_at,
+          |	a.updated_at,
+          |	a.published,
+          |	a.featured,
+          |	a.cover_id,
+          |	p.id AS photo_id,
+          |	p.image_id AS legacy_id,
+          |	p.name AS photo_name,
+          |	p.caption AS photo_caption,
+          |	p.created_at AS photo_created_at,
+          |	p.deleted_at AS photo_deleted_at,
+          |	p.`owner` AS photo_owner,
+          |	p.path AS photo_path,
+          |	p.`updated_at` AS photo_updated_at,
+          |	p.cloud_image,
+          |	p.published AS photo_published,
+          | (SELECT COUNT(photo_id) FROM common_photo_albums AS cap WHERE cap.album_id = a.id) AS photo_count,
+          | (SELECT COUNT(c.comment_id) FROM common_comment AS c WHERE c.image_id = p.id AND c.comment_approved) AS comment_count,
+          | (SELECT COUNT(f.id) FROM common_favourite AS f WHERE f.photo_id = p.id) AS favourite_count
           | FROM common_hospitality AS h
           | LEFT JOIN common_contact AS c ON c.id = h.contact_id
+          | LEFT JOIN common_hospitality_albums AS ha ON ha.album_id =
+          |   (SELECT MIN(ha2.album_id) FROM common_hospitality_albums AS ha2 WHERE ha2.hospitality_id = h.id)
+          | LEFT JOIN common_album AS a ON a.id = ha.album_id
+          | LEFT JOIN common_photo p ON a.cover_id = p.id
       """.stripMargin
   }
 
@@ -223,6 +250,37 @@ class DBHospitalityRepository(override val config: Config)
     }
 
   private def toHospitality(rs: WrappedResultSet): Hospitality = {
+    val photo = rs.longOpt("cover_id").map { _ ⇒
+      Photo(
+        rs.int("photo_id"),
+        rs.stringOpt("legacy_id"),
+        rs.string("photo_name"),
+        rs.stringOpt("photo_path"),
+        rs.string("photo_caption"),
+        rs.timestamp("photo_created_at"),
+        rs.timestampOpt("photo_updated_at"),
+        rs.int("photo_owner"),
+        rs.boolean("photo_published"),
+        rs.timestampOpt("photo_deleted_at"),
+        rs.stringOpt("cloud_image"),
+        rs.int("comment_count"),
+        rs.int("favourite_count")
+      )
+    }
+
+    val album = Album(
+      rs.int("id"),
+      rs.longOpt("album_id"),
+      rs.string("label"),
+      rs.string("description"),
+      photo,
+      rs.timestamp("created_at"),
+      rs.timestampOpt("updated_at"),
+      rs.boolean("published"),
+      rs.boolean("featured"),
+      rs.int("photo_count")
+    )
+
     Hospitality(
       id = rs.long("id"),
       name = rs.string("name"),
@@ -240,7 +298,8 @@ class DBHospitalityRepository(override val config: Config)
         email = rs.string("email"),
         telephone = rs.string("telephone"),
         owner = rs.long("owner_id")
-      )
+      ),
+      album = album
     )
   }
 
