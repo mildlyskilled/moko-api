@@ -153,7 +153,7 @@ class DBHospitalityRepository(override val config: Config)
           | c.email,
           | c.telephone,
           | c.owner_id,
-          |	a.id,
+          |	a.id as albumId,
           |	a.album_id,
           |	a.label,
           |	a.description,
@@ -269,7 +269,7 @@ class DBHospitalityRepository(override val config: Config)
     }
 
     val album = Album(
-      rs.int("id"),
+      rs.int("albumId"),
       rs.longOpt("album_id"),
       rs.string("label"),
       rs.string("description"),
