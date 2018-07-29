@@ -29,7 +29,7 @@ trait TestFixtures {
   val photo2 = photo1.copy(id = 2, imageId = Some("legacy_2"), name = "Photo number two")
 
   val album1 = Album(
-    id = 1,
+    id = Some(1),
     albumId = Some(12L),
     label = "Test album",
     description = "This is a test album",
@@ -40,7 +40,7 @@ trait TestFixtures {
     featured = false,
     photoCount = 0
   )
-  val album2: Album = album1.copy(id = 2, cover = None)
+  val album2: Album = album1.copy(id = Some(2), label = "Test Update", cover = None)
 
   val collection1 = Collection(
     id = 1L,

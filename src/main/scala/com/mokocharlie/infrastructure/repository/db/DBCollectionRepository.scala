@@ -93,7 +93,7 @@ class DBCollectionRepository(override val config: Config)
            ${collection.createdAt},
            ${collection.updatedAt},
            ${collection.description},
-           ${collection.coverAlbum.map(_.id)}
+           ${collection.coverAlbum.flatMap(_.id)}
 
            )
          """.updateAndReturnGeneratedKey()
@@ -117,7 +117,7 @@ class DBCollectionRepository(override val config: Config)
                 created_at = ${collection.createdAt},
                 updated_at = ${collection.updatedAt},
                 description = ${collection.description},
-                cover_album_id = ${collection.coverAlbum.map(_.id)}
+                cover_album_id = ${collection.coverAlbum.flatMap(_.id)}
                 WHERE id = ${collection.id}
              """.update
             .apply()
@@ -243,7 +243,7 @@ class DBCollectionRepository(override val config: Config)
       }
 
       Album(
-        id = coverAlbumId,
+        id = rs.longOpt("cover_album_id"),
         albumId = rs.longOpt("legacy_album_id"),
         label = rs.string("album_label"),
         description = rs.string("album_description"),

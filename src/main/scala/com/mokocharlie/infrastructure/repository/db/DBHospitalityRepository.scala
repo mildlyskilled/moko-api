@@ -4,12 +4,12 @@ import com.mokocharlie.domain.MokoModel.{Album, Contact, Hospitality, Photo}
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.domain.{HospitalityType, Page}
-import com.mokocharlie.infrastructure.repository.HospitalityRepository
+import com.mokocharlie.infrastructure.repository.{AlbumRepository, HospitalityRepository}
 import com.mokocharlie.infrastructure.repository.common.{JdbcRepository, RepoUtils}
 import com.typesafe.config.Config
 import scalikejdbc._
 
-class DBHospitalityRepository(override val config: Config)
+class DBHospitalityRepository(override val config: Config, albumRepository: AlbumRepository)
     extends HospitalityRepository
     with JdbcRepository
     with RepoUtils {
@@ -32,7 +32,8 @@ class DBHospitalityRepository(override val config: Config)
               .apply()
           Right(Page(hospitality, page, offset(page, limit), total().toOption))
         } catch {
-          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+          case ex: Exception ⇒
+            Left(DatabaseServiceError(s"${ex.getClass} = ex.getMessage"))
         }
       }
     } catch {
@@ -41,10 +42,11 @@ class DBHospitalityRepository(override val config: Config)
 
   override def hospitalityById(id: Long): RepositoryResponse[Hospitality] =
     try {
+      logger.info(s"Retrieving hospitality with id $id")
       readOnlyTransaction { implicit session ⇒
         sql"""
-             $defaultSelect
-           WHERE h.id = $id
+            $defaultSelect
+            WHERE h.id = ${id}
            """
           .map(h ⇒ Right(toHospitality(h)))
           .single
@@ -60,7 +62,7 @@ class DBHospitalityRepository(override val config: Config)
       writeTransaction(3, s"Could not create new ${hospitality.hospitalityType}") {
         implicit session ⇒
           try {
-            val id =
+            val hospitalityId =
               sql"""
               INSERT INTO common_hospitality (
               featured,
@@ -86,11 +88,25 @@ class DBHospitalityRepository(override val config: Config)
               )
           """.updateAndReturnGeneratedKey()
                 .apply()
-            Right(id)
+            if (hospitalityId > 0) {
+              albumRepository.albumById(hospitality.album.id) match {
+                case Right(album) ⇒
+                  sql"""
+                    INSERT into common_hospitality_albums (album_id, hospitality_id)
+                    VALUES (${album.id}, $hospitalityId)
+                  """
+                    .updateAndReturnGeneratedKey()
+                    .apply()
+                    Right(hospitalityId)
+                case Left(ex) ⇒ Left(ex)
+              }
+            } else Left(DatabaseServiceError(
+              s"Could not create ${hospitality.hospitalityType.value} ($hospitality) Zero response received on create"))
+
           } catch {
             case ex: Exception ⇒
               Left(DatabaseServiceError(
-                s"Could not create ${hospitality.hospitalityType.value} (${hospitality.name}): ${ex.getMessage}"))
+                s"Could not create ${hospitality.hospitalityType.value} ($hospitality): ${ex.getMessage}"))
           }
       }
     } catch {
@@ -100,6 +116,7 @@ class DBHospitalityRepository(override val config: Config)
   override def update(hospitality: Hospitality): RepositoryResponse[Long] =
     try {
       writeTransaction(3, "Could not run update ") { implicit session ⇒
+        logger.info(s"UPDATING hospitality of id ${hospitality.id}")
         try {
           sql"$defaultSelect WHERE h.id = ${hospitality.id}"
             .map(toHospitality)
@@ -135,6 +152,57 @@ class DBHospitalityRepository(override val config: Config)
       case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
+  override def hospitalityByType(
+      hType: HospitalityType,
+      page: Int,
+      limit: Int,
+      publishedOnly: Option[Boolean]): RepositoryResponse[Page[Hospitality]] =
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          val hospitality =
+            sql"$defaultSelect WHERE h.hospitality_type = ${hType.value} ${selectPublished(publishedOnly, "AND")}"
+              .map(toHospitality)
+              .list
+              .apply()
+          Right(
+            Page(
+              hospitality,
+              page,
+              offset(page, limit),
+              total(sqls"WHERE h.hospitality_type = ${hType.value}").toOption))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
+      }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+    }
+
+  override def featured(
+      page: Int,
+      limit: Int,
+      publishedOnly: Option[Boolean]): RepositoryResponse[Page[Hospitality]] =
+    try {
+      readOnlyTransaction { implicit session ⇒
+        try {
+          val res = sql"""
+              $defaultSelect
+              WHERE h.featured = 1
+              ${selectPublished(publishedOnly, "AND")}
+            """
+            .map(h ⇒ toHospitality(h))
+            .list
+            .apply()
+          Right(Page(res, page, offset(page, limit), total().toOption))
+        } catch {
+          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+        }
+      }
+    } catch {
+      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
+    }
+
   private val defaultSelect = {
     sqls"""
           | SELECT
@@ -153,14 +221,14 @@ class DBHospitalityRepository(override val config: Config)
           | c.email,
           | c.telephone,
           | c.owner_id,
-          |	a.id as albumId,
-          |	a.album_id,
-          |	a.label,
-          |	a.description,
-          |	a.created_at,
-          |	a.updated_at,
-          |	a.published,
-          |	a.featured,
+          |	a.id AS albumId,
+          |	a.album_id AS legacy_album_id,
+          |	a.label AS album_label,
+          |	a.description AS album_description,
+          |	a.created_at AS album_created_at,
+          |	a.updated_at AS album_updated_at,
+          |	a.published AS album_published,
+          |	a.featured AS album_featured,
           |	a.cover_id,
           |	p.id AS photo_id,
           |	p.image_id AS legacy_id,
@@ -179,59 +247,12 @@ class DBHospitalityRepository(override val config: Config)
           | FROM common_hospitality AS h
           | LEFT JOIN common_contact AS c ON c.id = h.contact_id
           | LEFT JOIN common_hospitality_albums AS ha ON ha.album_id =
-          |   (SELECT MIN(ha2.album_id) FROM common_hospitality_albums AS ha2 WHERE ha2.hospitality_id = h.id)
+          |   (SELECT MIN(ha2.album_id) FROM common_hospitality_albums AS ha2 WHERE ha2.hospitality_id = h.id LIMIT 1)
           | LEFT JOIN common_album AS a ON a.id = ha.album_id
           | LEFT JOIN common_photo p ON a.cover_id = p.id
       """.stripMargin
   }
 
-  override def hospitalityByType(
-      hType: HospitalityType,
-      page: Int,
-      limit: Int,
-      publishedOnly: Option[Boolean]): RepositoryResponse[Page[Hospitality]] =
-    try {
-      readOnlyTransaction { implicit session ⇒
-        try {
-          val hospitality =
-            sql"$defaultSelect WHERE h.hospitality_type = ${hType.value} ${selectPublished(publishedOnly, "AND")}"
-              .map(r ⇒ toHospitality(r))
-              .list
-              .apply()
-          Right(
-            Page(
-              hospitality,
-              page,
-              offset(page, limit),
-              total(sqls"WHERE h.hospitality_type = ${hType.value}").toOption))
-        } catch {
-          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
-        }
-      }
-    } catch {
-      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
-    }
-
-  def featured(page: Int, limit: Int, publishedOnly: Option[Boolean]): RepositoryResponse[Page[Hospitality]] =
-    try{
-      readOnlyTransaction{ implicit session ⇒
-        try{
-          val res = sql"""
-              $defaultSelect
-              WHERE h.featured = 1
-              ${selectPublished(publishedOnly, "AND")}
-            """
-            .map(toHospitality)
-            .list
-            .apply()
-          Right(Page(res, page, offset(page, limit), total().toOption))
-        } catch {
-          case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
-        }
-      }
-    }catch {
-      case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
-    }
   private def total(wherePredicate: SQLSyntax = sqls""): RepositoryResponse[Int] =
     try {
       readOnlyTransaction { implicit session ⇒
@@ -269,16 +290,25 @@ class DBHospitalityRepository(override val config: Config)
     }
 
     val album = Album(
-      rs.int("albumId"),
-      rs.longOpt("album_id"),
-      rs.string("label"),
-      rs.string("description"),
+      rs.longOpt("albumId"),
+      rs.longOpt("legacy_album_id"),
+      rs.string("album_label"),
+      rs.string("album_description"),
       photo,
-      rs.timestamp("created_at"),
-      rs.timestampOpt("updated_at"),
-      rs.boolean("published"),
-      rs.boolean("featured"),
+      rs.timestamp("album_created_at"),
+      rs.timestampOpt("album_updated_at"),
+      rs.boolean("album_published"),
+      rs.boolean("album_featured"),
       rs.int("photo_count")
+    )
+
+    val contact = Contact(
+      id = rs.long("contact_id"),
+      firstName = rs.string("first_name"),
+      lastName = rs.string("last_name"),
+      email = rs.string("email"),
+      telephone = rs.string("telephone"),
+      owner = rs.long("owner_id")
     )
 
     Hospitality(
@@ -291,14 +321,7 @@ class DBHospitalityRepository(override val config: Config)
       website = rs.string("website"),
       dateAdded = rs.timestamp("date_added"),
       published = rs.boolean("published"),
-      contact = Contact(
-        id = rs.long("contact_id"),
-        firstName = rs.string("first_name"),
-        lastName = rs.string("last_name"),
-        email = rs.string("email"),
-        telephone = rs.string("telephone"),
-        owner = rs.long("owner_id")
-      ),
+      contact = contact,
       album = album
     )
   }

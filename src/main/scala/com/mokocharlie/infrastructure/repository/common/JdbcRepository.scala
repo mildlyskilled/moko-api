@@ -53,16 +53,16 @@ object JdbcRepository {
 
 trait JdbcRepository extends StrictLogging {
 
-  GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
-    //enabled = true,
-    //singleLineMode = true,
-    //printUnprocessedStackTrace = false,
-    //stackTraceDepth = 15,
-    //logLevel = 'debug,
-    //warningEnabled = false,
-    //warningThresholdMillis = 3000L,
-    //warningLogLevel = 'warn
-  )
+  /*GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
+    enabled = true,
+    singleLineMode = true,
+    printUnprocessedStackTrace = false,
+    stackTraceDepth = 15,
+    logLevel = 'debug,
+    warningEnabled = false,
+    warningThresholdMillis = 3000L,
+    warningLogLevel = 'warn
+  )*/
 
   val writePool = "write"
 

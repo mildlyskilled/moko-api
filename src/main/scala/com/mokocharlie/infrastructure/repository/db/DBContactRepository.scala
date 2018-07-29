@@ -51,6 +51,7 @@ class DBContactRepository(override val config: Config)
           """
             .updateAndReturnGeneratedKey()
             .apply()
+          logger.info(s"Created contact ($id)")
           Right(id)
         } catch {
           case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
@@ -81,12 +82,15 @@ class DBContactRepository(override val config: Config)
                     telephone = ${contact.telephone},
                     owner_id = ${contact.owner}
                 """.update.apply()
-              if (res > 0) Right(contact.id)
-              else Left(DatabaseServiceError(s"Could not update contact with id: {$contact.id}"))
+              if (res > 0) {
+                logger.info(s"Updated contact {$contact.id}")
+                Right(contact.id)
+              } else Left(DatabaseServiceError(s"Could not update contact with id: {$contact.id}"))
             }
             .getOrElse(Left(EmptyResultSet(s"Did not find $contact")))
         } catch {
-          case ex: Exception ⇒ Left(DatabaseServiceError(s"Could not update $contact ${ex.getMessage}"))
+          case ex: Exception ⇒
+            Left(DatabaseServiceError(s"Could not update $contact ${ex.getMessage}"))
         }
       }
     } catch {

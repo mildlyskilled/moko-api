@@ -1,6 +1,7 @@
 package com.mokocharlie.service
 
 import akka.actor.ActorSystem
+import com.mokocharlie.domain.common.MokoCharlieServiceError.EmptyResultSet
 import com.mokocharlie.infrastructure.repository._
 import com.mokocharlie.infrastructure.repository.db.{DBAlbumRepository, DBCollectionRepository, DBCommentRepository, DBPhotoRepository}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -53,7 +54,7 @@ class CollectionServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixt
             albumService.list(1, 5).flatMap {
               case Right(albums) ⇒
                 collectionService
-                  .saveAlbumToCollection(collection1.id, albums.items.map(_.id))
+                  .saveAlbumToCollection(collection1.id, albums.items.flatMap(_.id))
                   .flatMap {
                     case Right(_) ⇒
                       albumService.collectionAlbums(collection1.id, 1, 5).map {
@@ -65,17 +66,17 @@ class CollectionServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixt
                   }
               case Left(ex) ⇒ fail(s"Should retrieve albums ${ex.msg}")
             }
-          case Left(ex) ⇒ fail(s"Should have creaed album2 ${ex.msg}")
+          case Left(ex) ⇒ fail(s"Should have created album2 ${ex.msg}")
         }
       case Left(ex) ⇒ fail(s"Should have created album1 ${ex.msg}")
     }
   }
 
   it should "remove albums form collection" in {
-    collectionService.removeAlbumFromCollection(collection1.id, Seq(album1.id, album2.id)).flatMap {
+    collectionService.removeAlbumFromCollection(collection1.id, Seq(album1.id.get, album2.id.get)).flatMap {
       case Right(_) ⇒ albumService.collectionAlbums(collection1.id, 1, 5).map {
         case Right(albumPage) ⇒ albumPage.items should not contain allOf(album1, album2)
-        case Left(ex) ⇒ fail(s"Could not retrieve albums in collection ${ex.msg}")
+        case Left(ex) ⇒ ex shouldBe a[EmptyResultSet]
       }
       case Left(ex) ⇒ fail(s"Could not remove album from collection ${ex.msg}")
     }

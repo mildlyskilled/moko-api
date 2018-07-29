@@ -25,7 +25,7 @@ class ServiceTests
   }
 
   override def afterAll(): Unit = {
-    purgeTables()
+    //purgeTables()
     release()
   }
 }

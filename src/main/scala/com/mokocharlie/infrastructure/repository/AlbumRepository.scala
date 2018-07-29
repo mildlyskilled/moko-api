@@ -21,6 +21,8 @@ trait AlbumRepository {
 
   def albumById(albumID: Long): RepositoryResponse[Album]
 
+  def albumById(albumID: Option[Long]): RepositoryResponse[Album]
+
   def featuredAlbums(
       page: Int = 1,
       limit: Int = 10,

@@ -75,6 +75,10 @@ trait TestDBUtils extends StrictLogging {
     sql"TRUNCATE TABLE common_photostory".executeUpdate().apply()
   }
 
+  private def purgeHospitalityAlbumJoinTable(): Int = DB.localTx{ implicit session ⇒
+    sql"TRUNCATE TABLE common_hospitality_albums".executeUpdate().apply()
+  }
+
   def purgeTables(): Int = {
     foreignKeys(0)
     purgeUsers()
@@ -89,6 +93,7 @@ trait TestDBUtils extends StrictLogging {
     purgeHospitality()
     purgeContacts()
     purgeStories()
+    purgeHospitalityAlbumJoinTable()
     foreignKeys(1)
   }
 

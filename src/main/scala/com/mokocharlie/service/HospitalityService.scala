@@ -10,8 +10,10 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.ExecutionContext
 
-class HospitalityService(repo: HospitalityRepository, contactService: ContactService)(
-    implicit val system: ActorSystem)
+class HospitalityService(
+    repo: HospitalityRepository,
+    contactService: ContactService,
+    albumService: AlbumService)(implicit val system: ActorSystem)
     extends MokoCharlieService
     with StrictLogging {
 
@@ -24,30 +26,52 @@ class HospitalityService(repo: HospitalityRepository, contactService: ContactSer
     dbExecute(repo.list(page, limit, publishedOnly))
 
   def createOrUpdate(hospitality: Hospitality): ServiceResponse[Long] =
-    contactService
-      .createOrUpdate(hospitality.contact)
-      .map {
+    for {
+      aid ← albumService.createOrUpdate(hospitality.album)
+      cid ← contactService.createOrUpdate(hospitality.contact)
+    } yield {
+      cid match {
         case Right(contactId) ⇒
-          logger.info(s"THIS IS THE NEW contactID $contactId")
-          repo
-            .hospitalityById(hospitality.id) match {
-            case Right(_) ⇒
-              repo.update(hospitality.copy(contact = hospitality.contact.copy(id = contactId)))
-            case Left(EmptyResultSet(_)) ⇒
-              repo.create(hospitality.copy(contact = hospitality.contact.copy(id = contactId)))
-            case Left(e) ⇒ Left(e)
+          aid match {
+            case Right(albumId) ⇒
+              repo.hospitalityById(hospitality.id) match {
+                case Right(_) ⇒
+                  repo.update(
+                    hospitality.copy(
+                      contact = hospitality.contact.copy(id = contactId),
+                      album = hospitality.album.copy(id = Some(albumId))
+                    ))
+                case Left(EmptyResultSet(_)) ⇒
+                  repo.create(
+                    hospitality.copy(
+                      contact = hospitality.contact.copy(id = contactId),
+                      album = hospitality.album.copy(id = Some(albumId))
+                    ))
+                case Left(ex) ⇒ Left(ex)
+              }
+            case Left(ex) ⇒
+              logger.warn(s"Album not found for this ${hospitality.hospitalityType}.")
+              Left(ex)
           }
-
-        case Left(e) ⇒ Left(e)
+        case Left(ex) ⇒
+          logger.error(s"Could not create nor find a contact for this ${hospitality.hospitalityType} aborting...")
+          Left(ex)
       }
+    }
 
-
-  def hospitalityByType(hType: HospitalityType, page: Int, limit: Int, publishedOnly : Option[Boolean]): ServiceResponse[Page[Hospitality]] =
-    dbExecute{repo.hospitalityByType(hType, page, limit, publishedOnly)}
+  def hospitalityByType(
+      hType: HospitalityType,
+      page: Int,
+      limit: Int,
+      publishedOnly: Option[Boolean]): ServiceResponse[Page[Hospitality]] =
+    dbExecute { repo.hospitalityByType(hType, page, limit, publishedOnly) }
 
   def hospitalityById(id: Long): ServiceResponse[Hospitality] =
     dbExecute(repo.hospitalityById(id))
 
-  def featured(page: Int, limit: Int, publishedOnly: Option[Boolean]): ServiceResponse[Page[Hospitality]] =
+  def featured(
+      page: Int,
+      limit: Int,
+      publishedOnly: Option[Boolean]): ServiceResponse[Page[Hospitality]] =
     dbExecute(repo.featured(page, limit, publishedOnly))
 }

@@ -13,16 +13,16 @@ import scalikejdbc._
 import scala.collection.immutable.Seq
 
 class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepository)
-  extends AlbumRepository
+    extends AlbumRepository
     with JdbcRepository
     with RepoUtils
     with StrictLogging {
 
   def list(
-            page: Int,
-            limit: Int,
-            exclude: Seq[Long] = Seq.empty,
-            publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
+      page: Int,
+      limit: Int,
+      exclude: Seq[Long] = Seq.empty,
+      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
     try {
       readOnlyTransaction { implicit session ⇒
         try {
@@ -48,18 +48,17 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
     }
 
   def collectionAlbums(
-                        collectionID: Long,
-                        page: Int = 1,
-                        limit: Int = 10,
-                        publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
+      collectionID: Long,
+      page: Int = 1,
+      limit: Int = 10,
+      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
     try {
       readOnlyTransaction { implicit session ⇒
         try {
           val albums =
             sql"""
             ${defaultSelect}
-            LEFT JOIN common_collection_albums AS cab
-            ON cab.album_id = a.id
+            LEFT JOIN common_collection_albums AS cab ON cab.album_id = a.id
             WHERE cab.collection_id = $collectionID
             ${selectPublished(publishedOnly, "AND")}
             $defaultOrdering
@@ -79,7 +78,14 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
       case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
     }
 
-  def albumById(albumID: Long): RepositoryResponse[Album] =
+  override def albumById(albumID: Option[Long]): RepositoryResponse[Album] =
+    albumID
+      .map { id ⇒
+        albumById(id)
+      }
+      .getOrElse(Left(DatabaseServiceError("Album id not provided")))
+
+  override def albumById(albumID: Long): RepositoryResponse[Album] =
     try {
       readOnlyTransaction { implicit session ⇒
         try {
@@ -101,9 +107,9 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
     }
 
   def featuredAlbums(
-                      page: Int = 1,
-                      limit: Int = 10,
-                      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
+      page: Int = 1,
+      limit: Int = 10,
+      publishedOnly: Option[Boolean] = Some(true)): RepositoryResponse[Page[Album]] =
     try {
       readOnlyTransaction { implicit session ⇒
         try {
@@ -140,8 +146,10 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
           ${album.updatedAt},
           ${album.published},
           ${album.featured},
-          ${album.cover.map(_.id)})""".updateAndReturnGeneratedKey
+          ${album.cover.map(_.id)})"""
+            .updateAndReturnGeneratedKey
             .apply()
+            logger.info(s"Album created ($id)")
           Right(id)
         } catch {
           case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
@@ -167,8 +175,12 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
            cover_id = ${album.cover.map(_.id)}
            WHERE id = ${album.id}
         """.update.apply()
-          if (update > 0) Right(album.id)
-          else Left(DatabaseServiceError(s"Could not update album: ${album.id}"))
+          if (update > 0) {
+            album.id.map{ id ⇒
+              logger.info(s"Album updated ($id)")
+              Right(id)
+            }.getOrElse(Left(DatabaseServiceError("Could not get id")))
+          } else Left(DatabaseServiceError(s"Could not update album: ${album.id}"))
         } catch {
           case ex: Exception ⇒ Left(DatabaseServiceError(ex.getMessage))
         }
@@ -181,9 +193,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
     writeTransaction(1, "Could not update album") { implicit session ⇒
       try {
         val inserts = photoIds.map(id ⇒ Seq(albumId, id))
-        val res = sql"""INSERT INTO common_photo_albums (album_id, photo_id)
-           VALUES (?, ?)
-         """
+        val res = sql"""INSERT INTO common_photo_albums (album_id, photo_id) VALUES (?, ?)"""
           .batch(inserts: _*)
           .apply()
         Right(res)
@@ -198,9 +208,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
       writeTransaction(3, s"Could not remove photos from album $albumId") { implicit session ⇒
         try {
           val deletes = photoIds.map(id ⇒ Seq(albumId, id))
-          val res = sql"""
-          DELETE FROM common_photo_albums
-          WHERE photo_id = ? AND album_id = ? """
+          val res = sql"DELETE FROM common_photo_albums WHERE photo_id = ? AND album_id = ?"
             .batch(deletes: _*)
             .apply()
           Right(res)
@@ -278,7 +286,7 @@ class DBAlbumRepository(override val config: Config, photoRepository: PhotoRepos
     }
 
     Album(
-      rs.int("id"),
+      rs.longOpt("id"),
       rs.longOpt("album_id"),
       rs.string("label"),
       rs.string("description"),

@@ -23,4 +23,7 @@ class ContactService(contactRepo: ContactRepository)(implicit val system: ActorS
           contactRepo.create(contact)
         }
     }
+
+  def contactById(id: Long): ServiceResponse[Contact] =
+    dbExecute(contactRepo.contactById(id))
 }

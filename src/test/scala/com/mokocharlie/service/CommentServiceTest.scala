@@ -51,7 +51,7 @@ class CommentServiceTest extends AsyncFlatSpec with Matchers with TestFixtures w
   }
 
   it should "get comments given an album id" in {
-    commentService.commentsByAlbum(album1.id, 1, 10, Some(true)).map {
+    commentService.commentsByAlbum(album1.id.get, 1, 10, Some(true)).map {
       case Right(comments) ⇒ comments.isEmpty shouldBe false
       case Left(ex) ⇒ fail(s"Comments should have been retrieved ${ex.msg}")
     }

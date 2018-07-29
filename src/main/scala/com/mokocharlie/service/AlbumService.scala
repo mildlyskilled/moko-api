@@ -5,13 +5,14 @@ import com.mokocharlie.domain.MokoModel.Album
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.infrastructure.repository.AlbumRepository
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.collection.immutable.Seq
 import scala.concurrent.ExecutionContextExecutor
 
 class AlbumService(albumRepo: AlbumRepository, photoService: PhotoService)(
     implicit override val system: ActorSystem)
-    extends MokoCharlieService {
+    extends MokoCharlieService with StrictLogging {
 
   implicit val ec: ExecutionContextExecutor = system.dispatcher
 
@@ -19,7 +20,10 @@ class AlbumService(albumRepo: AlbumRepository, photoService: PhotoService)(
     album.cover
       .map { cover ⇒
         photoService.createOrUpdate(cover).map {
-          case Right(_) ⇒ albumRepo.create(album)
+          case Right(_) ⇒
+            albumRepo.albumById(album.id)
+              .map(_ ⇒ albumRepo.update(album))
+              .getOrElse(albumRepo.create(album))
           case Left(e) ⇒ Left(e)
         }
       }
@@ -27,8 +31,10 @@ class AlbumService(albumRepo: AlbumRepository, photoService: PhotoService)(
         dbExecute {
           albumRepo
             .albumById(album.id)
-            .map(_ ⇒ albumRepo.update(album))
-            .getOrElse(albumRepo.create(album))
+            .map{_ ⇒
+              logger.info(s"Found album with id ${album.id} updating...")
+              albumRepo.update(album)
+            }.getOrElse(albumRepo.create(album))
         }
       }
   }

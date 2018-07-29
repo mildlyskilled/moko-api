@@ -58,7 +58,7 @@ class AlbumServiceTest
   }
 
   it should "eventually be updated when values are changed" in {
-    albumService.createOrUpdate(album1.copy(label = "Test Update")).flatMap {
+    albumService.createOrUpdate(album2).flatMap {
       case Right(id) ⇒
         albumService.albumById(id).map {
           case Right(album) ⇒ album.label shouldBe "Test Update"
@@ -73,9 +73,9 @@ class AlbumServiceTest
       .createOrUpdate(photo2)
       .flatMap {
         case Right(newImageId) ⇒
-          albumService.savePhotosToAlbum(album1.id, Seq(photo1.id, newImageId)).flatMap {
+          albumService.savePhotosToAlbum(album1.id.get, Seq(photo1.id, newImageId)).flatMap {
             case Right(_) ⇒
-              photoService.photosByAlbum(album1.id, 1, 3).map {
+              photoService.photosByAlbum(album1.id.get, 1, 3).map {
                 case Right(photos) ⇒ photos.items should contain allOf (
                   photo1.copy(commentCount = 0, favouriteCount = 0),
                   photo2.copy(commentCount = 0, favouriteCount = 0))
@@ -88,9 +88,9 @@ class AlbumServiceTest
   }
 
   it should "remove images from a given album" in {
-    albumService.removePhotosFromAlbum(album1.id, Seq(photo1.id)).flatMap {
+    albumService.removePhotosFromAlbum(album1.id.get, Seq(photo1.id)).flatMap {
       case Right(_) ⇒
-        photoService.photosByAlbum(album1.id, 1, 3).map {
+        photoService.photosByAlbum(album1.id.get, 1, 3).map {
           case Right(photos) ⇒
             photos.items should not contain photo1
           case Left(ex) ⇒ fail(s"Failed to  ${ex.msg}")
@@ -100,7 +100,7 @@ class AlbumServiceTest
   }
 
   it should "still contain remaining photo" in {
-    photoService.photosByAlbum(album1.id, 1, 3).map {
+    photoService.photosByAlbum(album1.id.get, 1, 3).map {
       case Right(photos) ⇒ photos.items should contain(photo2)
       case Left(ex) ⇒ fail(s"Failed to fetch images ${ex.msg}")
     }

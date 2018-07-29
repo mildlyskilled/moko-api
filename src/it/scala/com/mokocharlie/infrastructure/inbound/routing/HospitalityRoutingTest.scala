@@ -10,7 +10,7 @@ import com.mokocharlie.domain.common.SettableClock
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.repository.db._
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
-import com.mokocharlie.service.{ContactService, HospitalityService, UserService}
+import com.mokocharlie.service._
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{FlatSpec, Matchers}
 import spray.json._
@@ -25,15 +25,20 @@ class HospitalityRoutingTest
 
   implicit val timeout: RouteTestTimeout = RouteTestTimeout(5.seconds dilated)
   private val config = ConfigFactory.load()
-  private val hospitalityRepo = new DBHospitalityRepository(config)
   private val contactRepo = new DBContactRepository(config)
   private val contactService = new ContactService(contactRepo)
   private val userRepository = new DBUserRepository(config)
+  private val photoRepository = new DBPhotoRepository(config)
+  private val commentRepository = new DBCommentRepository(config)
+  private val photoService = new PhotoService(photoRepository, commentRepository)
+  private val albumRepository = new DBAlbumRepository(config, photoRepository)
+  private val albumService = new AlbumService(albumRepository, photoService)
   private val tokenRepository = new DBTokenRepository(config)
   private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
   implicit val userService: UserService =
     new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
-  val hospitalityService = new HospitalityService(hospitalityRepo, contactService)
+  private val hospitalityRepo = new DBHospitalityRepository(config, albumRepository)
+  val hospitalityService = new HospitalityService(hospitalityRepo, contactService, albumService)
 
   val hospitalityRoute = new HospitalityRouting(hospitalityService, userService).routes
 

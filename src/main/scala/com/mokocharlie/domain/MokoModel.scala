@@ -2,12 +2,14 @@ package com.mokocharlie.domain
 
 import java.sql.Timestamp
 
+import scalikejdbc._
+
 sealed trait MokoModel
 
 object MokoModel {
 
   final case class Album(
-      id: Long = 0L,
+      id: Option[Long] = Some(0L),
       albumId: Option[Long],
       label: String,
       description: String,

@@ -159,7 +159,7 @@ class DBStoryRepository(override val config: Config)
     }
 
     val album = Album(
-      id = rs.long("album_id"),
+      id = rs.longOpt("album_id"),
       albumId = rs.longOpt("legacy_album_id"),
       label = rs.string("album_label"),
       description = rs.string("album_description"),

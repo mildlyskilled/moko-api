@@ -38,10 +38,10 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   private val commentService = new CommentService(commentRepository)
   private val storyRepository = new DBStoryRepository(config)
   private val storyService = new StoryService(storyRepository)
-  private val hospitalityRepository = new DBHospitalityRepository(config)
+  private val hospitalityRepository = new DBHospitalityRepository(config, albumRepository)
   private val contactRepository = new DBContactRepository(config)
   private val contactService = new ContactService(contactRepository)
-  private val hospitalityService = new HospitalityService(hospitalityRepository, contactService)
+  private val hospitalityService = new HospitalityService(hospitalityRepository, contactService, albumService)
 
   private val healthCheckService = new HealthCheckService(new DBHealthCheck(config))
 
