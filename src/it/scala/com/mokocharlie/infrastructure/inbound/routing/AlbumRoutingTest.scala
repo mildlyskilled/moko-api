@@ -40,13 +40,13 @@ class AlbumRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers wi
       val albumPage = responseAs[String].parseJson.convertTo[Page[Album]]
       albumPage.page shouldBe 2
       albumPage.items should have size 10
-      albumPage.items.head.id shouldBe 193
+      albumPage.items.head.id shouldBe Some(193)
     }
   }
 
   it should "return a given album id 23" in {
     Get("/albums/23") ~> albumRoute ~> check {
-      responseAs[String].parseJson.convertTo[Album].id shouldBe 23
+      responseAs[String].parseJson.convertTo[Album].id shouldBe Some(23)
     }
   }
 
