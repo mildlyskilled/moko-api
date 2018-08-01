@@ -42,6 +42,8 @@ trait TestFixtures {
   )
   val album2: Album = album1.copy(id = Some(2), label = "Test Update", cover = None)
 
+  val album3: Album = album2.copy(published = false)
+
   val collection1 = Collection(
     id = 1L,
     name = "Hotels",

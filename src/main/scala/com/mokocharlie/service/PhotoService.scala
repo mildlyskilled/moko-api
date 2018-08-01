@@ -50,7 +50,7 @@ class PhotoService(photoRepo: DBPhotoRepository, commentRepo: CommentRepository)
   def photoById(id: String): ServiceResponse[Photo] =
     dbExecute(photoRepo.photoById(id))
 
-  def photosByAlbum(id: Long, pageNumber: Int, limit: Int): ServiceResponse[Page[Photo]] =
-    dbExecute(photoRepo.photosByAlbumId(id, pageNumber, limit))
+  def photosByAlbum(id: Long, pageNumber: Int, limit: Int, publishedOnly: Option[Boolean]): ServiceResponse[Page[Photo]] =
+    dbExecute(photoRepo.photosByAlbumId(id, pageNumber, limit, publishedOnly))
 
 }

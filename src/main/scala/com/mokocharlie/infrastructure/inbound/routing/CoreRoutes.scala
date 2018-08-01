@@ -60,7 +60,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   } ~ {
     new PhotoRouting(photoService, commentService, clock, userService).routes
   } ~ {
-    new AlbumRouting(albumService).routes
+    new AlbumRouting(albumService, userService).routes
   } ~ {
     new UserRouting(userService).routes
   } ~ {

@@ -45,10 +45,23 @@ class AlbumServiceTest
   }
 
   it should "eventually return a list of albums" in {
-    albumService.list(1, 10).map {
+    albumService.list(1, 10, Seq.empty, None).map {
       case Right(albumPage) ⇒ albumPage should have size 2
       case Left(ex) ⇒ fail(s"Album service must return a  successful result {$ex}")
     }
+  }
+
+  it should "eventually return a list of albums without published ones " in {
+    albumService
+      .createOrUpdate(album3)
+      .flatMap {
+        case Right(_) ⇒
+          albumService.list(1, 3, Seq.empty, Some(true)).map {
+            case Right(albumPage) ⇒ albumPage.items should not contain album3
+            case Left(ex) ⇒ fail(s"A list should have been return got: ${ex.msg}")
+          }
+        case Left(ex) ⇒ fail(s"An album should have been created got: ${ex.msg}")
+      }
   }
 
   it should "eventually return a EmptyResultError when given a non-existent id " in {
@@ -75,7 +88,7 @@ class AlbumServiceTest
         case Right(newImageId) ⇒
           albumService.savePhotosToAlbum(album1.id.get, Seq(photo1.id, newImageId)).flatMap {
             case Right(_) ⇒
-              photoService.photosByAlbum(album1.id.get, 1, 3).map {
+              photoService.photosByAlbum(album1.id.get, 1, 3, None).map {
                 case Right(photos) ⇒ photos.items should contain allOf (
                   photo1.copy(commentCount = 0, favouriteCount = 0),
                   photo2.copy(commentCount = 0, favouriteCount = 0))
@@ -90,7 +103,7 @@ class AlbumServiceTest
   it should "remove images from a given album" in {
     albumService.removePhotosFromAlbum(album1.id.get, Seq(photo1.id)).flatMap {
       case Right(_) ⇒
-        photoService.photosByAlbum(album1.id.get, 1, 3).map {
+        photoService.photosByAlbum(album1.id.get, 1, 3, None).map {
           case Right(photos) ⇒
             photos.items should not contain photo1
           case Left(ex) ⇒ fail(s"Failed to  ${ex.msg}")
@@ -100,7 +113,7 @@ class AlbumServiceTest
   }
 
   it should "still contain remaining photo" in {
-    photoService.photosByAlbum(album1.id.get, 1, 3).map {
+    photoService.photosByAlbum(album1.id.get, 1, 3, None).map {
       case Right(photos) ⇒ photos.items should contain(photo2)
       case Left(ex) ⇒ fail(s"Failed to fetch images ${ex.msg}")
     }

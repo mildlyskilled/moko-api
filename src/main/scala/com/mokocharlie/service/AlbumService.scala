@@ -39,8 +39,8 @@ class AlbumService(albumRepo: AlbumRepository, photoService: PhotoService)(
       }
   }
 
-  def list(page: Int, limit: Int, exclude: Seq[Long] = Seq.empty): ServiceResponse[Page[Album]] =
-    dbExecute(albumRepo.list(page, limit, exclude))
+  def list(page: Int, limit: Int, exclude: Seq[Long] = Seq.empty, publishedOnly: Option[Boolean]): ServiceResponse[Page[Album]] =
+    dbExecute(albumRepo.list(page, limit, exclude, publishedOnly))
 
   def albumById(id: Long): ServiceResponse[Album] =
     dbExecute(albumRepo.albumById(id))

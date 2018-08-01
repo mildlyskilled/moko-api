@@ -51,7 +51,7 @@ class CollectionServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixt
       case Right(_) ⇒
         albumService.createOrUpdate(album2).flatMap {
           case Right(_) ⇒
-            albumService.list(1, 5).flatMap {
+            albumService.list(1, 5, Seq.empty, None).flatMap {
               case Right(albums) ⇒
                 collectionService
                   .saveAlbumToCollection(collection1.id, albums.items.flatMap(_.id))
