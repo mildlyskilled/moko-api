@@ -1,4 +1,4 @@
-package com.mokocharlie.infrastructure.service
+package com.mokocharlie.service
 
 import java.sql.Timestamp
 import java.time.{Clock, Instant, LocalDateTime}
