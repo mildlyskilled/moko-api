@@ -53,7 +53,7 @@ object JdbcRepository {
 
 trait JdbcRepository extends StrictLogging {
 
-  /*GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
+  GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
     enabled = true,
     singleLineMode = true,
     printUnprocessedStackTrace = false,
@@ -62,7 +62,7 @@ trait JdbcRepository extends StrictLogging {
     warningEnabled = false,
     warningThresholdMillis = 3000L,
     warningLogLevel = 'warn
-  )*/
+  )
 
   val writePool = "write"
 
