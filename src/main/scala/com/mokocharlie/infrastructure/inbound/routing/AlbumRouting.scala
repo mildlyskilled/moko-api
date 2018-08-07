@@ -42,7 +42,7 @@ class AlbumRouting(albumService: AlbumService, override val userService: UserSer
                 }
               }
               .getOrElse {
-                onSuccess(albumService.list(pageNumber, limit, Seq.empty, None)) {
+                onSuccess(albumService.list(pageNumber, limit, Seq.empty, Some(true))) {
                   case Right(albumPage) ⇒ complete(albumPage)
                   case Left(exc) ⇒ completeWithError(exc)
                 }
