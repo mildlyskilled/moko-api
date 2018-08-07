@@ -8,7 +8,7 @@ import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.Password
 import com.mokocharlie.domain.common.SettableClock
 
-trait TestFixtures {
+trait ITTestFixtures {
   val clock: Clock = new SettableClock(LocalDateTime.of(2018, 1, 25, 12, 24, 0))
   val photo1 = Photo(
     id = 1,

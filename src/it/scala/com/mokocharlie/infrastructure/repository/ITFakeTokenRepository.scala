@@ -6,13 +6,13 @@ import java.time.{Clock, Instant}
 import com.mokocharlie.domain.Token
 import com.mokocharlie.domain.common.ServiceResponse.RepositoryResponse
 import com.mokocharlie.infrastructure.repository.common.JdbcRepository
-import com.mokocharlie.service.TestFixtures
+import com.mokocharlie.service.ITTestFixtures
 import com.typesafe.config.Config
 
-class FakeTokenRepository(override val config: Config, override val clock: Clock)
+class ITFakeTokenRepository(override val config: Config, override val clock: Clock)
     extends TokenRepository
     with JdbcRepository
-    with TestFixtures {
+    with ITTestFixtures {
   val fakeToken =
     Token(
       "somestupidhasgofdatathatmakesnosense",
