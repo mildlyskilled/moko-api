@@ -123,9 +123,7 @@ object MokoModel {
 
 }
 
-final case class Password(value: String) {
-  override def toString: String = "<redacted>"
-}
+final case class Password(value: String)
 
 final case class Token(value: String, refreshToken: String, userId: Long, expiresAt: Timestamp)
 

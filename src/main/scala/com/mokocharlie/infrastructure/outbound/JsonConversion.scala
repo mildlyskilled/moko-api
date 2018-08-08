@@ -21,17 +21,6 @@ trait JsonConversion extends DefaultJsonProtocol {
     }
   }
 
-  implicit object PasswordFormat extends RootJsonFormat[Password] {
-    def write(obj: Password) = JsString(obj.toString)
-
-    def read(value: JsValue): Password = {
-      value.asJsObject.getFields("value") match {
-        case Seq(JsString(v)) ⇒ Password(v)
-        case _ ⇒ throw DeserializationException("Password expected")
-      }
-    }
-  }
-
   implicit object FavouriteFormat extends RootJsonFormat[FavouriteRequest] {
     def read(value: JsValue): FavouriteRequest = {
       value.asJsObject.getFields("user_id", "photo_id") match {
@@ -97,6 +86,7 @@ trait JsonConversion extends DefaultJsonProtocol {
   implicit val photoFormat = jsonFormat13(Photo)
   implicit val albumFormat = jsonFormat10(Album)
   implicit val commentFormat = jsonFormat6(Comment)
+  implicit val passwordFormat = jsonFormat1(Password)
   implicit val userFormat = jsonFormat10(User)
   implicit val favouriteFormat = jsonFormat4(Favourite)
   implicit val collectionFormat = jsonFormat8(Collection)

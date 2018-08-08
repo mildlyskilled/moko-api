@@ -23,19 +23,12 @@ class UserRouting(override val userService: UserService)(implicit system: ActorS
   implicit val ec: ExecutionContextExecutor = system.dispatcher
 
   val routes: Route = {
-    path("users" / LongNumber ~ Slash.?) { id =>
-     get {
-        headerValue(extractUserToken) { userFuture ⇒
-            val res = for {
-              u ← userFuture
-              f ← if (u.exists(_.isSuperuser)) userService.userById(id)
-              else Future.successful(Left(OperationDisallowed("You need to be a super user")))
-            } yield f
 
-            onSuccess(res) {
-              case Right(foundUser) ⇒ complete(foundUser)
-              case Left(error) ⇒ completeWithError(error)
-            }
+    path("users" / LongNumber) { id =>
+      get {
+        onSuccess(userService.userById(id)) {
+          case Right(foundUser) ⇒ complete(foundUser)
+          case Left(error) ⇒ completeWithError(error)
         }
       }
     } ~

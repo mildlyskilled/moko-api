@@ -28,7 +28,7 @@ class PhotoRouting(
 
   implicit val ec: ExecutionContextExecutor = system.dispatcher
 
-  var routes: Route = {
+  val routes: Route = {
     path("photos" ~ Slash.?) {
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) { (pageNumber, limit) ⇒
