@@ -34,7 +34,8 @@ class UserRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers wit
     val header = RawHeader("X-MOKO-UER-TOKEN", "testtoken")
     Get("/users/1").addHeader(header) ~> userRoutes ~> check {
       val user = responseAs[String].parseJson.convertTo[User]
-      user.firstName shouldBe "Kobby"
+      user.lastName shouldBe "Aning"
+      user.id shouldBe 1
     }
   }
 }
