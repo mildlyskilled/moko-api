@@ -23,7 +23,7 @@ class UserRouting(override val userService: UserService)(implicit system: ActorS
   implicit val ec: ExecutionContextExecutor = system.dispatcher
 
   val routes: Route = {
-    path("users" / LongNumber) { id =>
+    path("users" / LongNumber ~ Slash.?) { id =>
      get {
         headerValue(extractUserToken) { userFuture ⇒
             val res = for {
@@ -41,7 +41,7 @@ class UserRouting(override val userService: UserService)(implicit system: ActorS
     } ~
       path("auth" ~ Slash.?) {
         post {
-          entity(as[AuthRequest]) { (authRequest) ⇒
+          entity(as[AuthRequest]) { authRequest ⇒
             logger.info(s"Got request from ${authRequest.email}")
             onSuccess(userService.auth(authRequest.email, authRequest.password)) {
               case Right(token) ⇒ complete(token)

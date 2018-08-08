@@ -76,7 +76,7 @@ class DBUserRepository(override val config: Config)
           .single
           .apply()
           .map { pass ⇒
-            logger.info(s"${SecureHash.validatePassword(currentPassword, pass)}")
+            logger.info(s"Validate password: ${SecureHash.validatePassword(currentPassword, pass)}")
             SecureHash.validatePassword(currentPassword, pass)
           }
           .map { verified ⇒
