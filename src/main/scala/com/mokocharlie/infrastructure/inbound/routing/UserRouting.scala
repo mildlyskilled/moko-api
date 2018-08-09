@@ -26,10 +26,10 @@ class UserRouting(override val userService: UserService)(implicit system: ActorS
 
     path("users" / LongNumber) { id =>
       get {
-        optionalHeaderValue(extractUserToken) { userOption ⇒
-          userOption.map { userFuture ⇒
+        optionalHeaderValue(extractUserToken) { tokenResponse ⇒
+          tokenResponse.map { userFuture ⇒
             val res = for {
-              u ← userFuture
+              u ← userFuture.user
               f ← if (u.exists(_.isSuperuser)) userService.userById(id)
               else Future.successful(Left(OperationDisallowed("You need to be a super user")))
             } yield f

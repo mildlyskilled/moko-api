@@ -29,7 +29,7 @@ class UserServiceTest
   val fakeTokenRepo = new FakeTokenRepository(config, tokenClock)
   private val bearerTokenGenerator = new BearerTokenGenerator
   val userService = new UserService(userRepo, fakeTokenRepo, bearerTokenGenerator, clock)
-  private val dbTokenRepo = new DBTokenRepository(config)
+  private val dbTokenRepo = new DBTokenRepository(config, tokenClock)
   val uService2 = new UserService(userRepo, dbTokenRepo, bearerTokenGenerator, clock)
   var token: Token = _
 

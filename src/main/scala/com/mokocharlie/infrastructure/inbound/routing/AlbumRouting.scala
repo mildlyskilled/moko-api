@@ -24,11 +24,11 @@ class AlbumRouting(albumService: AlbumService, override val userService: UserSer
     path("albums") {
       get {
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) { (pageNumber, limit) ⇒
-          optionalHeaderValue(extractUserToken) { user ⇒
-            user
+          optionalHeaderValue(extractUserToken) { tokenResponse ⇒
+            tokenResponse
               .map { userResponse ⇒
                 val res = for {
-                  u ← userResponse
+                  u ← userResponse.user
                   albums ← albumService.list(
                     pageNumber,
                     limit,
@@ -51,12 +51,12 @@ class AlbumRouting(albumService: AlbumService, override val userService: UserSer
         }
       }
     } ~ path("albums" / LongNumber) { id =>
-      optionalHeaderValue(extractUserToken) { userResponse ⇒
-        userResponse
+      optionalHeaderValue(extractUserToken) { tokenResponse ⇒
+        tokenResponse
           .map { userFuture ⇒
             onSuccess(albumService.albumById(id)) {
               case Right(album) ⇒
-                userFuture.map {
+                userFuture.user.map {
                   case Right(u) if !album.published && u.isSuperuser ⇒
                     logger.info(s"${u.firstName} ${u.lastName} requested photo id: $id")
                     complete(album)

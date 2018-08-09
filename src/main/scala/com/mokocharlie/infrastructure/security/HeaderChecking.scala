@@ -1,19 +1,23 @@
 package com.mokocharlie.infrastructure.security
 
 import akka.http.scaladsl.model.HttpHeader
-import com.mokocharlie.domain.MokoModel.User
-import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
+import com.mokocharlie.domain.common.RequestEntity.TokenResponse
 import com.mokocharlie.infrastructure.inbound.routing.HttpUtils
 import com.mokocharlie.service.UserService
+import com.typesafe.scalalogging.StrictLogging
 
-trait HeaderChecking extends HttpUtils{
+trait HeaderChecking extends HttpUtils with StrictLogging {
 
   val userService: UserService
 
   val userToken = "X-MOKO-USER-TOKEN"
 
-  def extractUserToken: HttpHeader ⇒ Option[ServiceResponse[User]] = {
-    case HttpHeader(`userToken`, value) ⇒ Some(userService.userByToken(value))
-    case _ ⇒ None
+  def extractUserToken: HttpHeader ⇒ Option[TokenResponse] = {
+    case header if header.name == userToken ⇒
+      logger.info(s"Received token header  ${header.name} ${header.value}")
+      Some(TokenResponse(header.value, userService.userByToken(header.value)))
+    case wrongHeader ⇒
+      logger.info(s"Invalid token header received ${wrongHeader.name} ${wrongHeader.value}")
+      None
   }
 }

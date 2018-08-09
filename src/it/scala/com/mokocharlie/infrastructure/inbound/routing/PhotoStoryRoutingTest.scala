@@ -30,8 +30,8 @@ class PhotoStoryRoutingTest
   private val storyRepository = new DBStoryRepository(config)
   private val storyService = new StoryService(storyRepository)
   private val userRepository = new DBUserRepository(config)
-  private val tokenRepository = new DBTokenRepository(config)
   private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
+  private val tokenRepository = new DBTokenRepository(config, clock)
   implicit val userService: UserService =
     new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
   val storyRoute: Route = new StoryRouting(storyService, userService).routes

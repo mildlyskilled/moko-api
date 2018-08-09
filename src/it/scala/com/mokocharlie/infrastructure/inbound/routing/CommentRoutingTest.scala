@@ -30,8 +30,8 @@ class CommentRoutingTest
   private val commentRepository = new DBCommentRepository(config)
   private val commentService = new CommentService(commentRepository)
   private val userRepository = new DBUserRepository(config)
-  private val tokenRepository = new DBTokenRepository(config)
   private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
+  private val tokenRepository = new DBTokenRepository(config, clock)
   private val userService: UserService =
     new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
   val commentRouting = new CommentRouting(commentService, userService).routes

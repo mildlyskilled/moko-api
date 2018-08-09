@@ -33,8 +33,8 @@ class HospitalityRoutingTest
   private val photoService = new PhotoService(photoRepository, commentRepository)
   private val albumRepository = new DBAlbumRepository(config, photoRepository)
   private val albumService = new AlbumService(albumRepository, photoService)
-  private val tokenRepository = new DBTokenRepository(config)
   private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
+  private val tokenRepository = new DBTokenRepository(config, clock)
   implicit val userService: UserService =
     new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
   private val hospitalityRepo = new DBHospitalityRepository(config, albumRepository)

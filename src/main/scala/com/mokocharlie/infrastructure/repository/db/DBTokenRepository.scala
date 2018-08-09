@@ -1,6 +1,7 @@
 package com.mokocharlie.infrastructure.repository.db
 
 import java.sql.Timestamp
+import java.time.{Clock, Instant}
 
 import com.mokocharlie.domain.Token
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{DatabaseServiceError, EmptyResultSet}
@@ -11,7 +12,7 @@ import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
 import scalikejdbc._
 
-class DBTokenRepository(override val config: Config)
+class DBTokenRepository(override val config: Config, clock: Clock)
     extends TokenRepository
     with JdbcRepository
     with StrictLogging {
@@ -39,7 +40,7 @@ class DBTokenRepository(override val config: Config)
         sql"""
             $defaultSelect
             WHERE t.user_id = ${token.userId}
-            AND t.expires_at > now()
+            AND t.expires_at > ${Instant.now(clock)}
           """
           .map(toToken)
           .single

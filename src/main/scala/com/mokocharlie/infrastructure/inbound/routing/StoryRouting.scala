@@ -21,10 +21,10 @@ class StoryRouting(storyService: StoryService, override val userService: UserSer
   val routes: Route = {
     path("stories" ~ Slash.?) {
       parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) { (page, limit) ⇒
-        optionalHeaderValue(extractUserToken){ user ⇒
-          user.map{ userResponse ⇒
+        optionalHeaderValue(extractUserToken){ tokenResponse ⇒
+          tokenResponse.map{ token ⇒
             val res = for {
-              u ← userResponse
+              u ← token.user
               stories ← storyService.list(page, limit, userService.publishedFlag(u))
             } yield stories
 

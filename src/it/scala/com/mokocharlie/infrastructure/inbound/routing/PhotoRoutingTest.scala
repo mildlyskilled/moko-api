@@ -31,9 +31,9 @@ class PhotoRoutingTest extends FlatSpec with Matchers with ScalatestRouteTest wi
   private val commentRepo = new DBCommentRepository(config)
   private val commentService = new CommentService(commentRepo)
   private val userRepository = new DBUserRepository(config)
-  private val tokenRepository = new DBTokenRepository(config)
   private val photosService = new PhotoService(photoRepository, commentRepo)
   private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
+  private val tokenRepository = new DBTokenRepository(config, clock)
   implicit val userService: UserService =
     new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
   private val photoRoute =

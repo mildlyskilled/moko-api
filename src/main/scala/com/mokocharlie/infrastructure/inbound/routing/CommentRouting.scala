@@ -29,7 +29,7 @@ class CommentRouting(commentService: CommentService, override val userService: U
             user
               .map { userResponse ⇒
                 val res = for {
-                  u ← userResponse
+                  u ← userResponse.user
                   comments ← commentService.mostRecentComments(
                     pageNum,
                     limit,
@@ -65,9 +65,9 @@ class CommentRouting(commentService: CommentService, override val userService: U
         optionalHeaderValue(extractUserToken) { user ⇒
           {
             user
-              .map { userResponse ⇒
+              .map { tokenResponse ⇒
                 val res = for {
-                  u ← userResponse
+                  u ← tokenResponse.user
                   comments ← commentService.commentsByImage(
                     id,
                     pageNumber,
@@ -96,9 +96,9 @@ class CommentRouting(commentService: CommentService, override val userService: U
         optionalHeaderValue(extractUserToken) { user ⇒
           {
             user
-              .map { userResponse ⇒
+              .map { tokenResponse ⇒
                 val res = for {
-                  u ← userResponse
+                  u ← tokenResponse.user
                   comments ← commentService.commentsByAlbum(
                     id,
                     pageNumber,

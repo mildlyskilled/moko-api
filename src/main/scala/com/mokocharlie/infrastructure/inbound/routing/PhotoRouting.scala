@@ -34,9 +34,9 @@ class PhotoRouting(
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) { (pageNumber, limit) ⇒
           optionalHeaderValue(extractUserToken) { user ⇒
             user
-              .map { userResponse ⇒
+              .map { tokenResponse ⇒
                 val res = for {
-                  u ← userResponse
+                  u ← tokenResponse.user
                   photos ← photoService.list(pageNumber, limit, userService.publishedFlag(u))
                 } yield photos
 
@@ -56,12 +56,12 @@ class PhotoRouting(
         }
       }
     } ~ path("photos" / LongNumber) { id ⇒
-      optionalHeaderValue(extractUserToken) { userResponse ⇒
-        userResponse
+      optionalHeaderValue(extractUserToken) { tokenResponse ⇒
+        tokenResponse
           .map { userFuture ⇒
             onSuccess(photoService.photoById(id)) {
               case Right(photo) ⇒
-                userFuture.map {
+                userFuture.user.map {
                   case Right(u) if !photo.published && u.isSuperuser ⇒
                     logger.info(s"${u.firstName} ${u.lastName} requested album id: $id")
                     complete(photo)
@@ -92,11 +92,11 @@ class PhotoRouting(
       {
         get {
           parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) { (pageNumber, limit) =>
-            optionalHeaderValue(extractUserToken) { userResponse ⇒
-              userResponse
+            optionalHeaderValue(extractUserToken) { tokenResponse ⇒
+              tokenResponse
                 .map { userFuture ⇒
                   val res = for {
-                    u ← userFuture
+                    u ← userFuture.user
                     photos ← photoService.photosByAlbum(
                       id,
                       pageNumber,

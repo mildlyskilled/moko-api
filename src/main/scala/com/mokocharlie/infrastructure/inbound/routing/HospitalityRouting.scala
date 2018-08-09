@@ -28,9 +28,9 @@ class HospitalityRouting(
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) { (page, limit) ⇒
           optionalHeaderValue(extractUserToken) { user ⇒
             user
-              .map { userResponse ⇒
+              .map { tokenResponse ⇒
                 val res = for {
-                  u ← userResponse
+                  u ← tokenResponse.user
                   h ← hospitalityService.featured(page, limit, userService.publishedFlag(u))
                 } yield h
 
@@ -52,9 +52,9 @@ class HospitalityRouting(
         parameters('page.as[Int] ? 1, 'limit.as[Int] ? 10) { (pageNumber, limit) ⇒
           optionalHeaderValue(extractUserToken) { user ⇒
             user
-              .map { userResponse ⇒
+              .map { tokenResponse ⇒
                 val res = for {
-                  u ← userResponse
+                  u ← tokenResponse.user
                   hospitality ← hospitalityType
                     .map { h ⇒
                       hospitalityService

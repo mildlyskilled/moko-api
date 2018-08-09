@@ -26,7 +26,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   private val favouriteService = new FavouriteService(favouriteRepository, clock)
   private val albumRepository = new DBAlbumRepository(config, photoRepository)
   private val userRepository = new DBUserRepository(config)
-  private val tokenRepository = new DBTokenRepository(config)
+  private val tokenRepository = new DBTokenRepository(config, Clock.systemUTC())
   private val userService =
     new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
   private val collectionRepository = new DBCollectionRepository(config)
