@@ -31,7 +31,7 @@ class UserRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers wit
   implicit val timeout: RouteTestTimeout = RouteTestTimeout(5.seconds dilated)
 
   it should "return a user response given an ID " in {
-    val header = RawHeader("X-MOKO-UER-TOKEN", "testtoken")
+    val header = RawHeader("X-MOKO-USER-TOKEN", "testtoken")
     Get("/users/1").addHeader(header) ~> userRoutes ~> check {
       val user = responseAs[String].parseJson.convertTo[User]
       user.lastName shouldBe "Aning"
