@@ -3009,7 +3009,7 @@ LOCK TABLES `common_mokouser` WRITE;
 
 INSERT INTO `common_mokouser` (`id`, `password`, `last_login`, `is_superuser`, `email`, `first_name`, `last_name`, `is_staff`, `is_active`, `date_joined`)
 VALUES
-	(1,'pbkdf2_sha256$20000$jWeRcj2gilpv$Jm4YB8SUTPFuEj4HJFmME8HOdR1C4y3AT3536u882hI=','2015-12-29 11:28:18',1,'contact@kaning.co.uk','Kwabena','Aning',1,1,'2015-09-29 20:45:04'),
+	(1,'$pbkdf2-sha512$20000$/wdgi3vvtkRTAkpOdk32ybq1ouGtjNC/$aHWmPOAjgitn2lvLrtXznc/qhsRlsUbpAhzO1nyn.tM','2015-12-29 11:28:18',1,'contact@kaning.co.uk','Kwabena','Aning',1,1,'2015-09-29 20:45:04'),
 	(2,'pbkdf2_sha256$20000$5Fc8qbkwOMoV$C5pnlEKiJgShKsIH2sod9rQaJ9i0OhXX3FL7xCa6yoY=','2015-10-05 07:12:27',1,'kwakuchintoh@gmail.com','Kweku','Chintoh',1,1,'2015-09-29 20:45:04'),
 	(3,'d9bb086c23992caacb87bad05d7b01ad1991eed2','2015-09-29 20:45:04',0,'d9898@hotmail.com','richmond','chintoh',0,1,'2015-09-29 20:45:04'),
 	(4,'d318f44739dced66793b1a603028133a76ae680e','2015-09-29 20:45:04',0,'yeboahk@unaids.org','ken','yeboah',0,1,'2015-09-29 20:45:04'),
