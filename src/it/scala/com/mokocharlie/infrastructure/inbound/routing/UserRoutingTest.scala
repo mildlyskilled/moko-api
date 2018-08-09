@@ -38,6 +38,7 @@ class UserRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers wit
     val authRequest = RequestEntity.AuthRequest("kwabena.aning@gmail.com", "newPassword")
     val authEntity = HttpEntity(MediaTypes.`application/json`, authRequest.toJson.toString)
     Post("/auth").withEntity(authEntity) ~> userRoutes ~> check {
+      println(responseAs[String])
       val receivedToken = responseAs[String].parseJson.convertTo[Token]
       response.status shouldBe StatusCodes.OK
       token = receivedToken.value
