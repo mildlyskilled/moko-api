@@ -71,16 +71,17 @@ class DBTokenRepository(override val config: Config, clock: Clock)
   override def refresh(refresh: String, threshold: Timestamp): RepositoryResponse[Token] =
     writeTransaction(3, "Could not refresh token") { implicit session ⇒
       try {
+        // you have to refresh the token before it expires
         sql"""
             $defaultSelect
             WHERE t.refresh = $refresh
-            AND t.expires_at < $threshold
+            AND t.expires_at > $threshold
         """
           .map(toToken)
           .single
           .apply()
           .map { token ⇒
-            val newExpiry = Timestamp.from(threshold.toInstant.plusSeconds(15 * 60))
+            val newExpiry = Timestamp.valueOf(token.expiresAt.toLocalDateTime.plusMinutes(15))
             val res =
               sql"""
               UPDATE common_token SET
