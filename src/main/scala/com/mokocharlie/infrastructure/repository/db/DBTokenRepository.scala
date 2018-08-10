@@ -74,7 +74,7 @@ class DBTokenRepository(override val config: Config, clock: Clock)
         sql"""
             $defaultSelect
             WHERE t.refresh = $refresh
-            AND t.expires_at > $threshold
+            AND t.expires_at < $threshold
         """
           .map(toToken)
           .single
