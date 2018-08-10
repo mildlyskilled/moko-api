@@ -13,11 +13,11 @@ trait HeaderChecking extends HttpUtils with StrictLogging {
   val userToken = "X-MOKO-USER-TOKEN"
 
   def extractUserToken: HttpHeader ⇒ Option[TokenResponse] = {
-    case header if header.name == userToken ⇒
+    case header if header.name.toUpperCase == userToken ⇒
       logger.info(s"Received token header  ${header.name} ${header.value}")
       Some(TokenResponse(header.value, userService.userByToken(header.value)))
     case wrongHeader ⇒
-      logger.info(s"Invalid token header received ${wrongHeader.name} ${wrongHeader.value}")
+      logger.info(s"Ignoring ${wrongHeader.name} ${wrongHeader.value}")
       None
   }
 }
