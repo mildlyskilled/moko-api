@@ -80,7 +80,7 @@ class DBTokenRepository(override val config: Config, clock: Clock)
           .single
           .apply()
           .map { token ⇒
-            val newExpiry = Timestamp.valueOf(token.expiresAt.toLocalDateTime.plusMinutes(15))
+            val newExpiry = Timestamp.from(threshold.toInstant.plusSeconds(15 * 60))
             val res =
               sql"""
               UPDATE common_token SET
