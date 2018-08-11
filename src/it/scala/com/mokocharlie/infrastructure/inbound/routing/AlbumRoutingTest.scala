@@ -10,7 +10,12 @@ import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.SettableClock
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.repository.ITFakeTokenRepository
-import com.mokocharlie.infrastructure.repository.db.{DBAlbumRepository, DBCommentRepository, DBPhotoRepository, DBUserRepository}
+import com.mokocharlie.infrastructure.repository.db.{
+  DBAlbumRepository,
+  DBCommentRepository,
+  DBPhotoRepository,
+  DBUserRepository
+}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.mokocharlie.service.{AlbumService, PhotoService, UserService}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -33,10 +38,13 @@ class AlbumRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers wi
   private val userRepository = new DBUserRepository(config)
   private val tokenRepository = new ITFakeTokenRepository(config, clock)
   implicit val userService: UserService =
-    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock, config.getInt("mokocharlie.auth.ttl-in-days"))
+    new UserService(
+      userRepository,
+      tokenRepository,
+      new BearerTokenGenerator,
+      clock,
+      config.getInt("mokocharlie.auth.token.ttl-in-days"))
   val albumRoute: Route = new AlbumRouting(albumService, userService).routes
-
-
 
   "Album route" should "return a list of albums" in {
     Get("/albums") ~> albumRoute ~> check {

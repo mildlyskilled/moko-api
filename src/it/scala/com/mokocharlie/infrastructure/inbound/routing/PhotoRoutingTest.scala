@@ -35,7 +35,12 @@ class PhotoRoutingTest extends FlatSpec with Matchers with ScalatestRouteTest wi
   private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
   private val tokenRepository = new DBTokenRepository(config, clock)
   implicit val userService: UserService =
-    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock, config.getInt("mokocharlie.auth.ttl-in-days"))
+    new UserService(
+      userRepository,
+      tokenRepository,
+      new BearerTokenGenerator,
+      clock,
+      config.getInt("mokocharlie.auth.token.ttl-in-days"))
   private val photoRoute =
     new PhotoRouting(photosService, commentService, clock, userService).routes
 
