@@ -8,7 +8,11 @@ import com.mokocharlie.domain.MokoModel.Comment
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.SettableClock
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.db.{DBCommentRepository, DBTokenRepository, DBUserRepository}
+import com.mokocharlie.infrastructure.repository.db.{
+  DBCommentRepository,
+  DBTokenRepository,
+  DBUserRepository
+}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.mokocharlie.service.{CommentService, UserService}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -33,7 +37,12 @@ class CommentRoutingTest
   private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
   private val tokenRepository = new DBTokenRepository(config, clock)
   private val userService: UserService =
-    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock, config.getInt("mokocharlie.auth.ttl-in-days"))
+    new UserService(
+      userRepository,
+      tokenRepository,
+      new BearerTokenGenerator,
+      clock,
+      config.getInt("mokocharlie.auth.token.ttl-in-days"))
   val commentRouting = new CommentRouting(commentService, userService).routes
 
   "Comment Route" should "retrieve most recent comments" in {

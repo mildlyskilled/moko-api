@@ -9,7 +9,11 @@ import com.mokocharlie.domain.MokoModel.Story
 import com.mokocharlie.domain.Page
 import com.mokocharlie.domain.common.SettableClock
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.db.{DBStoryRepository, DBTokenRepository, DBUserRepository}
+import com.mokocharlie.infrastructure.repository.db.{
+  DBStoryRepository,
+  DBTokenRepository,
+  DBUserRepository
+}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.mokocharlie.service.{StoryService, UserService}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -33,7 +37,12 @@ class PhotoStoryRoutingTest
   private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
   private val tokenRepository = new DBTokenRepository(config, clock)
   implicit val userService: UserService =
-    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock, config.getInt("mokocharlie.auth.ttl-in-days"))
+    new UserService(
+      userRepository,
+      tokenRepository,
+      new BearerTokenGenerator,
+      clock,
+      config.getInt("mokocharlie.auth.token.ttl-in-days"))
   val storyRoute: Route = new StoryRouting(storyService, userService).routes
 
   "Story route" should "Return a list of stories" in {
