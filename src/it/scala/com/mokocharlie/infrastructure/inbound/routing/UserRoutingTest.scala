@@ -29,7 +29,8 @@ class UserRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers wit
     userRepository,
     new DBTokenRepository(config, clock),
     new BearerTokenGenerator(),
-    clock)
+    clock,
+    config.getInt("mokocharlie.auth.ttl-in-days"))
   val userRoutes: Route = new UserRouting(userService).routes
   implicit val timeout: RouteTestTimeout = RouteTestTimeout(5.seconds dilated)
   var token = ""

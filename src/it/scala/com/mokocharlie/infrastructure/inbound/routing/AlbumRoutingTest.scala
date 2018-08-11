@@ -33,7 +33,7 @@ class AlbumRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers wi
   private val userRepository = new DBUserRepository(config)
   private val tokenRepository = new ITFakeTokenRepository(config, clock)
   implicit val userService: UserService =
-    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
+    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock, config.getInt("mokocharlie.auth.ttl-in-days"))
   val albumRoute: Route = new AlbumRouting(albumService, userService).routes
 
 

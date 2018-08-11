@@ -28,7 +28,12 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   private val userRepository = new DBUserRepository(config)
   private val tokenRepository = new DBTokenRepository(config, Clock.systemUTC())
   private val userService =
-    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
+    new UserService(
+      userRepository,
+      tokenRepository,
+      new BearerTokenGenerator,
+      clock,
+      config.getInt("mokocharlie.auth.token.ttl-in-days"))
   private val collectionRepository = new DBCollectionRepository(config)
   private val videoRepository = new VideoRepository {} // todo
   private val documentaryRepository = new DocumentaryRepository {} //todo
@@ -41,7 +46,8 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   private val hospitalityRepository = new DBHospitalityRepository(config, albumRepository)
   private val contactRepository = new DBContactRepository(config)
   private val contactService = new ContactService(contactRepository)
-  private val hospitalityService = new HospitalityService(hospitalityRepository, contactService, albumService)
+  private val hospitalityService =
+    new HospitalityService(hospitalityRepository, contactService, albumService)
 
   private val healthCheckService = new HealthCheckService(new DBHealthCheck(config))
 

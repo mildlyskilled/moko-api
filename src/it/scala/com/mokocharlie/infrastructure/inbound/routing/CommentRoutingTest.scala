@@ -33,7 +33,7 @@ class CommentRoutingTest
   private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
   private val tokenRepository = new DBTokenRepository(config, clock)
   private val userService: UserService =
-    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
+    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock, config.getInt("mokocharlie.auth.ttl-in-days"))
   val commentRouting = new CommentRouting(commentService, userService).routes
 
   "Comment Route" should "retrieve most recent comments" in {

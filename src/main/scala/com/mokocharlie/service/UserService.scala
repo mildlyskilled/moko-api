@@ -1,7 +1,7 @@
 package com.mokocharlie.service
 
 import java.sql.Timestamp
-import java.time.{Clock, Instant}
+import java.time.{Clock, Instant, LocalDateTime}
 
 import akka.actor.ActorSystem
 import com.mokocharlie.domain.MokoModel.User
@@ -16,7 +16,8 @@ class UserService(
     repo: UserRepository,
     tokenRepo: TokenRepository,
     tokenGenerator: BearerTokenGenerator,
-    clock: Clock)(implicit override val system: ActorSystem)
+    clock: Clock,
+    tokenTtl: Int)(implicit override val system: ActorSystem)
     extends MokoCharlieService {
 
   def list(page: Int, limit: Int): ServiceResponse[Page[User]] =
@@ -52,8 +53,9 @@ class UserService(
         .flatMap { u ⇒
           val toke = tokenGenerator.generateSHAToken("moko")
           val refresh = tokenGenerator.generateSHAToken(toke)
+          val ttl = LocalDateTime.now(clock).plusDays(tokenTtl)
           tokenRepo.store(
-            Token(toke, refresh, u.id, Timestamp.from(Instant.now(clock).plusSeconds(15 * 60))))
+            Token(toke, refresh, u.id, Timestamp.valueOf(ttl)))
         }
     }
 

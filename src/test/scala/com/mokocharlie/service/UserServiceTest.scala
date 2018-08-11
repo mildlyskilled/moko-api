@@ -25,12 +25,22 @@ class UserServiceTest
   implicit val system: ActorSystem = ActorSystem("test-system")
   implicit val ec: ExecutionContext = system.dispatcher
   val userRepo = new DBUserRepository(config)
-  val tokenClock: SettableClock =  new SettableClock(LocalDateTime.of(2018, 1, 26, 12, 24, 0))
+  val tokenClock: SettableClock = new SettableClock(LocalDateTime.of(2018, 1, 26, 12, 24, 0))
   val fakeTokenRepo = new FakeTokenRepository(config, tokenClock)
   private val bearerTokenGenerator = new BearerTokenGenerator
-  val userService = new UserService(userRepo, fakeTokenRepo, bearerTokenGenerator, clock)
+  val userService = new UserService(
+    userRepo,
+    fakeTokenRepo,
+    bearerTokenGenerator,
+    clock,
+    config.getInt("mokocharlie.auth.token.ttl-in-days"))
   private val dbTokenRepo = new DBTokenRepository(config, tokenClock)
-  val uService2 = new UserService(userRepo, dbTokenRepo, bearerTokenGenerator, clock)
+  val uService2 = new UserService(
+    userRepo,
+    dbTokenRepo,
+    bearerTokenGenerator,
+    clock,
+    config.getInt("mokocharlie.auth.token.ttl-in-days"))
   var token: Token = _
 
   behavior of "UserService"
@@ -87,20 +97,20 @@ class UserServiceTest
 
   it should "return a token given the correct username and password" in {
     userService.auth(user1.email, "newPassword").map {
-      case Right(authToken) ⇒  authToken shouldBe fakeTokenRepo.fakeToken
+      case Right(authToken) ⇒ authToken shouldBe fakeTokenRepo.fakeToken
       case Left(ex) ⇒ fail(s"An auth token should be returned ${ex.msg}")
     }
   }
 
   it should "not authenticate given an incorrect username and password" in {
-    userService.auth(user1.email, "wrongPassword").map{
+    userService.auth(user1.email, "wrongPassword").map {
       case Right(x) ⇒ fail(s"This should not have succeeded $x")
       case Left(ex) ⇒ ex shouldBe AuthenticationError("Invalid credentials provided")
     }
   }
 
   it should "validate a token" in {
-    userService.validateToken(fakeTokenRepo.fakeToken.value).map{
+    userService.validateToken(fakeTokenRepo.fakeToken.value).map {
       case Right(v) ⇒ v shouldBe true
       case Left(ex) ⇒ fail(s"Could not validate toke $ex")
     }
@@ -110,16 +120,16 @@ class UserServiceTest
     uService2.auth(user1.email, "newPassword").flatMap {
       case Right(t) ⇒
         token = t
-        uService2.validateToken(t.value).map{
-        case Right(v) ⇒ v shouldBe true
-        case Left(ex) ⇒ fail(s"This token should have been validated ${ex.msg}")
-      }
+        uService2.validateToken(t.value).map {
+          case Right(v) ⇒ v shouldBe true
+          case Left(ex) ⇒ fail(s"This token should have been validated ${ex.msg}")
+        }
       case Left(ex) ⇒ fail(s"Could not authenticate this user ${ex.msg}")
     }
   }
 
   it should "refresh tokens in" in {
-    uService2.refreshToken(token.refreshToken).map{
+    uService2.refreshToken(token.refreshToken).map {
       case Right(newToken) ⇒
         newToken.value shouldBe token.value
         newToken.expiresAt.after(token.expiresAt) shouldBe true
@@ -128,7 +138,7 @@ class UserServiceTest
   }
 
   it should "retrieve a user given a token" in {
-    uService2.userByToken(token.value).map{
+    uService2.userByToken(token.value).map {
       case Right(user) ⇒
         user.id shouldBe user1.id
         user.email shouldBe user1.email
@@ -137,7 +147,7 @@ class UserServiceTest
   }
 
   it should "pass the appropriate flag into the user service publishedOnly field" in {
-    userService.userById(user1.id).map{
+    userService.userById(user1.id).map {
       case Right(user) ⇒
         userService.publishedFlag(Right(user)) shouldBe None
         userService.publishedFlag(Right(user.copy(isSuperuser = false))) shouldBe Some(true)

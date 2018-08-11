@@ -36,7 +36,7 @@ class HospitalityRoutingTest
   private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
   private val tokenRepository = new DBTokenRepository(config, clock)
   implicit val userService: UserService =
-    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock)
+    new UserService(userRepository, tokenRepository, new BearerTokenGenerator, clock, config.getInt("mokocharlie.auth.ttl-in-days"))
   private val hospitalityRepo = new DBHospitalityRepository(config, albumRepository)
   val hospitalityService = new HospitalityService(hospitalityRepo, contactService, albumService)
 

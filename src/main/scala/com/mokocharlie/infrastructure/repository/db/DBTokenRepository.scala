@@ -17,6 +17,8 @@ class DBTokenRepository(override val config: Config, clock: Clock)
     with JdbcRepository
     with StrictLogging {
 
+  val ttl = config.getInt("mokocharlie.auth.token.ttl-in-days")
+
   def check(token: String): RepositoryResponse[Token] =
     readOnlyTransaction { implicit session ⇒
       try {
@@ -81,7 +83,7 @@ class DBTokenRepository(override val config: Config, clock: Clock)
           .single
           .apply()
           .map { token ⇒
-            val newExpiry = Timestamp.valueOf(token.expiresAt.toLocalDateTime.plusMinutes(15))
+            val newExpiry = Timestamp.valueOf(token.expiresAt.toLocalDateTime.plusDays(ttl))
             val res =
               sql"""
               UPDATE common_token SET
