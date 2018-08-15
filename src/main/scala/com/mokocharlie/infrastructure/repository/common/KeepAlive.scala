@@ -16,14 +16,11 @@ class KeepAlive(hc: HealthCheckService)(
   def run(delay: FiniteDuration, interval: FiniteDuration): Unit =
     Source
       .tick(delay, interval, ())
-      .map(_ ⇒ hc.healthCheck).log("HEALTHCHECK")
-      .mapAsync(1)(res ⇒
-        res.map {
-          case Right(status) ⇒
-            val checkStatus = if (status) "success" else "failure"
-            s"Connection check resulted in [$checkStatus]"
-          case Left(ex) ⇒
-            s"Connection check failed [${ex.msg}]"
-      }).log("HEALTHCHECK")
-      .runForeach(s ⇒ logger.info(s))
+      .map(_ ⇒ hc.healthCheck)
+      .mapAsync(1)(res ⇒ res)
+      .runForeach {
+        case Right(_) ⇒ _
+        case Left(ex) ⇒
+          logger.info(s"Connection check failed [${ex.msg}]")
+      }
 }
