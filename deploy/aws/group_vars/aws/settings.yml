@@ -1,5 +1,5 @@
 aws_region: us-east-1
-internal_ami_id: ami-0298b6bb37548e72e
+internal_ami_id: ami-026f2a8e054e43f68
 aws_access_key: "{{vault_aws_access_key}}"
 aws_secret_key: "{{vault_aws_secret_key}}"
 aws_key_pair: "{{vault_aws_key_pair}}"
