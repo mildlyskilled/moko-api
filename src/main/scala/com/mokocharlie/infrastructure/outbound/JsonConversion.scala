@@ -23,14 +23,14 @@ trait JsonConversion extends DefaultJsonProtocol {
 
   implicit object FavouriteFormat extends RootJsonFormat[FavouriteRequest] {
     def read(value: JsValue): FavouriteRequest = {
-      value.asJsObject.getFields("user_id", "photo_id") match {
+      value.asJsObject.getFields("userId", "photoId") match {
         case Seq(JsString(uid), JsString(pid)) ⇒ FavouriteRequest(uid.toLong, pid.toLong)
         case _ ⇒ throw DeserializationException(s"malformed favourite payload $value")
       }
     }
 
     def write(obj: FavouriteRequest): JsValue = {
-      JsObject(Map("user_id" → JsNumber(obj.userId), "photo_iud" → JsNumber(obj.photoId)))
+      JsObject(Map("userId" → JsNumber(obj.userId), "photoId" → JsNumber(obj.photoId)))
     }
   }
 

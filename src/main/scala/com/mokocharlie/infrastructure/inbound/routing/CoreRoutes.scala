@@ -60,7 +60,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   } ~ {
     new HealthCheckRouting(healthCheckService).routes
   } ~ {
-    new FavouriteRouting(favouriteService).routes
+    new FavouriteRouting(favouriteService, userService).routes
   } ~ {
     new CommentRouting(commentService, userService).routes
   } ~ {

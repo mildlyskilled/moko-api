@@ -30,8 +30,8 @@ class UserRouting(override val userService: UserService)(implicit system: ActorS
           tokenResponse.map { userFuture ⇒
             val res = for {
               u ← userFuture.user
-              f ← if (u.exists(_.isSuperuser)) userService.userById(id)
-              else Future.successful(Left(OperationDisallowed("You need to be a super user")))
+              f ← if (u.exists(_.isSuperuser) || u.exists(_.id == id )) userService.userById(id)
+              else Future.successful(Left(OperationDisallowed("You need to be a super user or own this account to access this data")))
             } yield f
 
             onSuccess(res) {
