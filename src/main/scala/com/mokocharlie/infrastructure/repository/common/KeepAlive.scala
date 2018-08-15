@@ -19,7 +19,7 @@ class KeepAlive(hc: HealthCheckService)(
       .map(_ ⇒ hc.healthCheck)
       .mapAsync(1)(res ⇒ res)
       .runForeach {
-        case Right(_) ⇒ _
+        case Right(_) ⇒
         case Left(ex) ⇒
           logger.info(s"Connection check failed [${ex.msg}]")
       }
