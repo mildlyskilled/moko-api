@@ -36,7 +36,7 @@ class DBFavouriteRepository(override val config: Config)
   def addFavourite(userId: Long, photoId: Long, createdAt: Timestamp): RepositoryResponse[Long] =
     writeTransaction(3, "Could not add to favourites") { implicit session ⇒
       try {
-        sql"COUNT(id) AS count FROM common_favourite WHERE user_id = $userId AND photo_id = $photoId"
+        sql"SELECT COUNT(id) AS count FROM common_favourite WHERE user_id = $userId AND photo_id = $photoId"
           .map(rs ⇒ rs.int("count"))
           .single
           .apply().collect{
