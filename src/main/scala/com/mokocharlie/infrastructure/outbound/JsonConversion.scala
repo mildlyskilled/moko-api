@@ -24,7 +24,7 @@ trait JsonConversion extends DefaultJsonProtocol {
   implicit object FavouriteFormat extends RootJsonFormat[FavouriteRequest] {
     def read(value: JsValue): FavouriteRequest = {
       value.asJsObject.getFields("userId", "photoId") match {
-        case Seq(JsString(uid), JsString(pid)) ⇒ FavouriteRequest(uid.toLong, pid.toLong)
+        case Seq(JsNumber(uid), JsNumber(pid)) ⇒ FavouriteRequest(uid.toLong, pid.toLong)
         case _ ⇒ throw DeserializationException(s"malformed favourite payload $value")
       }
     }
