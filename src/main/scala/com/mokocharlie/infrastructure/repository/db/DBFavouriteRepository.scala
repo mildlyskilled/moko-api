@@ -40,7 +40,7 @@ class DBFavouriteRepository(override val config: Config)
           .map(rs ⇒ rs.int("count"))
           .single
           .apply().collect{
-            case _ > 0 ⇒ Left(DatabaseServiceError("This user already has this photo in favourites"))
+            case count if count > 0 ⇒ Left(DatabaseServiceError("This photo already exists in user favourites"))
           }.getOrElse {
             Right {
               sql"""INSERT INTO common_favourite (photo_id, user_id, created_at)

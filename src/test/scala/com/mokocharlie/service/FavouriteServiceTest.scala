@@ -24,7 +24,7 @@ class FavouriteServiceTest extends AsyncFlatSpec with TestDBUtils with TestFixtu
 
   it should "not add a favourite if it already exists" in {
     favouriteService.addFavourite(favourite1.user.id, favourite1.photo.id).map {
-      case Right(id) ⇒ id shouldBe 1
+      case Left(ex) ⇒ ex.msg shouldBe "This photo already exists in user favourites"
       case Left(ex) ⇒ fail(s"a favourite should be added ${ex.msg}")
     }
   }
