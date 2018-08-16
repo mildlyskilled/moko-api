@@ -62,7 +62,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   } ~ {
     new FavouriteRouting(favouriteService, userService).routes
   } ~ {
-    new CommentRouting(commentService, userService).routes
+    new CommentRouting(commentService, userService, photoService, clock).routes
   } ~ {
     new PhotoRouting(photoService, commentService, clock, userService).routes
   } ~ {

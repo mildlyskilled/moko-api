@@ -9,6 +9,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.mokocharlie.domain.MokoModel.Comment
+import com.mokocharlie.domain.common.MokoCharlieServiceError.{APIError, EmptyResultSet, UnknownError}
 import com.mokocharlie.domain.common.RequestEntity.CommentRequest
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.security.HeaderChecking
@@ -16,8 +17,11 @@ import com.mokocharlie.service.{CommentService, PhotoService, UserService}
 
 import scala.concurrent.ExecutionContextExecutor
 
-class CommentRouting(commentService: CommentService, override val userService: UserService, photoService: PhotoService, clock: Clock)(
-    implicit val system: ActorSystem)
+class CommentRouting(
+    commentService: CommentService,
+    override val userService: UserService,
+    photoService: PhotoService,
+    clock: Clock)(implicit val system: ActorSystem)
     extends SprayJsonSupport
     with HttpUtils
     with HeaderChecking {
@@ -127,20 +131,32 @@ class CommentRouting(commentService: CommentService, override val userService: U
       }
     }
   } ~ path("comments") {
-    post {entity(as[CommentRequest]) { commentRequest ⇒
-      optionalHeaderValue(extractUserToken) {user ⇒
-        user.map { tokenResponse ⇒
-          val res = for {
-            user ← tokenResponse.user
-            photo ← photoService.photoById(commentRequest.photoId)
-            post ← commentService.createOrUpdate(Comment(0l, photo, commentRequest.comment,commentRequest.author, Timestamp.from(Instant.now(clock)), true)) if (user.exists(_.id == commentRequest.userId))
-          } yield post
+    post {
+      entity(as[CommentRequest]) { commentRequest ⇒
+        optionalHeaderValue(extractUserToken) { user ⇒
+          user.map { tokenResponse ⇒
+            onSuccess(photoService.photoById(commentRequest.photoId)) {
+              case Right(photo) ⇒
+                val res = for {
+                  user ← tokenResponse.user
+                  post ←
+                    commentService.createOrUpdate(Comment(
+                      0l,
+                      photo,
+                      commentRequest.comment,
+                      commentRequest.author,
+                      Timestamp.from(Instant.now(clock)),
+                      approved = true))
+                  if user.exists(_.id == commentRequest.userId)
+                } yield post
 
-          onSuccess(res) {
-            case Right(id) ⇒ complete(StatusCodes.Accepted, s"Posted comment $id")
-            case Left(error) ⇒ completeWithError(error)
-          }
-        }
+                onSuccess(res) {
+                  case Right(id) ⇒ complete(StatusCodes.Accepted, s"Posted comment $id")
+                  case Left(error) ⇒ completeWithError(error)
+                }
+              case Left(error) ⇒ completeWithError(error)
+            }
+          }.getOrElse(completeWithError(EmptyResultSet("Invalid token supplied")))
         }
       }
     }

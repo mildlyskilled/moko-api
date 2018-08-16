@@ -2,19 +2,18 @@ package com.mokocharlie.infrastructure.inbound.routing
 
 import java.time.LocalDateTime
 
+import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{HttpEntity, MediaTypes, StatusCodes}
+import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.testkit.TestDuration
 import com.mokocharlie.domain.MokoModel.Comment
-import com.mokocharlie.domain.Page
-import com.mokocharlie.domain.common.SettableClock
+import com.mokocharlie.domain.{Page, Token}
+import com.mokocharlie.domain.common.{RequestEntity, SettableClock}
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.db.{
-  DBCommentRepository,
-  DBTokenRepository,
-  DBUserRepository
-}
+import com.mokocharlie.infrastructure.repository.db.{DBCommentRepository, DBPhotoRepository, DBTokenRepository, DBUserRepository}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
-import com.mokocharlie.service.{CommentService, UserService}
+import com.mokocharlie.service.{CommentService, PhotoService, UserService}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{FlatSpec, Matchers}
 import spray.json._
@@ -36,6 +35,8 @@ class CommentRoutingTest
   private val userRepository = new DBUserRepository(config)
   private val clock = new SettableClock(LocalDateTime.of(2018, 2, 13, 12, 50, 30))
   private val tokenRepository = new DBTokenRepository(config, clock)
+  private val photoRepository = new DBPhotoRepository(config)
+  private val photoService = new PhotoService(photoRepository, commentRepository)
   private val userService: UserService =
     new UserService(
       userRepository,
@@ -43,7 +44,10 @@ class CommentRoutingTest
       new BearerTokenGenerator,
       clock,
       config.getInt("mokocharlie.auth.token.ttl-in-days"))
-  val commentRouting = new CommentRouting(commentService, userService).routes
+  val commentRouting: Route = new CommentRouting(commentService, userService, photoService, clock).routes
+  val userRoutes: Route = new UserRouting(userService).routes
+
+  var token = "";
 
   "Comment Route" should "retrieve most recent comments" in {
     Get("/comments") ~> commentRouting ~> check {
@@ -76,6 +80,21 @@ class CommentRoutingTest
     Get("/comments/123") ~> commentRouting ~> check {
       val comment = responseAs[String].parseJson.convertTo[Comment]
       comment.id shouldBe 123
+    }
+  }
+
+  it should "post comments" in {
+    val authRequest = RequestEntity.AuthRequest("contact@kaning.co.uk", "dayl1ght")
+    val authEntity = HttpEntity(MediaTypes.`application/json`, authRequest.toJson.toString)
+    Post("/auth").withEntity(authEntity) ~> userRoutes ~> check {
+      val receivedToken = responseAs[String].parseJson.convertTo[Token]
+      response.status shouldBe StatusCodes.OK
+      token = receivedToken.value
+    }
+    val header = RawHeader("X-MOKO-USER-TOKEN", token)
+
+    Post("/comments").withEntity(authEntity).addHeader(header) ~> commentRouting ~> check{
+      println(responseAs[String])
     }
   }
 }
