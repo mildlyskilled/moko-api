@@ -102,8 +102,7 @@ class CommentRoutingTest
     val commentRequest = RequestEntity.CommentRequest(
       userId = 1,
       photoId = 1974,
-      comment = "Integration test",
-      author = "Kwabena Aning")
+      comment = "Integration test")
     val commentEntity = HttpEntity(MediaTypes.`application/json`, commentRequest.toJson.toString)
     Post("/comments").withEntity(commentEntity).addHeader(header) ~> commentRouting ~> check {
       response.status shouldBe StatusCodes.Accepted

@@ -99,7 +99,7 @@ trait JsonConversion extends DefaultJsonProtocol {
 
   // Request Serialisers
   implicit val authRequestFormat = jsonFormat2(AuthRequest)
-  implicit val commentRequestFormat = jsonFormat4(CommentRequest)
+  implicit val commentRequestFormat = jsonFormat3(CommentRequest)
 
   implicit val photoPageFormat = jsonFormat(Page[Photo], "items", "page", "offset", "total")
   implicit val albumPageFormat = jsonFormat(Page[Album], "items", "page", "offset", "total")

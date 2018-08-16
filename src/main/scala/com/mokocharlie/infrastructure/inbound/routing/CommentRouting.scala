@@ -15,7 +15,7 @@ import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.security.HeaderChecking
 import com.mokocharlie.service.{CommentService, PhotoService, UserService}
 
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 class CommentRouting(
     commentService: CommentService,
@@ -134,29 +134,34 @@ class CommentRouting(
     post {
       entity(as[CommentRequest]) { commentRequest ⇒
         optionalHeaderValue(extractUserToken) { user ⇒
-          user.map { tokenResponse ⇒
-            onSuccess(photoService.photoById(commentRequest.photoId)) {
-              case Right(photo) ⇒
-                val res = for {
-                  user ← tokenResponse.user
-                  post ←
-                    commentService.createOrUpdate(Comment(
-                      0l,
-                      photo,
-                      commentRequest.comment,
-                      commentRequest.author,
-                      Timestamp.from(Instant.now(clock)),
-                      approved = true))
-                  if user.exists(_.id == commentRequest.userId)
-                } yield post
+          user
+            .map { tokenResponse ⇒
+              onSuccess(photoService.photoById(commentRequest.photoId)) {
+                case Right(photo) ⇒
+                  val res = for {
+                    user ← tokenResponse.user
+                    post ← user match {
+                      case Right(u) ⇒
+                        commentService.createOrUpdate(
+                          Comment(
+                            0l,
+                            photo,
+                            commentRequest.comment,
+                            s"${u.firstName} ${u.lastName}",
+                            Timestamp.from(Instant.now(clock)),
+                            approved = true))
+                      case Left(error) ⇒ Future(Left(error))
+                    } if user.exists(_.id == commentRequest.userId)
+                  } yield post
 
-                onSuccess(res) {
-                  case Right(id) ⇒ complete(StatusCodes.Accepted, s"Posted comment $id")
-                  case Left(error) ⇒ completeWithError(error)
-                }
-              case Left(error) ⇒ completeWithError(error)
+                  onSuccess(res) {
+                    case Right(id) ⇒ complete(StatusCodes.Accepted, s"Posted comment $id")
+                    case Left(error) ⇒ completeWithError(error)
+                  }
+                case Left(error) ⇒ completeWithError(error)
+              }
             }
-          }.getOrElse(completeWithError(EmptyResultSet("Invalid token supplied")))
+            .getOrElse(completeWithError(EmptyResultSet("Invalid token supplied")))
         }
       }
     }
