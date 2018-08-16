@@ -8,10 +8,16 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.testkit.TestDuration
 import com.mokocharlie.domain.MokoModel.Comment
+import com.mokocharlie.domain.common.RequestEntity.CommentRequest
 import com.mokocharlie.domain.{Page, Token}
 import com.mokocharlie.domain.common.{RequestEntity, SettableClock}
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.db.{DBCommentRepository, DBPhotoRepository, DBTokenRepository, DBUserRepository}
+import com.mokocharlie.infrastructure.repository.db.{
+  DBCommentRepository,
+  DBPhotoRepository,
+  DBTokenRepository,
+  DBUserRepository
+}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.mokocharlie.service.{CommentService, PhotoService, UserService}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -44,7 +50,8 @@ class CommentRoutingTest
       new BearerTokenGenerator,
       clock,
       config.getInt("mokocharlie.auth.token.ttl-in-days"))
-  val commentRouting: Route = new CommentRouting(commentService, userService, photoService, clock).routes
+  val commentRouting: Route =
+    new CommentRouting(commentService, userService, photoService, clock).routes
   val userRoutes: Route = new UserRouting(userService).routes
 
   var token = "";
@@ -92,8 +99,13 @@ class CommentRoutingTest
       token = receivedToken.value
     }
     val header = RawHeader("X-MOKO-USER-TOKEN", token)
-
-    Post("/comments").withEntity(authEntity).addHeader(header) ~> commentRouting ~> check{
+    val commentRequest = RequestEntity.CommentRequest(
+      userId = 1,
+      photoId = 1974,
+      comment = "Integration test",
+      author = "Kwabena Aning")
+    val commentEntity = HttpEntity(MediaTypes.`application/json`, commentRequest.toJson.toString)
+    Post("/comments").withEntity(commentEntity).addHeader(header) ~> commentRouting ~> check {
       println(responseAs[String])
     }
   }
