@@ -1,12 +1,13 @@
 package com.mokocharlie.service
 
 import com.mokocharlie.domain.MailType.{MultiPart, Plain, Rich}
+import com.mokocharlie.domain.common.MokoCharlieServiceError
+import com.mokocharlie.domain.common.MokoCharlieServiceError.{MailError, UnknownError}
 import com.mokocharlie.domain.{Mail, MailConfig}
-import org.apache.commons.mail.EmailException
 
 class MailService(config: MailConfig) {
 
-  def send(mail: Mail): Either[EmailException, String] = {
+  def send(mail: Mail): Either[MokoCharlieServiceError, String] = {
     import org.apache.commons.mail._
 
     val format =
@@ -41,7 +42,8 @@ class MailService(config: MailConfig) {
         .send()
       Right("sent")
     } catch {
-        case ex: EmailException ⇒ Left(ex)
+        case ex: EmailException ⇒ Left(MailError(ex.getMessage))
+        case ex: Exception ⇒ Left(UnknownError(ex))
     }
 
   }

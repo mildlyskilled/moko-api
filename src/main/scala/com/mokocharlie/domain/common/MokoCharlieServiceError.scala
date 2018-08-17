@@ -20,4 +20,5 @@ object MokoCharlieServiceError {
   final case class AuthenticationError(msg: String) extends MokoCharlieServiceError
   final case class OperationDisallowed(msg: String) extends MokoCharlieServiceError
   final case class APIError(code: StatusCode, msg: String) extends Throwable with MokoCharlieServiceError
+  final case class MailError(msg: String) extends MokoCharlieServiceError
 }
