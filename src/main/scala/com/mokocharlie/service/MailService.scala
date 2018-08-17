@@ -40,7 +40,7 @@ class MailService(config: MailConfig) {
         .setFrom(mail.from.email, mail.from.name)
         .setSubject(mail.subject)
         .send()
-      Right("sent")
+      Right(s"Sent email via ${config.host}")
     } catch {
         case ex: EmailException ⇒ Left(MailError(ex.getMessage))
         case ex: Exception ⇒ Left(UnknownError(ex))
