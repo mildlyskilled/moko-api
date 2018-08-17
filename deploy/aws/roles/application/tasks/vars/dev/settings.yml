@@ -11,4 +11,4 @@ service_port: 8080
 smtp_username: "{{vault_smtp_username}}"
 smtp_password: "{{vault_smtp_password}}"
 smtp_host: "{{vault_smtp_host}}"
-smtp_use_tls: true
+smtp_use_tls: "true"
