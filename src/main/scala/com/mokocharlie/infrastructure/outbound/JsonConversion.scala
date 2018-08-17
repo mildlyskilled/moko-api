@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import com.mokocharlie.domain.MokoModel._
 import com.mokocharlie.domain.common.MokoCharlieServiceError
 import com.mokocharlie.domain.common.MokoCharlieServiceError.APIError
-import com.mokocharlie.domain.common.RequestEntity.{AuthRequest, CommentRequest, FavouriteRequest}
+import com.mokocharlie.domain.common.RequestEntity.{AuthRequest, CommentRequest, FavouriteRequest, PasswordResetRequest}
 import com.mokocharlie.domain._
 import spray.json._
 
@@ -100,6 +100,7 @@ trait JsonConversion extends DefaultJsonProtocol {
   // Request Serialisers
   implicit val authRequestFormat = jsonFormat2(AuthRequest)
   implicit val commentRequestFormat = jsonFormat3(CommentRequest)
+  implicit val passwordResetRequestFormat = jsonFormat1(PasswordResetRequest)
 
   implicit val photoPageFormat = jsonFormat(Page[Photo], "items", "page", "offset", "total")
   implicit val albumPageFormat = jsonFormat(Page[Album], "items", "page", "offset", "total")
