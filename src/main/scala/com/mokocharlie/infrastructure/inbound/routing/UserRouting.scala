@@ -2,18 +2,23 @@ package com.mokocharlie.infrastructure.inbound.routing
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
+import com.mokocharlie.domain.{Mail, MailRecipient}
 import com.mokocharlie.domain.common.MokoCharlieServiceError.OperationDisallowed
-import com.mokocharlie.domain.common.RequestEntity.AuthRequest
+import com.mokocharlie.domain.common.RequestEntity.{AuthRequest, PasswordResetRequest}
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.security.HeaderChecking
-import com.mokocharlie.service.UserService
+import com.mokocharlie.infrastructure.security.{HeaderChecking, RandomStringUtil}
+import com.mokocharlie.service.{MailService, UserService}
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.io.Source
+import scala.util.Random
 
-class UserRouting(override val userService: UserService)(implicit system: ActorSystem)
+class UserRouting(override val userService: UserService, mailService: MailService)(
+    implicit system: ActorSystem)
     extends SprayJsonSupport
     with HttpUtils
     with StrictLogging
@@ -27,20 +32,24 @@ class UserRouting(override val userService: UserService)(implicit system: ActorS
     path("users" / LongNumber) { id =>
       get {
         optionalHeaderValue(extractUserToken) { tokenResponse ⇒
-          tokenResponse.map { userFuture ⇒
-            val res = for {
-              u ← userFuture.user
-              f ← if (u.exists(_.isSuperuser) || u.exists(_.id == id )) userService.userById(id)
-              else Future.successful(Left(OperationDisallowed("You need to be a super user or own this account to access this data")))
-            } yield f
+          tokenResponse
+            .map { userFuture ⇒
+              val res = for {
+                u ← userFuture.user
+                f ← if (u.exists(_.isSuperuser) || u.exists(_.id == id)) userService.userById(id)
+                else
+                  Future.successful(Left(OperationDisallowed(
+                    "You need to be a super user or own this account to access this data")))
+              } yield f
 
-            onSuccess(res) {
-              case Right(foundUser) ⇒ complete(foundUser)
-              case Left(error) ⇒ completeWithError(error)
+              onSuccess(res) {
+                case Right(foundUser) ⇒ complete(foundUser)
+                case Left(error) ⇒ completeWithError(error)
+              }
             }
-          }.getOrElse(
-            completeWithError(OperationDisallowed("Could not retrieve user without a token"))
-          )
+            .getOrElse(
+              completeWithError(OperationDisallowed("Could not retrieve user without a token"))
+            )
         }
       }
     } ~
@@ -62,6 +71,25 @@ class UserRouting(override val userService: UserService)(implicit system: ActorS
             case Left(error) ⇒ completeWithError(error)
           }
         }
+      } ~ path("reset-password") {
+      post {
+        entity(as[PasswordResetRequest]) { passwordResetRequest: PasswordResetRequest ⇒
+          val newPassword = RandomStringUtil.randomStringRecursive(10).mkString
+
+          val content = Source
+            .fromResource("mail/password-reset.html")
+            .getLines
+            .mkString
+            .replace("{{tempPassword}}", newPassword)
+
+          val to = MailRecipient("Mokocharlie User", passwordResetRequest.email)
+          val from = MailRecipient("Mokocharlie Postman", "team@mokocharlie.com")
+
+          val mail = Mail(content, "Reset your password", to, from)
+          Future(mailService.send(mail))
+          complete(StatusCodes.Accepted,  "OK")
+        }
       }
+    }
   }
 }

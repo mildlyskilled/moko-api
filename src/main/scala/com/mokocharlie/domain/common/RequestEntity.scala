@@ -10,4 +10,5 @@ object RequestEntity {
   final case class FavouriteRequest(userId: Long, photoId: Long) extends RequestEntity
   final case class CommentRequest(userId: Long, photoId: Long, comment: String) extends RequestEntity
   final case class TokenResponse(token: String, user: ServiceResponse[User])
+  final case class PasswordResetRequest(email: String) extends RequestEntity
 }

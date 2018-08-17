@@ -14,7 +14,11 @@
       -Dmokocharlie.db.host={{db_host}}
       -Dmokocharlie.db.user={{db_user}}
       -Dmokocharlie.db.password={{db_password}}
-      -Dmokocharlie.db.dbName={{db_name}}'
+      -Dmokocharlie.db.dbName={{db_name}}
+      -Dmokocharlie.smtp.user={{smtp_username}}
+      -Dmokocharlie.smtp.password={{smtp_password}}
+      -Dmokocharlie.smtp.tls={{smtp_use_tls}}
+      -Dmokocharlie.smtp.host={{smtp_host}}'
 
 - name: Start application server
   script: "../scripts_bash/mokocharlie-api.sh {{commit_id}} '{{jvm_parameters}}'"

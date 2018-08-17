@@ -9,17 +9,12 @@ import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.testkit.TestDuration
 import com.mokocharlie.domain.MokoModel.Comment
 import com.mokocharlie.domain.common.RequestEntity.CommentRequest
-import com.mokocharlie.domain.{Page, Token}
+import com.mokocharlie.domain.{MailConfig, Page, Token}
 import com.mokocharlie.domain.common.{RequestEntity, SettableClock}
 import com.mokocharlie.infrastructure.outbound.JsonConversion
-import com.mokocharlie.infrastructure.repository.db.{
-  DBCommentRepository,
-  DBPhotoRepository,
-  DBTokenRepository,
-  DBUserRepository
-}
+import com.mokocharlie.infrastructure.repository.db.{DBCommentRepository, DBPhotoRepository, DBTokenRepository, DBUserRepository}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
-import com.mokocharlie.service.{CommentService, PhotoService, UserService}
+import com.mokocharlie.service.{CommentService, MailService, PhotoService, UserService}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{FlatSpec, Matchers}
 import spray.json._
@@ -52,7 +47,15 @@ class CommentRoutingTest
       config.getInt("mokocharlie.auth.token.ttl-in-days"))
   val commentRouting: Route =
     new CommentRouting(commentService, userService, photoService, clock).routes
-  val userRoutes: Route = new UserRouting(userService).routes
+  private val mailConfig = MailConfig(
+    config.getString("mokocharlie.smtp.host"),
+    config.getString("mokocharlie.smtp.user"),
+    config.getString("mokocharlie.smtp.password"),
+    config.getBoolean("mokocharlie.smtp.tls"),
+    config.getInt("mokocharlie.smtp.port")
+  )
+  private val mailService = new MailService(mailConfig)
+  val userRoutes: Route = new UserRouting(userService, mailService).routes
 
   var token = "";
 

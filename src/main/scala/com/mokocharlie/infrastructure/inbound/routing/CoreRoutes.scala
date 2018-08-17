@@ -4,18 +4,16 @@ import java.time.Clock
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.HttpMethods._
-import akka.http.scaladsl.model.headers.{
-  `Access-Control-Allow-Headers`,
-  `Access-Control-Allow-Methods`,
-  `Access-Control-Allow-Origin`
-}
+import akka.http.scaladsl.model.headers.{`Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Origin`}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Route, RouteConcatenation}
+import com.mokocharlie.domain.MailConfig
 import com.mokocharlie.infrastructure.repository._
 import com.mokocharlie.infrastructure.repository.db._
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
 import com.mokocharlie.service._
 import com.typesafe.config.Config
+
 import scala.collection.immutable.Seq
 
 class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
@@ -48,7 +46,14 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   private val contactService = new ContactService(contactRepository)
   private val hospitalityService =
     new HospitalityService(hospitalityRepository, contactService, albumService)
-
+  private val mailConfig = MailConfig(
+    config.getString("mokocharlie.smtp.host"),
+    config.getString("mokocharlie.smtp.user"),
+    config.getString("mokocharlie.smtp.password"),
+    config.getBoolean("mokocharlie.smtp.tls"),
+    config.getInt("mokocharlie.smtp.port")
+  )
+  private val mailService = new MailService(mailConfig)
   private val healthCheckService = new HealthCheckService(new DBHealthCheck(config))
 
   val applicationRoutes: Route = {
@@ -68,7 +73,7 @@ class CoreRoutes(config: Config, clock: Clock)(implicit system: ActorSystem)
   } ~ {
     new AlbumRouting(albumService, userService).routes
   } ~ {
-    new UserRouting(userService).routes
+    new UserRouting(userService, mailService).routes
   } ~ {
     new CollectionRouting(collectionService, albumService).routes
   } ~ {

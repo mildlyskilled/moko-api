@@ -154,3 +154,26 @@ case class HealthCheck(components: Map[String, String])
 object HealthCheck {
   def apply(components: Map[String, String]): HealthCheck = new HealthCheck(components)
 }
+
+sealed trait MailType
+object MailType {
+  case object Plain extends MailType
+  case object Rich extends MailType
+  case object MultiPart extends MailType
+}
+
+case class MailConfig(host: String, user: String, password: String, tls: Boolean, port: Int)
+
+case class MailRecipient(name: String, email: String) {
+  def format = s"$name <$email>"
+}
+
+case class Mail(
+    message: String,
+    subject: String,
+    to: MailRecipient,
+    from: MailRecipient,
+    cc: Seq[MailRecipient] = Seq.empty,
+    bcc: Seq[MailRecipient] = Seq.empty,
+    richMessage: Option[String] = None,
+    attachment: Option[java.io.File] = None)

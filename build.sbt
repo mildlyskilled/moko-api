@@ -24,8 +24,8 @@ libraryDependencies ++= {
     "org.slf4j" % "slf4j-api" % slf4jVersion,
     "org.slf4j" % "log4j-over-slf4j" % slf4jVersion,
     "org.codehaus.janino" % "janino" % "2.7.8",
-    //other 3rd party
-    "io.github.nremond" %% "pbkdf2-scala" % "0.6.3"
+    "io.github.nremond" %% "pbkdf2-scala" % "0.6.3",
+    "org.apache.commons" % "commons-email" % "1.2"
   )
 }
 

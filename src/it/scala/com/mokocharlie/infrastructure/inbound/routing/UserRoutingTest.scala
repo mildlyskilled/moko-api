@@ -12,11 +12,11 @@ import com.mokocharlie.domain.common.{RequestEntity, SettableClock}
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.repository.db.{DBTokenRepository, DBUserRepository}
 import com.mokocharlie.infrastructure.security.BearerTokenGenerator
-import com.mokocharlie.service.UserService
+import com.mokocharlie.service.{MailService, UserService}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{FlatSpec, Matchers}
 import akka.testkit.TestDuration
-import com.mokocharlie.domain.Token
+import com.mokocharlie.domain.{MailConfig, Token}
 
 import scala.concurrent.duration._
 import spray.json._
@@ -31,7 +31,15 @@ class UserRoutingTest extends FlatSpec with ScalatestRouteTest with Matchers wit
     new BearerTokenGenerator(),
     clock,
     config.getInt("mokocharlie.auth.token.ttl-in-days"))
-  val userRoutes: Route = new UserRouting(userService).routes
+  private val mailConfig = MailConfig(
+    config.getString("mokocharlie.smtp.host"),
+    config.getString("mokocharlie.smtp.user"),
+    config.getString("mokocharlie.smtp.password"),
+    config.getBoolean("mokocharlie.smtp.tls"),
+    config.getInt("mokocharlie.smtp.port")
+  )
+  private val mailService = new MailService(mailConfig)
+  val userRoutes: Route = new UserRouting(userService, mailService).routes
   implicit val timeout: RouteTestTimeout = RouteTestTimeout(5.seconds dilated)
   var token = ""
 
