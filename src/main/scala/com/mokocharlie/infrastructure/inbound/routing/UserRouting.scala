@@ -88,7 +88,7 @@ class UserRouting(override val userService: UserService, mailService: MailServic
           val mail = Mail(content, "Reset your password", to, from)
           mailService.send(mail) match {
             case Right(e) ⇒ complete(StatusCodes.Accepted, s"$e")
-            case Left(ex) ⇒ completeWithError(APIError(StatusCodes.InternalServerError, ex.getMessage))
+            case Left(ex) ⇒ completeWithError(ex)
           }
         }
       }
