@@ -1,13 +1,19 @@
 package com.mokocharlie.service
 
+import akka.actor.ActorSystem
 import com.mokocharlie.domain.MailType.{MultiPart, Plain, Rich}
 import com.mokocharlie.domain.common.MokoCharlieServiceError
 import com.mokocharlie.domain.common.MokoCharlieServiceError.{MailError, UnknownError}
+import com.mokocharlie.domain.common.ServiceResponse.ServiceResponse
 import com.mokocharlie.domain.{Mail, MailConfig}
 
-class MailService(config: MailConfig) {
+import scala.concurrent.{ExecutionContext, Future}
 
-  def send(mail: Mail): Either[MokoCharlieServiceError, String] = {
+class MailService(config: MailConfig)(implicit val system: ActorSystem) {
+
+  implicit val ec: ExecutionContext = system.dispatcher
+
+  def send(mail: Mail): ServiceResponse[String] = {
     import org.apache.commons.mail._
 
     val format =
@@ -35,15 +41,17 @@ class MailService(config: MailConfig) {
     commonsMail.setTLS(config.tls)
     commonsMail.setSmtpPort(config.port)
 
-    try {
-      commonsMail
-        .setFrom(mail.from.email, mail.from.name)
-        .setSubject(mail.subject)
-        .send()
-      Right(s"Sent email via ${config.host}")
-    } catch {
+    Future {
+      try {
+        commonsMail
+          .setFrom(mail.from.email, mail.from.name)
+          .setSubject(mail.subject)
+          .send()
+        Right(s"Sent email via ${config.host}")
+      } catch {
         case ex: EmailException ⇒ Left(MailError(ex.getMessage))
         case ex: Exception ⇒ Left(UnknownError(ex))
+      }
     }
 
   }

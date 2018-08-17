@@ -86,7 +86,7 @@ class UserRouting(override val userService: UserService, mailService: MailServic
           val from = MailRecipient("Mokocharlie Postman", "team@mokocharlie.com")
 
           val mail = Mail(content, "Reset your password", to, from)
-          mailService.send(mail) match {
+          onSuccess(mailService.send(mail)) {
             case Right(e) ⇒ complete(StatusCodes.Accepted, s"$e")
             case Left(ex) ⇒ completeWithError(ex)
           }
