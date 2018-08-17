@@ -1,11 +1,12 @@
 package com.mokocharlie.service
 
 import com.mokocharlie.domain.MailType.{MultiPart, Plain, Rich}
-import com.mokocharlie.domain.{Mail, MailConfig, MailRecipient}
+import com.mokocharlie.domain.{Mail, MailConfig}
+import org.apache.commons.mail.EmailException
 
 class MailService(config: MailConfig) {
 
-  def send(mail: Mail): Unit = {
+  def send(mail: Mail): Either[EmailException, String] = {
     import org.apache.commons.mail._
 
     val format =
@@ -33,10 +34,15 @@ class MailService(config: MailConfig) {
     commonsMail.setTLS(config.tls)
     commonsMail.setSmtpPort(config.port)
 
-    commonsMail
-      .setFrom(mail.from.email, mail.from.name)
-      .setSubject(mail.subject)
-      .send()
+    try {
+      commonsMail
+        .setFrom(mail.from.email, mail.from.name)
+        .setSubject(mail.subject)
+        .send()
+      Right("sent")
+    } catch {
+        case ex: EmailException ⇒ Left(ex)
+    }
 
   }
 }

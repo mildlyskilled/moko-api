@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import com.mokocharlie.domain.{Mail, MailRecipient}
-import com.mokocharlie.domain.common.MokoCharlieServiceError.OperationDisallowed
+import com.mokocharlie.domain.common.MokoCharlieServiceError.{APIError, OperationDisallowed, UnknownError}
 import com.mokocharlie.domain.common.RequestEntity.{AuthRequest, PasswordResetRequest}
 import com.mokocharlie.infrastructure.outbound.JsonConversion
 import com.mokocharlie.infrastructure.security.{HeaderChecking, RandomStringUtil}
@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.Source
-import scala.util.Random
+import scala.util.{Failure, Random, Success}
 
 class UserRouting(override val userService: UserService, mailService: MailService)(
     implicit system: ActorSystem)
@@ -86,8 +86,10 @@ class UserRouting(override val userService: UserService, mailService: MailServic
           val from = MailRecipient("Mokocharlie Postman", "team@mokocharlie.com")
 
           val mail = Mail(content, "Reset your password", to, from)
-          Future(mailService.send(mail))
-          complete(StatusCodes.Accepted,  "OK")
+          Future{mailService.send(mail)}.onComplete{
+            case Success(e) ⇒ complete(StatusCodes.Accepted, s"$e")
+            case Failure(ex) ⇒ completeWithError(APIError(StatusCodes.InternalServerError, ex.getMessage))
+          }
         }
       }
     }
