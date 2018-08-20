@@ -1,4 +1,4 @@
-box: pjvds/scala
+box: openjdk:jre-alpine
 build:
   steps:
   - script:
