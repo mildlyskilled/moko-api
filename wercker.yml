@@ -1,0 +1,9 @@
+box: pjvds/scala
+build:
+  steps:
+  - script:
+      name: test
+      code: sbt test
+  - script:
+      name: integration test
+      code: sbt it:test
