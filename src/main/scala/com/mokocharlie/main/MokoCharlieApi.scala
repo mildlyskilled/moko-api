@@ -39,6 +39,7 @@ object MokoCharlieApi extends App with CoreServices with StrictLogging {
   }
 
   println(s"Server online at http://$host:$port/\nType 'shutdown' to stop...")
+  println(s"Database config ${config.getString("mokocharlie.db.host")}")
   logger.info(s"Server online at http://$host:$port")
   Iterator.continually(StdIn.readLine).takeWhile(_ != "shutdown").foreach{ command ⇒
       if ( command != null) println(s"$command not recognised")

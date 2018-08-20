@@ -1,11 +1,18 @@
-FROM phusion/baseimage
+FROM openjdk:jre-alpine
 
-RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && add-apt-repository -y ppa:webupd8team/java && apt-get update && apt-get install -y oracle-java8-installer && rm -rf /var/lib/apt/lists/* && rm -rf /var/cache/oracle-jdk8-installer
-
-WORKDIR /srv
-
+WORKDIR srv
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+ENV mokochalie.db.host "localhost"
 
-ADD target/scala-2.12/mokocharlie-api-assembly-*.jar srv/
-CMD java -jar srv/mokocharile-api-assembly-*.jar
+COPY target/scala-2.12/mokocharlie-api-assembly-1.0.jar srv/
+
+ENTRYPOINT ["java", \
+"-Dmokocharlie.db.host=mdatabase.crmzwlm1cy8l.us-east-1.rds.amazonaws.com", \
+"-Dmokocharlie.db.user=mokocharlie", "-Dmokocharlie.db.password=bauladre", \
+"-Dmokocharlie.db.dbName=mokocharlie", \
+"-Dmokocharlie.smtp.user=postmaster@postman.mokocharlie.com", \
+"-Dmokocharlie.smtp.password=547bd3f5cd42c0119b1cbae100caeda9", \
+"-Dmokocharlie.smtp.host=smtp.mailgun.org", \
+"-jar", "srv/mokocharlie-api-assembly-1.0.jar" \
+]

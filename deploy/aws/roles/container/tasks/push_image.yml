@@ -1,0 +1,18 @@
+- name: ecr-repo
+  ecs_ecr: name="{{image_repo}}"
+  register: ecsrepo
+
+- name: ecs login
+  shell: "$(aws ecr get-login --no-include-email --region us-east-1)"
+
+- name: docker set tag
+  docker_image:
+    name: "{{ push_image }}"
+    repository: "{{ecrepo.repository.repositoryUri}}"
+    tag: "{{ image_repo }}:{{ repo_version }}"
+
+- name: docker push
+  docker_image:
+    name: "{{ecrepo.repository.repositoryUri}}:{{ repo_version }}"
+    tag: "{{ image_repo }}:{{ repo_version }}"
+    push: yes

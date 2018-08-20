@@ -7,6 +7,9 @@ vpc_id: vpc-9ae301e0
 vpc_subnet_id: subnet-5b6bcf75
 external_security_group: sg-0293b032889951140
 api_load_balancer: "moko-api-lb"
+image_repo: "thefaculty/mokocharlie-api"
+repo_version: "latest"
+push_image: "mokocharlie-api:latest"
 deploy_key: !vault |
             $ANSIBLE_VAULT;1.1;AES256
             34386330323636373237346562333831366461663639663939326632303061623963353835626337

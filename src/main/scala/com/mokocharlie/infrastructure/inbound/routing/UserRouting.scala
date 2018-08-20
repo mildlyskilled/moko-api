@@ -88,7 +88,9 @@ class UserRouting(override val userService: UserService, mailService: MailServic
           val mail = Mail(content, "Reset your password", to, from)
           onSuccess(mailService.send(mail)) {
             case Right(e) ⇒ complete(StatusCodes.Accepted, s"$e")
-            case Left(ex) ⇒ completeWithError(ex)
+            case Left(ex) ⇒
+              logger.error(s"Could not send reset mail: ${ex.msg}")
+              completeWithError(ex)
           }
         }
       }
